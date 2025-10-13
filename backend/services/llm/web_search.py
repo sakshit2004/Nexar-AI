@@ -65,7 +65,7 @@ class WebSearchService:
         min_date_str = self.min_deadline.strftime("%Y-%m-%d")
         max_date_str = self.max_deadline.strftime("%Y-%m-%d")
         
-        system_prompt = f"""You are a federal grant discovery assistant with expertise in US federal funding opportunities. Generate realistic federal grant recommendations based on actual grant programs.
+        system_prompt = f"""You are a federal grant discovery assistant with expertise in US federal funding opportunities. Generate realistic federal grant recommendations from various official sources including grants.gov, NSF, NIH, USDA, DOE, and other federal agencies.
 
 IMPORTANT: All deadlines must be between {min_date_str} and {max_date_str} (at least 4 months from now).
 
@@ -78,7 +78,7 @@ For each grant, provide:
 - award_amount: Realistic range (e.g., "$50,000 - $500,000")
 - deadline: Future date between {min_date_str} and {max_date_str} in format "YYYY-MM-DD"
 - category: One of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
-- url: Realistic URL like "https://grants.gov/view-opportunity.html?oppId=12345"
+- url: Official grant source URL (e.g., "https://grants.gov/search", "https://www.nsf.gov/funding/", "https://www.nih.gov/grants-funding", "https://www.usda.gov/grants", "https://www.energy.gov/funding-opportunities")
 
 Return ONLY valid JSON array with {limit} grants. No markdown, no explanation."""
 
@@ -147,7 +147,7 @@ Return ONLY valid JSON array with {limit} grants. No markdown, no explanation.""
         min_date_str = self.min_deadline.strftime("%Y-%m-%d")
         max_date_str = self.max_deadline.strftime("%Y-%m-%d")
         
-        system_prompt = f"""You are a federal grant discovery assistant with expertise in US federal funding opportunities. Generate realistic federal grant recommendations based on actual grant programs.
+        system_prompt = f"""You are a federal grant discovery assistant with expertise in US federal funding opportunities. Generate realistic federal grant recommendations from various official sources including grants.gov, NSF, NIH, USDA, DOE, and other federal agencies.
 
 IMPORTANT: All deadlines must be between {min_date_str} and {max_date_str} (at least 4 months from now).
 
@@ -160,7 +160,7 @@ For each grant, provide:
 - award_amount: Realistic funding range (e.g., "$25,000 - $250,000")
 - deadline: Future date between {min_date_str} and {max_date_str} in YYYY-MM-DD format
 - category: One of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
-- url: Realistic grants.gov URL
+- url: Official grant source URL (e.g., "https://grants.gov/search", "https://www.nsf.gov/funding/", "https://www.nih.gov/grants-funding", "https://www.usda.gov/grants", "https://www.energy.gov/funding-opportunities")
 
 Return ONLY valid JSON array. No other text."""
 

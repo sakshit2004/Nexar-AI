@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -35,19 +35,33 @@ export default function GrantDetailsPage() {
     }
   }, [isAuthenticated, router]);
 
-  const { data: grant, isLoading } = useQuery({
+  const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
       const response = await grantsApi.getById(grantId);
+      console.log('Grant API response:', response.data);
+      console.log('Grant URL:', response.data.url);
       return response.data;
     },
     enabled: isAuthenticated && !!grantId,
   });
 
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [matchData, setMatchData] = useState<any>(null);
+
   const analyzeMutation = useMutation({
     mutationFn: async () => {
+      console.log('Analyzing grant:', grantId);
       const response = await matchingApi.analyze(grantId);
+      console.log('Analysis response:', response.data);
       return response.data;
+    },
+    onSuccess: (data) => {
+      setAiSummary(data.ai_summary);
+      setMatchData(data);
+    },
+    onError: (error) => {
+      console.error('Analysis error:', error);
     },
   });
 
@@ -59,6 +73,20 @@ export default function GrantDetailsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Error loading grant</h2>
+          <p className="text-muted-foreground mb-4">{error.message}</p>
+          <Link href="/search">
+            <Button variant="outline">Back to Search</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -93,7 +121,7 @@ export default function GrantDetailsPage() {
             <div className="flex-1">
               <Badge variant="secondary" className="mb-2">{grant.category || 'General'}</Badge>
               <h1 className="text-3xl font-bold mb-2">{grant.title}</h1>
-              <p className="text-muted-foreground">{grant.agency}</p>
+              <p className="text-muted-foreground">{grant.agency || 'Federal Agency'}</p>
             </div>
           </div>
 
@@ -108,7 +136,7 @@ export default function GrantDetailsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Building className="h-4 w-4 text-muted-foreground" />
-              <span>{grant.opportunity_number}</span>
+              <span>{grant.opportunity_number || grant.id || 'N/A'}</span>
             </div>
           </div>
         </div>
@@ -138,8 +166,28 @@ export default function GrantDetailsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {grant.ai_summary ? (
-                  <p className="text-sm leading-relaxed">{grant.ai_summary}</p>
+                {aiSummary ? (
+                  <div>
+                    <p className="text-sm leading-relaxed mb-4">{aiSummary}</p>
+                    <Button 
+                      onClick={() => analyzeMutation.mutate()}
+                      disabled={analyzeMutation.isPending}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {analyzeMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Regenerating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Regenerate Summary
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground mb-4">
@@ -198,14 +246,17 @@ export default function GrantDetailsPage() {
                 <CardTitle className="text-base">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {grant.url && (
-                  <a href={grant.url} target="_blank" rel="noopener noreferrer" className="block">
-                    <Button className="w-full" variant="default">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      View Official Page
-                    </Button>
-                  </a>
-                )}
+                <a 
+                  href={grant.url || "https://grants.gov/search"} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="block"
+                >
+                  <Button className="w-full" variant="default">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                     View Official Page
+                  </Button>
+                </a>
                 <Button className="w-full" variant="outline">
                   <FileText className="mr-2 h-4 w-4" />
                   Download Summary
@@ -232,7 +283,7 @@ export default function GrantDetailsPage() {
             </Card>
 
             {/* AI Match Score */}
-            {analyzeMutation.data && (
+            {matchData && (
               <Card className="border-2 bg-muted">
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -243,14 +294,14 @@ export default function GrantDetailsPage() {
                 <CardContent>
                   <div className="text-center mb-4">
                     <div className="text-4xl font-bold text-foreground mb-1">
-                      {analyzeMutation.data.match_score}%
+                      {matchData.match_score}%
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Based on your profile
                     </p>
                   </div>
-                  {analyzeMutation.data.recommendation && (
-                    <p className="text-sm">{analyzeMutation.data.recommendation}</p>
+                  {matchData.recommendation && (
+                    <p className="text-sm">{matchData.recommendation}</p>
                   )}
                 </CardContent>
               </Card>
