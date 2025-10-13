@@ -27,14 +27,29 @@ def get_profile(
             id=current_user.id,
             user_id=current_user.id,
             email=current_user.email,
-            full_name=current_user.full_name,
-            subscription_tier=current_user.subscription_tier,
+            full_name=current_user.full_name or "",
+            subscription_tier=current_user.tier.value,
             organization_name=None,
             organization_type=None,
             focus_areas=[]
         )
     
-    return profile
+    # Return combined user + profile data
+    return ProfileResponse(
+        id=current_user.id,
+        user_id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name or "",
+        subscription_tier=current_user.tier.value,
+        organization_name=profile.organization_name,
+        organization_type=profile.organization_type,
+        focus_areas=profile.focus_areas or [],
+        location_state=profile.location_state,
+        location_county=profile.location_county,
+        grant_amount_min=profile.grant_amount_min,
+        grant_amount_max=profile.grant_amount_max,
+        keywords=profile.keywords
+    )
 
 
 @router.put("", response_model=ProfileResponse)
@@ -51,9 +66,21 @@ def update_profile(
         current_user.full_name = data.full_name
         db.commit()
     
+    # Prepare profile data
+    profile_dict = {
+        "organization_name": data.organization_name,
+        "organization_type": data.organization_type,
+        "focus_areas": data.focus_areas or [],
+        "location_state": data.location_state,
+        "location_county": data.location_county,
+        "grant_amount_min": data.grant_amount_min,
+        "grant_amount_max": data.grant_amount_max,
+        "keywords": data.keywords
+    }
+    
     profile = profile_repo.upsert_profile(
         user_id=current_user.id,
-        profile_data=data.model_dump(exclude={'full_name'})
+        profile_data=profile_dict
     )
     
     # Return combined user + profile data
@@ -61,9 +88,9 @@ def update_profile(
         id=current_user.id,
         user_id=current_user.id,
         email=current_user.email,
-        full_name=current_user.full_name,
-        subscription_tier=current_user.subscription_tier,
-        organization_name=data.organization_name,
+        full_name=current_user.full_name or "",
+        subscription_tier=current_user.tier.value,
+        organization_name=data.organization_name,  # Store in response only
         organization_type=data.organization_type,
         focus_areas=data.focus_areas or [],
         location_state=data.location_state,

@@ -16,8 +16,8 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-              <Sparkles className="h-6 w-6 text-indigo-600" />
-              <span className="gradient-text">GrantMatch</span>
+              <Sparkles className="h-6 w-6 text-foreground" />
+              <span className="text-foreground">GrantMatch</span>
             </Link>
             
             {isAuthenticated && (

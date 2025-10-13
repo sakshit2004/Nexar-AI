@@ -77,7 +77,7 @@ export default function GrantDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-background">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
         {/* Back Button */}
         <Link href="/search">
@@ -127,10 +127,10 @@ export default function GrantDetailsPage() {
             </Card>
 
             {/* AI Summary */}
-            <Card className="border-indigo-200 dark:border-indigo-800 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950 dark:to-background">
+            <Card className="border-2 bg-muted">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  <Sparkles className="h-5 w-5 text-foreground" />
                   <CardTitle>AI Summary</CardTitle>
                 </div>
                 <CardDescription>
@@ -233,16 +233,16 @@ export default function GrantDetailsPage() {
 
             {/* AI Match Score */}
             {analyzeMutation.data && (
-              <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-white dark:from-green-950 dark:to-background">
+              <Card className="border-2 bg-muted">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <TrendingUp className="h-5 w-5 text-foreground" />
                     <CardTitle className="text-base">Match Score</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center mb-4">
-                    <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-1">
+                    <div className="text-4xl font-bold text-foreground mb-1">
                       {analyzeMutation.data.match_score}%
                     </div>
                     <p className="text-sm text-muted-foreground">

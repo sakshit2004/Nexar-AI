@@ -140,15 +140,15 @@ Required:
 # Core
 SECRET_KEY=your-secret-key
 JWT_SECRET=your-jwt-secret
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=your-openai-api-key
 
 # Database (optional, defaults to SQLite)
 DATABASE_URL=postgresql://user:pass@localhost/dbname
 
 # Optional services
-SENDGRID_API_KEY=SG....
-STRIPE_SECRET_KEY=sk_test_...
-SIMPLER_GRANTS_API_KEY=...
+SENDGRID_API_KEY=your-sendgrid-key
+STRIPE_SECRET_KEY=your-stripe-key
+SIMPLER_GRANTS_API_KEY=your-grants-api-key
 ```
 
 See `env.example` for full list.
@@ -317,12 +317,12 @@ curl http://localhost:8000/health
 # Register
 curl -X POST http://localhost:8000/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"securepass123"}'
+  -d '{"email":"YOUR_EMAIL","password":"YOUR_PASSWORD","full_name":"YOUR_NAME"}'
 
 # Login
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"securepass123"}'
+  -d '{"email":"YOUR_EMAIL","password":"YOUR_PASSWORD"}'
 
 # Returns: {"access_token":"eyJ...","token_type":"bearer"}
 ```
@@ -395,5 +395,5 @@ See [LICENSE](../LICENSE)
 
 ---
 
-**Questions?** Open an issue or email support@grantmatchadvisor.com
+**Questions?** Open an issue on GitHub
 

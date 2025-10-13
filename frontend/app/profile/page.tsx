@@ -36,22 +36,26 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, router]);
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, refetch } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
       const response = await profileApi.get();
       return response.data;
     },
     enabled: isAuthenticated,
-    onSuccess: (data) => {
-      setFormData({
-        full_name: data.full_name || '',
-        organization_name: data.organization_name || '',
-        organization_type: data.organization_type || '',
-        focus_areas: data.focus_areas?.join(', ') || '',
-      });
-    },
   });
+
+  // Update form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        organization_name: profile.organization_name || '',
+        organization_type: profile.organization_type || '',
+        focus_areas: profile.focus_areas?.join(', ') || '',
+      });
+    }
+  }, [profile]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -59,6 +63,7 @@ export default function ProfilePage() {
     },
     onSuccess: () => {
       setSuccess(true);
+      refetch(); // Refresh profile data
       setTimeout(() => setSuccess(false), 3000);
     },
   });
@@ -76,7 +81,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-background">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -224,13 +229,13 @@ export default function ProfilePage() {
 
             {/* Upgrade CTA */}
             {user?.subscription_tier === 'free' && (
-              <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 border-indigo-200 dark:border-indigo-800">
+              <Card className="bg-muted border-2">
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    <Sparkles className="h-5 w-5 text-foreground" />
                     <CardTitle>Upgrade to Premium</CardTitle>
                   </div>
-                  <CardDescription className="dark:text-indigo-200">
+                  <CardDescription>
                     Get unlimited searches, priority support, and advanced AI features
                   </CardDescription>
                 </CardHeader>

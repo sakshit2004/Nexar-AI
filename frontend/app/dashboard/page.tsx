@@ -29,21 +29,26 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, router]);
 
-  const { data: recommendedGrants, isLoading } = useQuery({
+  const { data: recommendedResults, isLoading } = useQuery({
     queryKey: ['recommended-grants'],
     queryFn: async () => {
       const response = await grantsApi.getRecommended();
+      // Return full response with metadata
       return response.data;
     },
     enabled: isAuthenticated,
   });
+  
+  const recommendedGrants = recommendedResults?.grants || [];
+  const providersUsed = recommendedResults?.providers_used || [];
+  const isPersonalized = recommendedResults?.personalized || false;
 
   if (!isAuthenticated) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-background">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -75,14 +80,14 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Active Grants
+                Saved Grants
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2,147</div>
+              <div className="text-2xl font-bold">0</div>
               <p className="text-xs text-muted-foreground">
-                +180 from last month
+                Bookmark grants to save
               </p>
             </CardContent>
           </Card>
@@ -90,14 +95,14 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Avg. Award
+                Matches
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$250K</div>
+              <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                Median federal grant
+                Complete profile for matches
               </p>
             </CardContent>
           </Card>
@@ -105,14 +110,14 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Expiring Soon
+                Searches
               </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">37</div>
+              <div className="text-2xl font-bold">0</div>
               <p className="text-xs text-muted-foreground">
-                Due within 30 days
+                Searches this week
               </p>
             </CardContent>
           </Card>
@@ -121,9 +126,9 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-2 mb-8">
           <Link href="/search">
-            <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+            <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
               <CardHeader>
-                <Search className="h-8 w-8 text-indigo-600 mb-2" />
+                <Search className="h-8 w-8 text-foreground mb-2" />
                 <CardTitle>Search Grants</CardTitle>
                 <CardDescription>
                   Find federal grants matching your criteria
@@ -133,9 +138,9 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/profile">
-            <Card className="hover:border-primary transition-colors cursor-pointer h-full">
+            <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
               <CardHeader>
-                <Sparkles className="h-8 w-8 text-purple-600 mb-2" />
+                <Sparkles className="h-8 w-8 text-foreground mb-2" />
                 <CardTitle>Get AI Recommendations</CardTitle>
                 <CardDescription>
                   Complete your profile for personalized matches
@@ -150,9 +155,14 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recommended for You</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Recommended for You
+                  {isPersonalized && <Sparkles className="h-4 w-4 text-primary" />}
+                </CardTitle>
                 <CardDescription>
-                  AI-powered grant recommendations based on your profile
+                  {isPersonalized 
+                    ? 'AI-powered grant recommendations based on your profile'
+                    : 'Complete your profile to get personalized recommendations'}
                 </CardDescription>
               </div>
               <Link href="/search">
@@ -199,12 +209,16 @@ export default function DashboardPage() {
             ) : (
               <div className="text-center py-8">
                 <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h4 className="font-semibold mb-2">No recommendations yet</h4>
+                <h4 className="font-semibold mb-2">
+                  {isPersonalized ? 'No recommendations yet' : 'Complete Your Profile'}
+                </h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Complete your profile to get personalized grant matches
+                  {isPersonalized 
+                    ? 'Check back later for new grant matches'
+                    : 'Get personalized AI-powered grant recommendations by completing your profile'}
                 </p>
-                <Link href="/profile">
-                  <Button>Complete Profile</Button>
+                <Link href={isPersonalized ? "/search" : "/profile"}>
+                  <Button>{isPersonalized ? 'Browse All Grants' : 'Complete Profile'}</Button>
                 </Link>
               </div>
             )}

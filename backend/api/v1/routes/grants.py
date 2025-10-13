@@ -1,148 +1,285 @@
-"""Grant routes"""
+"""Grant routes - Real-time grant discovery using web search"""
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from backend.models.database import get_db
-from backend.api.v1.schemas.grant import GrantResponse, GrantMatchResponse, GrantSummaryResponse, ChatRequest
 from backend.api.v1.middleware.auth import get_current_user
 from backend.api.v1.middleware.rate_limit import check_rate_limit
-from backend.services.grants.processor import GrantProcessor
-from backend.services.llm.matcher import GrantMatcher
-from backend.repositories.grant_repository import QueryUsageRepository
+from backend.services.llm.web_search import WebSearchService
 from backend.models.user import User
+from backend.core.logging import get_logger
 
 
 router = APIRouter(prefix="/grants", tags=["Grants"])
+logger = get_logger(__name__)
 
 
-@router.get("/search", response_model=List[GrantResponse])
+@router.get("/search")
 def search_grants(
-    q: Optional[str] = Query(default=None),
-    category: Optional[str] = Query(default=None),
-    min_amount: Optional[int] = Query(default=None),
-    max_amount: Optional[int] = Query(default=None),
-    agency: Optional[str] = None,
-    limit: int = Query(default=100, le=1000),
+    q: Optional[str] = Query(default="", description="Search query for grants"),
+    category: Optional[str] = Query(default=None, description="Category filter (e.g., Education, Health, Environment)"),
+    limit: int = Query(default=10, le=50, description="Max number of results"),
+    provider: str = Query(default="auto", description="LLM provider: 'openai', 'claude', or 'auto'"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
-    """Search grants with filters"""
-    processor = GrantProcessor(db)
+) -> Dict[str, Any]:
+    """
+    Real-time federal grant search using AI web search
     
-    # For now, return all active grants (implement actual search later)
-    grants = processor.get_active_grants(limit=limit)
+    Searches the live web for current federal grant opportunities using LLM web search tools.
+    """
+    check_rate_limit(current_user, "search")
     
-    # Filter by category if provided
-    if category and grants:
-        grants = [g for g in grants if g.get('category', '').lower() == category.lower()]
+    # Build search query
+    search_query = q if q else "federal grants USA"
+    if category:
+        search_query += f" {category}"
     
-    return grants
+    logger.info(f"Real-time grant search: '{search_query}' for user {current_user.id}")
+    
+    try:
+        # Use web search service for real-time grant discovery
+        web_search = WebSearchService()
+        result = web_search.search_grants(
+            query=search_query,
+            category=category,
+            limit=limit,
+            provider=provider
+        )
+        
+        return {
+            "grants": result["grants"],
+            "provider": result["provider"],
+            "providers_used": result.get("providers_used", []),
+            "query": search_query,
+            "count": len(result["grants"]),
+            "response_time_ms": result["response_time_ms"],
+            "citations": result.get("citations", []),
+            "errors": result.get("errors")
+        }
+    
+    except Exception as e:
+        logger.error(f"Grant search error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Grant search failed: {str(e)}"
+        )
 
 
-@router.get("/recommended", response_model=List[GrantResponse])
+@router.get("/recommended")
 def get_recommended_grants(
-    limit: int = Query(default=10, le=100),
+    limit: int = Query(default=10, le=50),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
-    """Get personalized grant recommendations"""
-    processor = GrantProcessor(db)
+) -> Dict[str, Any]:
+    """
+    Get personalized grant recommendations based on user profile
     
-    # For now, return active grants (implement AI matching later)
-    grants = processor.get_active_grants(limit=limit)
+    Uses AI web search to find grants matching the user's profile and interests.
+    """
+    check_rate_limit(current_user, "search")
     
-    return grants
-
-
-@router.get("", response_model=List[GrantResponse])
-def list_grants(
-    limit: int = Query(default=100, le=1000),
-    agency: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """List active grants"""
-    processor = GrantProcessor(db)
+    # Build personalized search query based on user profile
+    search_query = "federal grants USA"
     
-    if agency:
-        grants = processor.search_grants(agency=agency, limit=limit)
+    # Get user profile to personalize search
+    from backend.repositories.user_repository import UserProfileRepository
+    profile_repo = UserProfileRepository(db)
+    profile = profile_repo.get_by_user_id(current_user.id)
+    
+    if profile:
+        # Add organization type for better targeting
+        if profile.organization_type:
+            search_query += f" for {profile.organization_type} organizations"
+        
+        # Add focus areas (top 3 most important)
+        if profile.focus_areas and len(profile.focus_areas) > 0:
+            areas = ", ".join(profile.focus_areas[:3])
+            search_query += f" in {areas}"
+        
+        # Add location for location-specific grants
+        if profile.location_state:
+            search_query += f" {profile.location_state}"
+        
+        # Add organization name context if available
+        if profile.organization_name:
+            logger.info(f"Personalizing for organization: {profile.organization_name}")
     else:
-        grants = processor.get_active_grants(limit=limit)
+        logger.info(f"No profile found for user {current_user.id}, using generic search")
     
-    return grants
+    logger.info(f"Personalized grant recommendations for user {current_user.id}: '{search_query}'")
+    
+    try:
+        web_search = WebSearchService()
+        result = web_search.search_grants(
+            query=search_query,
+            limit=limit,
+            provider="auto"
+        )
+        
+        return {
+            "grants": result["grants"],
+            "provider": result["provider"],
+            "providers_used": result.get("providers_used", []),
+            "query": search_query,
+            "count": len(result["grants"]),
+            "personalized": profile is not None,
+            "response_time_ms": result["response_time_ms"],
+            "errors": result.get("errors")
+        }
+    
+    except Exception as e:
+        logger.error(f"Recommended grants error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get recommendations: {str(e)}"
+        )
 
 
-@router.get("/{grant_id}", response_model=GrantResponse)
+@router.get("")
+def list_grants(
+    limit: int = Query(default=20, le=50),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """List current federal grants using real-time web search"""
+    check_rate_limit(current_user, "search")
+    
+    try:
+        web_search = WebSearchService()
+        result = web_search.search_grants(
+            query="current open federal grants USA",
+            limit=limit,
+            provider="auto"
+        )
+        
+        return {
+            "grants": result["grants"],
+            "provider": result["provider"],
+            "count": len(result["grants"]),
+            "response_time_ms": result["response_time_ms"]
+        }
+    
+    except Exception as e:
+        logger.error(f"List grants error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list grants: {str(e)}"
+        )
+
+
+@router.get("/{grant_id}")
 def get_grant(
     grant_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
-    """Get grant by ID"""
-    processor = GrantProcessor(db)
-    grant = processor.get_grant_by_id(grant_id)
+) -> Dict[str, Any]:
+    """
+    Get detailed information about a specific grant using real-time web search
+    """
+    logger.info(f"Fetching grant details for ID: {grant_id}")
     
-    if not grant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Grant not found"
+    try:
+        # Search for specific grant by ID
+        web_search = WebSearchService()
+        result = web_search.search_grants(
+            query=f"federal grant {grant_id} grants.gov",
+            limit=1,
+            provider="auto"
         )
+        
+        if not result["grants"]:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Grant {grant_id} not found"
+            )
+        
+        grant = result["grants"][0]
+        grant["provider"] = result["provider"]
+        grant["response_time_ms"] = result["response_time_ms"]
+        
+        return grant
     
-    return grant
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get grant error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch grant: {str(e)}"
+        )
 
 
-@router.get("/{grant_id}/summary", response_model=GrantSummaryResponse)
-def get_grant_summary(
+@router.post("/{grant_id}/analyze")
+def analyze_grant(
     grant_id: str,
-    force: bool = Query(default=False),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
-    """Get plain-English grant summary"""
-    # Check rate limit
+) -> Dict[str, Any]:
+    """
+    Get AI analysis and summary of a specific grant
+    
+    Uses AI to provide plain-English summary, eligibility analysis, and recommendations.
+    """
     check_rate_limit(current_user, "summary")
     
-    matcher = GrantMatcher(db)
+    logger.info(f"Analyzing grant {grant_id} for user {current_user.id}")
     
     try:
-        summary = matcher.generate_summary(grant_id, force_regenerate=force)
-        return summary
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+        # First get the grant details via web search
+        web_search = WebSearchService()
+        result = web_search.search_grants(
+            query=f"federal grant {grant_id} details eligibility requirements deadline",
+            limit=1,
+            provider="auto"
         )
+        
+        if not result["grants"]:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Grant {grant_id} not found"
+            )
+        
+        grant = result["grants"][0]
+        
+        # Use LLM to generate analysis
+        from backend.services.llm.client import LLMClient
+        llm_client = LLMClient()
+        
+        analysis_prompt = f"""Analyze this federal grant and provide a plain-English summary:
 
+Grant: {grant.get('title', 'Unknown')}
+Agency: {grant.get('agency', 'Unknown')}
+Description: {grant.get('description', 'N/A')}
+Eligibility: {grant.get('eligibility', 'N/A')}
+Award Amount: {grant.get('award_amount', 'N/A')}
+Deadline: {grant.get('deadline', 'N/A')}
 
-@router.post("/{grant_id}/chat")
-def chat_about_grant(
-    grant_id: str,
-    data: ChatRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Ask questions about a grant"""
-    # Check rate limit
-    check_rate_limit(current_user, "chat")
-    
-    matcher = GrantMatcher(db)
-    
-    try:
-        answer = matcher.chat_about_grant(
-            grant_id=grant_id,
-            user_question=data.question,
-            chat_history=data.chat_history
+Provide:
+1. A 2-3 sentence plain-English summary
+2. Key eligibility requirements
+3. Application tips
+4. Important deadlines and milestones"""
+
+        analysis_response = llm_client.chat_completion(
+            messages=[{"role": "user", "content": analysis_prompt}],
+            max_tokens=1000
         )
         
         return {
-            "answer": answer,
-            "grant_id": grant_id
+            "grant_id": grant_id,
+            "grant": grant,
+            "analysis": analysis_response["content"],
+            "provider": result["provider"]
         }
-        
-    except ValueError as e:
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Grant analysis error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to analyze grant: {str(e)}"
         )
 
