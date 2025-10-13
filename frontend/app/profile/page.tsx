@@ -27,6 +27,11 @@ export default function ProfilePage() {
     organization_name: '',
     organization_type: '',
     focus_areas: '',
+    location_state: '',
+    location_county: '',
+    grant_amount_min: '',
+    grant_amount_max: '',
+    keywords: '',
   });
   const [success, setSuccess] = useState(false);
 
@@ -53,6 +58,11 @@ export default function ProfilePage() {
         organization_name: profile.organization_name || '',
         organization_type: profile.organization_type || '',
         focus_areas: profile.focus_areas?.join(', ') || '',
+        location_state: profile.location_state || '',
+        location_county: profile.location_county || '',
+        grant_amount_min: profile.grant_amount_min?.toString() || '',
+        grant_amount_max: profile.grant_amount_max?.toString() || '',
+        keywords: profile.keywords?.join(', ') || '',
       });
     }
   }, [profile]);
@@ -73,6 +83,9 @@ export default function ProfilePage() {
     updateMutation.mutate({
       ...formData,
       focus_areas: formData.focus_areas.split(',').map(s => s.trim()).filter(Boolean),
+      keywords: formData.keywords.split(',').map(s => s.trim()).filter(Boolean),
+      grant_amount_min: formData.grant_amount_min ? parseInt(formData.grant_amount_min) : null,
+      grant_amount_max: formData.grant_amount_max ? parseInt(formData.grant_amount_max) : null,
     });
   };
 
@@ -199,6 +212,76 @@ export default function ProfilePage() {
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Enter your areas of focus separated by commas
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="location_state" className="text-sm font-medium block mb-2">
+                        State
+                      </label>
+                      <Input
+                        id="location_state"
+                        type="text"
+                        placeholder="California"
+                        value={formData.location_state}
+                        onChange={(e) => setFormData({ ...formData, location_state: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="location_county" className="text-sm font-medium block mb-2">
+                        County
+                      </label>
+                      <Input
+                        id="location_county"
+                        type="text"
+                        placeholder="Los Angeles"
+                        value={formData.location_county}
+                        onChange={(e) => setFormData({ ...formData, location_county: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="grant_amount_min" className="text-sm font-medium block mb-2">
+                        Min Grant Amount ($)
+                      </label>
+                      <Input
+                        id="grant_amount_min"
+                        type="number"
+                        placeholder="10000"
+                        value={formData.grant_amount_min}
+                        onChange={(e) => setFormData({ ...formData, grant_amount_min: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="grant_amount_max" className="text-sm font-medium block mb-2">
+                        Max Grant Amount ($)
+                      </label>
+                      <Input
+                        id="grant_amount_max"
+                        type="number"
+                        placeholder="100000"
+                        value={formData.grant_amount_max}
+                        onChange={(e) => setFormData({ ...formData, grant_amount_max: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="keywords" className="text-sm font-medium block mb-2">
+                      Keywords
+                    </label>
+                    <Input
+                      id="keywords"
+                      type="text"
+                      placeholder="research, innovation, community (comma-separated)"
+                      value={formData.keywords}
+                      onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enter keywords that describe your work or interests
                     </p>
                   </div>
 

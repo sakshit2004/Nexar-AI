@@ -12,7 +12,7 @@ class ProfileCreate(BaseModel):
     location_county: Optional[str] = None
     grant_amount_min: Optional[int] = None
     grant_amount_max: Optional[int] = None
-    keywords: Optional[str] = None
+    keywords: Optional[List[str]] = []
 
 
 class ProfileResponse(BaseModel):
@@ -28,7 +28,7 @@ class ProfileResponse(BaseModel):
     location_county: Optional[str] = None
     grant_amount_min: Optional[int] = None
     grant_amount_max: Optional[int] = None
-    keywords: Optional[str] = None
+    keywords: Optional[List[str]] = []
     
     class Config:
         from_attributes = True
