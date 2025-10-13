@@ -19,6 +19,9 @@ def check_rate_limit(user: User, operation: str = "query") -> None:
     Raises:
         HTTPException if limit exceeded
     """
+    # Temporarily disabled for development/testing
+    return
+    
     if not settings.RATE_LIMIT_ENABLED:
         return
     

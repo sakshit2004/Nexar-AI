@@ -15,7 +15,7 @@ from backend.core.exceptions import GrantMatchException
 from backend.models.database import init_db
 
 # API routes
-from backend.api.v1.routes import auth, profile, grants, matching, webhooks
+from backend.api.v1.routes import auth, profile, grants, webhooks
 
 
 # Setup logging
@@ -142,7 +142,7 @@ def root():
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(profile.router, prefix=settings.API_V1_PREFIX)
 app.include_router(grants.router, prefix=settings.API_V1_PREFIX)
-app.include_router(matching.router, prefix=settings.API_V1_PREFIX)
+# Matching functionality now handled by grants/recommended endpoint
 app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
 
 

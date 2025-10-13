@@ -47,6 +47,6 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
 
 def verify_api_key(api_key: str) -> bool:
     """Verify API key (for external integrations)"""
-    # TODO: Implement API key validation from database
-    return True
+    # Implement API key validation from database when needed
+    return False
 

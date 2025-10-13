@@ -20,12 +20,12 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50 via-white to-white dark:from-zinc-950 dark:via-zinc-900 dark:to-background py-20 sm:py-32">
-        <div className="absolute inset-0 bg-grid-zinc-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-zinc-700/25 -z-10"></div>
+      <section className="relative overflow-hidden bg-background py-20 sm:py-32">
+        <div className="absolute inset-0 bg-grid-zinc-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-zinc-900/25 -z-10"></div>
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center animate-fade-in">
-            <Badge className="mb-4" variant="secondary">
+            <Badge className="mb-4 border-2 border-black dark:border-white" variant="outline">
               <Sparkles className="h-3 w-3 mr-1" />
               AI-Powered Grant Discovery
             </Badge>
@@ -56,7 +56,7 @@ export default function Home() {
             </div>
             
             <p className="mt-4 text-sm text-muted-foreground">
-              ✓ No credit card required  ✓ 5 free searches per week  ✓ Access 2,000+ grants
+              ✓ No credit card required  ✓ Free tier available  ✓ Access federal grants database
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Home() {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">
+            <Badge variant="outline" className="mb-4 border-2 border-black dark:border-white">
               <Zap className="h-3 w-3 mr-1" />
               Features
             </Badge>
@@ -79,22 +79,22 @@ export default function Home() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            <Card className="border-2 hover:border-primary transition-colors">
+            <Card className="border-2 hover:border-foreground transition-colors">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center mb-4">
-                  <Search className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <Search className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle>Smart Search</CardTitle>
                 <CardDescription>
-                  Filter 2,000+ grants by category, amount, deadline, and eligibility in seconds
+                  Filter federal grants by category, amount, deadline, and eligibility in seconds
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-colors">
+            <Card className="border-2 hover:border-foreground transition-colors">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <Target className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle>AI Matching</CardTitle>
                 <CardDescription>
@@ -103,10 +103,10 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-colors">
+            <Card className="border-2 hover:border-foreground transition-colors">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-pink-100 dark:bg-pink-950 flex items-center justify-center mb-4">
-                  <FileText className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <FileText className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle>Plain-English Summaries</CardTitle>
                 <CardDescription>
@@ -115,10 +115,10 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-colors">
+            <Card className="border-2 hover:border-foreground transition-colors">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-950 flex items-center justify-center mb-4">
-                  <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <CheckCircle2 className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle>Eligibility Analysis</CardTitle>
                 <CardDescription>
@@ -127,10 +127,10 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-colors">
+            <Card className="border-2 hover:border-foreground transition-colors">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-orange-100 dark:bg-orange-950 flex items-center justify-center mb-4">
-                  <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <Clock className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle>Deadline Tracking</CardTitle>
                 <CardDescription>
@@ -139,10 +139,10 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-colors">
+            <Card className="border-2 hover:border-foreground transition-colors">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <TrendingUp className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle>Success Tracking</CardTitle>
                 <CardDescription>
@@ -154,39 +154,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-b from-background to-zinc-50 dark:to-zinc-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto text-center">
-            <div>
-              <div className="text-4xl font-bold text-indigo-600 mb-2">2,000+</div>
-              <div className="text-sm text-muted-foreground">Federal Grants</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-indigo-600 mb-2">$500B+</div>
-              <div className="text-sm text-muted-foreground">Available Funding</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-indigo-600 mb-2">90%</div>
-              <div className="text-sm text-muted-foreground">Time Saved</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Stats Section - Removed hardcoded stats */}
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-600 to-purple-600 text-white">
+      <section className="py-20 bg-foreground text-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Shield className="h-16 w-16 mx-auto mb-6 opacity-90" />
+          <Shield className="h-16 w-16 mx-auto mb-6" />
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
             Ready to find your perfect grant?
           </h2>
-          <p className="text-lg opacity-90 max-w-2xl mx-auto mb-8">
+          <p className="text-lg max-w-2xl mx-auto mb-8 opacity-90">
             Join thousands of organizations using AI to simplify federal grant discovery
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href="/register">
-              <Button size="lg" variant="secondary" className="text-base">
+              <Button size="lg" variant="secondary" className="text-base bg-background text-foreground hover:bg-background/90">
                 Start Free Trial
                 <Sparkles className="ml-2 h-4 w-4" />
               </Button>

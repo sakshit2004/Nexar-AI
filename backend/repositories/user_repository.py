@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from backend.models.user import User, UserTier
-from backend.models.grant import UserProfile
+from backend.models.user import UserProfile
 from backend.repositories.base import BaseRepository
 
 

@@ -66,8 +66,8 @@ class Settings(BaseSettings):
     
     # Email
     SENDGRID_API_KEY: Optional[str] = Field(default=None, env="SENDGRID_API_KEY")
-    SENDGRID_FROM_EMAIL: str = "noreply@grantmatchadvisor.com"
-    SENDGRID_FROM_NAME: str = "GrantMatch Advisor"
+    SENDGRID_FROM_EMAIL: str = Field(default="noreply@yourdomain.com", env="SENDGRID_FROM_EMAIL")
+    SENDGRID_FROM_NAME: str = Field(default="GrantMatch Advisor", env="SENDGRID_FROM_NAME")
     
     # Stripe
     STRIPE_PUBLISHABLE_KEY: Optional[str] = Field(default=None, env="STRIPE_PUBLISHABLE_KEY")
@@ -112,9 +112,10 @@ class Settings(BaseSettings):
         return self.ENVIRONMENT == "development"
     
     class Config:
-        env_file = ".env"
+        env_file = ["config/.env", ".env"]  # Check config/.env first, then root .env
         env_file_encoding = "utf-8"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra fields in .env file
 
 
 @lru_cache()

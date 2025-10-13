@@ -37,12 +37,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-background py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md border-2">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
