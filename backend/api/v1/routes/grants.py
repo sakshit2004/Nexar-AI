@@ -197,6 +197,25 @@ def get_grant(
         
         grant = result["grants"][0]
         
+        # Construct proper URL if not provided or if it's a generic URL
+        grant_url = grant.get("url", "")
+        if not grant_url or grant_url == "https://grants.gov/search":
+            # Construct URL from opportunity number or grant ID
+            opportunity_number = grant.get("opportunity_number", grant_id)
+            if opportunity_number and opportunity_number != grant_id:
+                grant_url = f"https://grants.gov/search-results-detail/{opportunity_number}"
+            else:
+                # Agency-specific fallback
+                agency = grant.get("agency", "").upper()
+                if 'NSF' in agency:
+                    grant_url = "https://www.nsf.gov/funding/opportunities.jsp"
+                elif 'NIH' in agency:
+                    grant_url = "https://grants.nih.gov/grants/guide/"
+                elif 'DOE' in agency or 'ENERGY' in agency:
+                    grant_url = "https://www.energy.gov/funding-opportunities"
+                else:
+                    grant_url = "https://grants.gov/search"
+        
         # Ensure the grant has all required fields with proper values
         grant.update({
             "id": grant_id,
@@ -207,8 +226,8 @@ def get_grant(
             "award_amount": grant.get("award_amount", "$100,000 - $500,000"),
             "deadline": grant.get("deadline", "2025-06-15"),
             "category": grant.get("category", "Science"),
-            "url": grant.get("url", "https://grants.gov/search"),  # Use URL from web search or fallback to grants.gov
-            "opportunity_number": grant_id,
+            "url": grant_url,  # Use constructed URL
+            "opportunity_number": grant.get("opportunity_number", grant_id),
             "ai_summary": None,  # Will be generated when user clicks "Generate AI Summary"
             "provider": result["provider"],
             "response_time_ms": result["response_time_ms"]

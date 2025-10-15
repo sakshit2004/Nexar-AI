@@ -70,7 +70,7 @@ class WebSearchService:
 IMPORTANT: All deadlines must be between {min_date_str} and {max_date_str} (at least 4 months from now).
 
 For each grant, provide:
-- id: Realistic grant ID (e.g., "USDA-NIFA-2024-001")
+- id: Realistic grant ID format: AGENCY-YEAR-TOPIC-NUMBER (e.g., "NSF-2025-STEM-789", "NIH-2025-R01-456")
 - title: Descriptive grant title
 - agency: Federal agency name (e.g., NSF, NIH, USDA, DOE, NEA)
 - description: Brief 2-3 sentence description
@@ -78,7 +78,7 @@ For each grant, provide:
 - award_amount: Realistic range (e.g., "$50,000 - $500,000")
 - deadline: Future date between {min_date_str} and {max_date_str} in format "YYYY-MM-DD"
 - category: One of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
-- url: Official grant source URL (e.g., "https://grants.gov/search", "https://www.nsf.gov/funding/", "https://www.nih.gov/grants-funding", "https://www.usda.gov/grants", "https://www.energy.gov/funding-opportunities")
+- opportunity_number: Realistic grants.gov opportunity number format (e.g., "HHS-2025-ACF-OPRE-ZB-1234", "ED-2025-OESE-0123")
 
 Return ONLY valid JSON array with {limit} grants. No markdown, no explanation."""
 
@@ -152,7 +152,7 @@ Return ONLY valid JSON array with {limit} grants. No markdown, no explanation.""
 IMPORTANT: All deadlines must be between {min_date_str} and {max_date_str} (at least 4 months from now).
 
 For each grant, provide:
-- id: Realistic grant ID (e.g., "NSF-2024-STEM-001")
+- id: Realistic grant ID format: AGENCY-YEAR-TOPIC-NUMBER (e.g., "NSF-2025-STEM-001", "DOE-2025-ENERGY-234")
 - title: Descriptive grant title
 - agency: Federal agency name (e.g., NSF, NIH, USDA, DOE, NEA, NEH)
 - description: Brief 2-3 sentence description of the grant purpose
@@ -160,7 +160,7 @@ For each grant, provide:
 - award_amount: Realistic funding range (e.g., "$25,000 - $250,000")
 - deadline: Future date between {min_date_str} and {max_date_str} in YYYY-MM-DD format
 - category: One of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
-- url: Official grant source URL (e.g., "https://grants.gov/search", "https://www.nsf.gov/funding/", "https://www.nih.gov/grants-funding", "https://www.usda.gov/grants", "https://www.energy.gov/funding-opportunities")
+- opportunity_number: Realistic grants.gov opportunity number format (e.g., "HHS-2025-ACF-OPRE-ZB-1234", "ED-2025-OESE-0123")
 
 Return ONLY valid JSON array. No other text."""
 
@@ -323,6 +323,54 @@ Return ONLY valid JSON array. No other text."""
         logger.warning(f"Provider '{provider}' not available, using parallel search")
         return self.search_grants_parallel(query, category, limit)
     
+    def _construct_grant_url(self, grant: Dict[str, Any]) -> str:
+        """
+        Construct a proper URL for a grant based on its opportunity number or ID
+        
+        Returns a direct link to the grant on grants.gov if possible, otherwise
+        returns agency-specific URLs
+        """
+        # Try to use opportunity_number first for grants.gov URL
+        opportunity_number = grant.get('opportunity_number', '')
+        if opportunity_number:
+            # Format: https://grants.gov/search-results-detail/OPPORTUNITY_NUMBER
+            return f"https://grants.gov/search-results-detail/{opportunity_number}"
+        
+        # Fallback: Try to construct agency-specific URLs
+        grant_id = grant.get('id', '')
+        agency = grant.get('agency', '').upper()
+        
+        # NSF grants
+        if 'NSF' in agency or grant_id.startswith('NSF-'):
+            return f"https://www.nsf.gov/funding/opportunities.jsp"
+        
+        # NIH grants
+        elif 'NIH' in agency or grant_id.startswith('NIH-'):
+            return f"https://grants.nih.gov/grants/guide/"
+        
+        # DOE grants
+        elif 'DOE' in agency or 'ENERGY' in agency or grant_id.startswith('DOE-'):
+            return f"https://www.energy.gov/funding-opportunities"
+        
+        # USDA grants
+        elif 'USDA' in agency or grant_id.startswith('USDA-'):
+            return f"https://www.usda.gov/topics/farming/grants-and-loans"
+        
+        # HHS/Health grants
+        elif 'HHS' in agency or 'HEALTH' in agency or grant_id.startswith('HHS-'):
+            return f"https://www.hhs.gov/grants/"
+        
+        # Education grants
+        elif 'EDUCATION' in agency or 'ED-' in grant_id or grant_id.startswith('ED-'):
+            return f"https://www.ed.gov/fund/grants-apply.html"
+        
+        # EPA grants
+        elif 'EPA' in agency or grant_id.startswith('EPA-'):
+            return f"https://www.epa.gov/grants"
+        
+        # Default to grants.gov search
+        return "https://grants.gov/search"
+    
     def _extract_grants_from_response(self, content: str) -> List[Dict[str, Any]]:
         """Extract grant data from LLM response"""
         
@@ -337,18 +385,32 @@ Return ONLY valid JSON array. No other text."""
                 grants = json.loads(json_str)
                 
                 if isinstance(grants, list):
+                    # Add proper URLs to each grant
+                    for grant in grants:
+                        if 'url' not in grant or not grant['url'] or grant['url'] == 'https://grants.gov/search':
+                            grant['url'] = self._construct_grant_url(grant)
                     return grants
                 elif isinstance(grants, dict):
+                    if 'url' not in grants or not grants['url'] or grants['url'] == 'https://grants.gov/search':
+                        grants['url'] = self._construct_grant_url(grants)
                     return [grants]
             
             # Try to parse the entire content as JSON
             data = json.loads(content)
             if isinstance(data, list):
+                for grant in data:
+                    if 'url' not in grant or not grant['url'] or grant['url'] == 'https://grants.gov/search':
+                        grant['url'] = self._construct_grant_url(grant)
                 return data
             elif isinstance(data, dict):
                 # Check if it's a wrapper object
                 if "grants" in data:
+                    for grant in data["grants"]:
+                        if 'url' not in grant or not grant['url'] or grant['url'] == 'https://grants.gov/search':
+                            grant['url'] = self._construct_grant_url(grant)
                     return data["grants"]
+                if 'url' not in data or not data['url'] or data['url'] == 'https://grants.gov/search':
+                    data['url'] = self._construct_grant_url(data)
                 return [data]
         
         except json.JSONDecodeError:

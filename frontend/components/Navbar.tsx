@@ -1,51 +1,63 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthStore } from '@/lib/store';
-import { Sparkles, Search, User, LogOut } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuthStore();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      isScrolled 
+        ? 'bg-background/95 backdrop-blur-xl border-b' 
+        : 'bg-transparent'
+    }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-              <Sparkles className="h-6 w-6 text-foreground" />
-              <span className="text-foreground">GrantMatch</span>
+            <Link href="/" className="font-bold text-xl transition-opacity hover:opacity-70">
+              Nexar AI
             </Link>
             
             {isAuthenticated && (
               <div className="hidden md:flex items-center gap-6">
                 <Link
                   href="/dashboard"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground'
+                  className={`text-sm transition-colors ${
+                    pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/search"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    pathname === '/search' ? 'text-foreground' : 'text-muted-foreground'
+                  className={`text-sm transition-colors ${
+                    pathname === '/search' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Search className="inline h-4 w-4 mr-1" />
-                  Search Grants
+                  Search
                 </Link>
                 <Link
                   href="/profile"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    pathname === '/profile' ? 'text-foreground' : 'text-muted-foreground'
+                  className={`text-sm transition-colors ${
+                    pathname === '/profile' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <User className="inline h-4 w-4 mr-1" />
                   Profile
                 </Link>
               </div>
@@ -53,23 +65,23 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-muted-foreground hidden sm:inline">
                   {user?.full_name}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => logout()}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  Sign out
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost">Login</Button>
+                  <Button variant="ghost" size="sm">Sign in</Button>
                 </Link>
                 <Link href="/register">
-                  <Button>Get Started</Button>
+                  <Button size="sm">Get started</Button>
                 </Link>
               </>
             )}
@@ -79,4 +91,3 @@ export function Navbar() {
     </nav>
   );
 }
-
