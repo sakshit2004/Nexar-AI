@@ -21,25 +21,73 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section - Minimalist, Bold */}
-      <section className="relative min-h-[90vh] flex items-center justify-center px-4">
-        <div className="max-w-5xl mx-auto text-center">
+      <section className="relative min-h-[90vh] flex items-center justify-center px-4 overflow-hidden">
+        {/* Animated mesh gradient background */}
+        <div className="absolute inset-0 -z-10">
+          {/* Animated gradient orbs */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-foreground/5 rounded-full blur-3xl animate-float" />
+          <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-foreground/4 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s', animationDuration: '7s' }} />
+          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-foreground/3 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s', animationDuration: '9s' }} />
+          
+          {/* Grid overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
+          
+          {/* Dots pattern - static positions */}
+          <div className="absolute inset-0">
+            {[
+              { top: 15, left: 20, delay: 0, duration: 2.5 },
+              { top: 25, left: 75, delay: 0.5, duration: 3 },
+              { top: 35, left: 40, delay: 1, duration: 2.8 },
+              { top: 45, left: 85, delay: 1.5, duration: 3.2 },
+              { top: 55, left: 15, delay: 2, duration: 2.3 },
+              { top: 65, left: 60, delay: 2.5, duration: 3.5 },
+              { top: 75, left: 30, delay: 0.8, duration: 2.7 },
+              { top: 85, left: 70, delay: 1.2, duration: 3.8 },
+              { top: 10, left: 50, delay: 1.8, duration: 2.2 },
+              { top: 20, left: 90, delay: 2.2, duration: 3.3 },
+              { top: 40, left: 10, delay: 0.3, duration: 2.9 },
+              { top: 50, left: 55, delay: 1.3, duration: 3.1 },
+              { top: 60, left: 25, delay: 1.7, duration: 2.6 },
+              { top: 70, left: 80, delay: 2.8, duration: 3.4 },
+              { top: 80, left: 45, delay: 0.6, duration: 2.4 },
+              { top: 90, left: 65, delay: 1.1, duration: 3.6 },
+              { top: 30, left: 35, delay: 1.9, duration: 2.1 },
+              { top: 48, left: 72, delay: 0.4, duration: 3.7 },
+              { top: 68, left: 12, delay: 2.3, duration: 2.5 },
+              { top: 88, left: 58, delay: 1.4, duration: 3.9 }
+            ].map((dot, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-foreground/20 rounded-full animate-pulse"
+                style={{
+                  top: `${dot.top}%`,
+                  left: `${dot.left}%`,
+                  animationDelay: `${dot.delay}s`,
+                  animationDuration: `${dot.duration}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-block mb-6">
-            <Badge variant="outline" className="text-xs px-3 py-1">
+            <Badge variant="outline" className="text-xs px-3 py-1 backdrop-blur-sm bg-background/50">
               Backed by AI
             </Badge>
           </div>
           
           <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-8 leading-[1.1]">
-            Federal grants,{' '}
+            Every grant,{' '}
             <span className="block mt-2">
               <span className="opacity-40">found in</span> seconds
             </span>
           </h1>
           
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
-            Stop wasting weeks searching databases.
+            Federal, state, foundation, corporate.
             <br />
-            AI finds grants that actually match your work.
+            AI discovers all grants that match your mission.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -63,18 +111,22 @@ export default function Home() {
       {/* Stats Bar */}
       <section className="border-y py-12 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
             <div>
               <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-sm text-muted-foreground">Organizations using Nexar</div>
+              <div className="text-sm text-muted-foreground">Organizations</div>
             </div>
             <div>
               <div className="text-4xl font-bold mb-2">$250M+</div>
-              <div className="text-sm text-muted-foreground">In grants discovered</div>
+              <div className="text-sm text-muted-foreground">Grants discovered</div>
             </div>
             <div>
-              <div className="text-4xl font-bold mb-2">10min</div>
-              <div className="text-sm text-muted-foreground">Average search time</div>
+              <div className="text-4xl font-bold mb-2">15K+</div>
+              <div className="text-sm text-muted-foreground">Active grants</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">0.8s</div>
+              <div className="text-sm text-muted-foreground">Search time</div>
             </div>
           </div>
         </div>
@@ -94,7 +146,7 @@ export default function Home() {
                 <span className="opacity-40">We find the money.</span>
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Our AI analyzes thousands of federal grants in real-time, 
+                Our AI analyzes federal, state, foundation, and corporate grants in real-time, 
                 matching them to your organization's profile, mission, and eligibility.
               </p>
               <ul className="space-y-4">
@@ -102,20 +154,20 @@ export default function Home() {
                   <div className="mt-1 rounded-full bg-foreground p-1">
                     <Check className="h-3 w-3 text-background" />
                   </div>
-                  <span className="text-base">Search across all federal agencies simultaneously</span>
+                  <span className="text-base">Search federal, state, foundation, and corporate sources simultaneously</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="mt-1 rounded-full bg-foreground p-1">
                     <Check className="h-3 w-3 text-background" />
                   </div>
                   <span className="text-base">Get plain-English summaries of complex requirements</span>
-                </li>
+          </li>
                 <li className="flex items-start gap-3">
                   <div className="mt-1 rounded-full bg-foreground p-1">
                     <Check className="h-3 w-3 text-background" />
                   </div>
                   <span className="text-base">Know your eligibility before you apply</span>
-                </li>
+          </li>
               </ul>
             </div>
             
