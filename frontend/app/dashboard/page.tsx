@@ -48,15 +48,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {user?.full_name}! 👋
+            Welcome back
           </h1>
           <p className="text-muted-foreground">
-            Here's what's happening with your grants today
+            Here's your grant discovery overview
           </p>
         </div>
 

@@ -77,13 +77,13 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Search Federal Grants</h1>
+          <h1 className="text-3xl font-bold mb-2">Search Grants</h1>
           <p className="text-muted-foreground">
-            Find federal grant opportunities matching your criteria
+            Find grant opportunities matching your criteria
           </p>
         </div>
 
