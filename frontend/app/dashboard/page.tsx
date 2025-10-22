@@ -53,7 +53,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back
+            Welcome back, {user?.full_name?.split(' ')[0] || user?.full_name || 'there'}
           </h1>
           <p className="text-muted-foreground">
             Here's your grant discovery overview
@@ -61,22 +61,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Subscription
-              </CardTitle>
-              <Sparkles className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold capitalize">{user?.subscription_tier || 'Free'}</div>
-              <p className="text-xs text-muted-foreground">
-                {user?.subscription_tier === 'free' ? '5 searches/week' : 'Unlimited searches'}
-              </p>
-            </CardContent>
-          </Card>
-
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">

@@ -71,12 +71,6 @@ export default function Home() {
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-block mb-6">
-            <Badge variant="outline" className="text-xs px-3 py-1 backdrop-blur-sm bg-background/50">
-              Backed by AI
-            </Badge>
-          </div>
-          
           <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-8 leading-[1.1]">
             Every grant,{' '}
             <span className="block mt-2">
@@ -225,55 +219,6 @@ export default function Home() {
                 <p className="text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof - Minimal */}
-      <section className="py-32 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Trusted by organizations like yours
-            </h2>
-          </div>
-          
-          <div className="space-y-12">
-            {[
-              {
-                quote: "We secured $250K in our first 6 months. The AI matching is incredibly accurate.",
-                author: "Sarah Mitchell",
-                role: "Executive Director",
-                org: "Nonprofit"
-              },
-              {
-                quote: "Nexar AI cut our grant research time from weeks to hours. Game changer for our lab.",
-                author: "Dr. James Chen",
-                role: "Principal Investigator",
-                org: "Research University"
-              },
-              {
-                quote: "Finally, federal grants that actually make sense for small businesses like ours.",
-                author: "Maria Rodriguez",
-                role: "Founder",
-                org: "Clean Tech Startup"
-              }
-            ].map((testimonial, i) => (
-              <div key={i} className="border-l-2 border-foreground pl-6 py-2">
-                <p className="text-lg mb-4 leading-relaxed">
-                  "{testimonial.quote}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-semibold text-sm">
-                    {testimonial.author.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm">{testimonial.author}</div>
-                    <div className="text-xs text-muted-foreground">{testimonial.role} • {testimonial.org}</div>
-                  </div>
-                </div>
               </div>
             ))}
           </div>

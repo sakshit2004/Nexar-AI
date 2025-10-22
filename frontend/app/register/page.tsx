@@ -48,24 +48,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Logo */}
-      <div className="p-6">
-        <Link href="/" className="font-bold text-xl">
-          Nexar AI
-        </Link>
-      </div>
-
+    <div className="min-h-screen flex flex-col pt-16">
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-4 pb-16">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-10">
             <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-              Get started with Nexar AI
+              Create your account
             </h1>
             <p className="text-muted-foreground">
-              Create your free account
+              Get started with Nexar AI for free
             </p>
           </div>
 

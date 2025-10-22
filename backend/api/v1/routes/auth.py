@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.models.database import get_db
-from backend.api.v1.schemas.auth import UserRegister, UserLogin, Token, UserResponse
+from backend.api.v1.schemas.auth import UserRegister, UserLogin, Token, TokenWithUser, UserResponse
 from backend.api.v1.middleware.auth import get_current_user
 from backend.repositories.user_repository import UserRepository
 from backend.core.security import hash_password, verify_password, create_access_token
@@ -13,7 +13,7 @@ from backend.services.email.service import EmailService
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=TokenWithUser, status_code=status.HTTP_201_CREATED)
 def register(
     data: UserRegister,
     db: Session = Depends(get_db)
@@ -44,10 +44,18 @@ def register(
     except Exception:
         pass  # Don't fail registration if email fails
     
-    return user
+    # Create token
+    token = create_access_token({"sub": str(user.id), "email": user.email})
+    
+    # Return token with user data
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": UserResponse.model_validate(user)
+    }
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TokenWithUser)
 def login(
     data: UserLogin,
     db: Session = Depends(get_db)
@@ -74,7 +82,12 @@ def login(
     # Create token
     token = create_access_token({"sub": str(user.id), "email": user.email})
     
-    return {"access_token": token, "token_type": "bearer"}
+    # Return token with user data
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": UserResponse.model_validate(user)
+    }
 
 
 @router.get("/me", response_model=UserResponse)

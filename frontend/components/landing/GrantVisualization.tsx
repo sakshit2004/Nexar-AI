@@ -59,10 +59,13 @@ export function GrantVisualization() {
 
   useEffect(() => {
     let typeIndex = 0;
-    let animationCycle = 0;
     let cursorInterval: NodeJS.Timeout;
+    let currentCycle = 0;
 
     const runAnimation = () => {
+      // Increment cycle counter
+      currentCycle++;
+      
       // Reset everything
       setSearchText('');
       setGrants([]);
@@ -97,11 +100,17 @@ export function GrantVisualization() {
               setIsSearching(false);
               setShowResults(true);
               
-              // Show grants with smooth stagger
+              // Clear grants first, then show new ones with smooth stagger
+              setGrants([]);
               grantData.forEach((grant, index) => {
                 setTimeout(() => {
                   setGrants(prev => {
-                    const newGrant = { ...grant, id: `${animationCycle}-${grant.id}`, visible: true };
+                    // Only add if not already present (safety check)
+                    const grantId = `${currentCycle}-${grant.id}`;
+                    if (prev.some(g => g.id === grantId)) {
+                      return prev;
+                    }
+                    const newGrant = { ...grant, id: grantId, visible: true };
                     return [...prev, newGrant];
                   });
                   
@@ -124,7 +133,6 @@ export function GrantVisualization() {
       // Loop animation
       setTimeout(() => {
         typeIndex = 0;
-        animationCycle++;
         clearInterval(cursorInterval);
         runAnimation();
       }, 12000);
