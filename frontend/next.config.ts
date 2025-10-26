@@ -9,15 +9,8 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, '.'),
-      '@/lib': path.resolve(__dirname, './lib'),
-      '@/components': path.resolve(__dirname, './components'),
-      '@/app': path.resolve(__dirname, './app'),
     };
     return config;
-  },
-  // Force fresh deployment
-  experimental: {
-    outputFileTracingRoot: path.join(__dirname, "../"),
   },
 };
 
