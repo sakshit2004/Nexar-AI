@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
+  // Force fresh deployment
+  experimental: {
+    outputFileTracingRoot: path.join(__dirname, "../"),
+  },
 };
 
 export default nextConfig;
