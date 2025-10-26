@@ -32,11 +32,12 @@ export default function DashboardPage() {
   const { data: recommendedResults, isLoading } = useQuery({
     queryKey: ['recommended-grants'],
     queryFn: async () => {
+      if (!token) throw new Error('No token available');
       const response = await grantsApi.getRecommendations(token);
       // Return full response with metadata
       return response.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!token,
   });
 
   // Get saved grants statistics
