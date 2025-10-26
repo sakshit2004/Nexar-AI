@@ -45,10 +45,11 @@ export default function DashboardPage() {
   const { data: savedGrantsStats } = useQuery({
     queryKey: ['saved-grants-stats'],
     queryFn: async () => {
-      const response = await savedGrantsApi.stats();
+      if (!token) throw new Error('No token available');
+      const response = await savedGrantsApi.stats(token);
       return response.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!token,
   });
   
   const recommendedGrants = recommendedResults?.grants || [];

@@ -120,4 +120,11 @@ export const savedGrantsApi = {
     });
     return response.json();
   },
+
+  stats: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/stats`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.json();
+  },
 };
