@@ -79,7 +79,7 @@ export default function SavedGrantsPage() {
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.toggleFavorite(id, token),
+    mutationFn: (id: number) => savedGrantsApi.toggleFavorite(id, token || undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
@@ -88,7 +88,7 @@ export default function SavedGrantsPage() {
 
   // Archive mutation
   const archiveMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.archive(id, token),
+    mutationFn: (id: number) => savedGrantsApi.archive(id, token || undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
