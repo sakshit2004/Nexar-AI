@@ -106,15 +106,16 @@ export default function GrantDetailsPage() {
   // Unsave grant mutation
   const unsaveGrantMutation = useMutation({
     mutationFn: async () => {
+      if (!token) throw new Error('No token available');
       if (!savedGrantId) {
         // If we don't have the saved grant ID, we need to find it
-        const response = await savedGrantsApi.list(token || undefined);
+        const response = await savedGrantsApi.list(token);
         const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
-          await savedGrantsApi.delete(savedGrant.id, token || undefined);
+          await savedGrantsApi.delete(savedGrant.id, token);
         }
       } else {
-        await savedGrantsApi.delete(savedGrantId, token || undefined);
+        await savedGrantsApi.delete(savedGrantId, token);
       }
     },
     onSuccess: () => {
