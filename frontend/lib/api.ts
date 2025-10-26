@@ -47,8 +47,10 @@ export const grantsApi = {
     return response.json();
   },
 
-  getById: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/grants/${id}`);
+  getById: async (id: string, token?: string) => {
+    const headers: any = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/grants/${id}`, { headers });
     return response.json();
   },
 
