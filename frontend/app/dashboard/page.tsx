@@ -21,7 +21,7 @@ import {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, token } = useAuthStore();
 
   useEffect(() => {
     if (!isAuthenticated) {
