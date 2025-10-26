@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { useAuthStore } from '@/lib/store';
+import { Button } from './ui/button';
+import { ThemeToggle } from './ThemeToggle';
+import { useAuthStore } from '../lib/store';
 
 export function Navbar() {
   const pathname = usePathname();
