@@ -68,6 +68,15 @@ export const matchingApi = {
     });
     return response.json();
   },
+
+  analyze: async (grantId: string, token?: string) => {
+    const headers: any = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/grants/${grantId}/analyze`, {
+      headers,
+    });
+    return response.json();
+  },
 };
 
 // Profile API
@@ -106,9 +115,19 @@ export const savedGrantsApi = {
     return response.json();
   },
 
-  list: async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants`, {
-      headers: { Authorization: `Bearer ${token}` },
+  list: async (token?: string, params?: any) => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+    const headers: any = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants?${searchParams}`, {
+      headers,
     });
     return response.json();
   },
@@ -121,9 +140,49 @@ export const savedGrantsApi = {
     return response.json();
   },
 
-  stats: async (token: string) => {
+  stats: async (token?: string) => {
+    const headers: any = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
     const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/stats`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
+    });
+    return response.json();
+  },
+
+  checkSaved: async (grantId: string, token?: string) => {
+    const headers: any = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${grantId}/check`, {
+      headers,
+    });
+    return response.json();
+  },
+
+  search: async (searchQuery: string, token?: string) => {
+    const headers: any = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/search?q=${encodeURIComponent(searchQuery)}`, {
+      headers,
+    });
+    return response.json();
+  },
+
+  toggleFavorite: async (savedGrantId: string | number, token?: string) => {
+    const headers: any = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/favorite`, {
+      method: 'PUT',
+      headers,
+    });
+    return response.json();
+  },
+
+  archive: async (savedGrantId: string | number, token?: string) => {
+    const headers: any = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/archive`, {
+      method: 'PUT',
+      headers,
     });
     return response.json();
   },

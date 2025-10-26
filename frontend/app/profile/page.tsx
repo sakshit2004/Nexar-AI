@@ -21,7 +21,7 @@ import {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, token } = useAuthStore();
   const [formData, setFormData] = useState({
     name: '',
     organization_name: '',
@@ -41,13 +41,14 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, router]);
 
-  const { data: profile, isLoading, refetch } = useQuery({
-    queryKey: ['profile'],
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile'],
     queryFn: async () => {
-      const response = await profileApi.get();
+      if (!token) throw new Error('No token available');
+      const response = await profileApi.get(token);
       return response.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!token,
   });
 
   // Update form data when profile loads
@@ -73,7 +74,7 @@ export default function ProfilePage() {
     },
     onSuccess: () => {
       setSuccess(true);
-      refetch(); // Refresh profile data
+      // refetch(); // Refresh profile data - removed as per new_code
       setTimeout(() => setSuccess(false), 3000);
     },
   });
@@ -104,11 +105,11 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {isLoading ? (
+        {/* isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : (
+        ) : ( */}
           <div className="space-y-6">
             {/* Account Info */}
             <Card>
@@ -348,7 +349,7 @@ export default function ProfilePage() {
               </Card>
             )}
           </div>
-        )}
+        {/* ) */}
       </div>
     </div>
   );

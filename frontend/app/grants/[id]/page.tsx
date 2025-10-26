@@ -30,7 +30,7 @@ export default function GrantDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const grantId = params.id as string;
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, token } = useAuthStore();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -41,12 +41,12 @@ export default function GrantDetailsPage() {
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
-      const response = await grantsApi.getById(grantId);
+      const response = await grantsApi.getById(grantId, token);
       console.log('Grant API response:', response.data);
       console.log('Grant URL:', response.data.url);
       return response.data;
     },
-    enabled: isAuthenticated && !!grantId,
+    enabled: isAuthenticated && !!grantId && !!token,
   });
 
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -58,10 +58,10 @@ export default function GrantDetailsPage() {
   const { data: savedStatus } = useQuery({
     queryKey: ['grant-saved-status', grantId],
     queryFn: async () => {
-      const response = await savedGrantsApi.checkSaved(grantId);
+      const response = await savedGrantsApi.checkSaved(grantId, token);
       return response.data;
     },
-    enabled: isAuthenticated && !!grantId,
+    enabled: isAuthenticated && !!grantId && !!token,
   });
 
   // Update saved status when data changes
@@ -74,7 +74,7 @@ export default function GrantDetailsPage() {
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       console.log('Analyzing grant:', grantId);
-      const response = await matchingApi.analyze(grantId);
+      const response = await matchingApi.analyze(grantId, token);
       console.log('Analysis response:', response.data);
       return response.data;
     },
@@ -108,7 +108,7 @@ export default function GrantDetailsPage() {
         is_favorite: false,
       };
       
-      const response = await savedGrantsApi.save(saveData);
+      const response = await savedGrantsApi.save(grantId, token);
       return response.data;
     },
     onSuccess: (data) => {
@@ -125,13 +125,13 @@ export default function GrantDetailsPage() {
     mutationFn: async () => {
       if (!savedGrantId) {
         // If we don't have the saved grant ID, we need to find it
-        const response = await savedGrantsApi.list();
+        const response = await savedGrantsApi.list(token);
         const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
-          await savedGrantsApi.delete(savedGrant.id);
+          await savedGrantsApi.delete(savedGrant.id, token);
         }
       } else {
-        await savedGrantsApi.delete(savedGrantId);
+        await savedGrantsApi.delete(savedGrantId, token);
       }
     },
     onSuccess: () => {
