@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
+  // Dashboard page component
   const router = useRouter();
   const { isAuthenticated, user, token } = useAuthStore();
 
