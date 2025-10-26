@@ -66,7 +66,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {user?.full_name?.split(' ')[0] || user?.full_name || 'there'}
+            Welcome back, {user?.name?.split(' ')[0] || user?.name || 'there'}
           </h1>
           <p className="text-muted-foreground">
             Here's your grant discovery overview

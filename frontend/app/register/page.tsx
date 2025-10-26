@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState(1); // 1 = email, 2 = details
   const [formData, setFormData] = useState({
     email: '',
-    full_name: '',
+    name: '',
     password: '',
   });
   const [error, setError] = useState('');
@@ -100,15 +100,15 @@ export default function RegisterPage() {
             {step === 2 && (
               <div className="space-y-4 animate-fade-in">
                 <div className="space-y-2">
-                  <label htmlFor="full_name" className="text-sm font-medium block">
+                  <label htmlFor="name" className="text-sm font-medium block">
                     Full name
                   </label>
                   <Input
-                    id="full_name"
+                    id="name"
                     type="text"
                     placeholder="Enter your full name..."
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="h-11"
                     required
                     disabled={loading}

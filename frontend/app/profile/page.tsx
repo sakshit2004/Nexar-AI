@@ -23,7 +23,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const [formData, setFormData] = useState({
-    full_name: '',
+    name: '',
     organization_name: '',
     organization_type: '',
     focus_areas: '',
@@ -54,7 +54,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        full_name: profile.full_name || '',
+        name: profile.name || '',
         organization_name: profile.organization_name || '',
         organization_type: profile.organization_type || '',
         focus_areas: profile.focus_areas?.join(', ') || '',
@@ -147,17 +147,17 @@ export default function ProfilePage() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="full_name" className="text-sm font-medium block mb-2">
+                    <label htmlFor="name" className="text-sm font-medium block mb-2">
                       Full Name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="full_name"
+                        id="name"
                         type="text"
                         placeholder="John Doe"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="pl-10"
                       />
                     </div>
