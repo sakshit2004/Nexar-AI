@@ -132,7 +132,7 @@ export default function ProfilePage() {
                   <label className="text-sm font-medium">Subscription Tier</label>
                   <div className="mt-1 flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-muted-foreground" />
-                    <Badge className="capitalize">{user?.subscription_tier || 'free'}</Badge>
+                    <Badge className="capitalize">{user?.tier || 'free'}</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -313,7 +313,7 @@ export default function ProfilePage() {
             </Card>
 
             {/* Upgrade CTA */}
-            {user?.subscription_tier === 'free' && (
+            {user?.tier === 'free' && (
               <Card className="bg-muted border-2">
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
