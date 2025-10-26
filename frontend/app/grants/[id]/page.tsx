@@ -38,27 +38,27 @@ export default function GrantDetailsPage() {
     }
   }, [isAuthenticated, router]);
 
-  const { data: grant, isLoading, error } = useQuery({
+  const { data: grant } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
-      const response = await grantsApi.getById(grantId, token || undefined);
+      const response = await grantsApi.getById(grantId);
       console.log('Grant API response:', response.data);
       console.log('Grant URL:', response.data.url);
       return response.data;
     },
-    enabled: isAuthenticated && !!grantId && !!token,
+    enabled: isAuthenticated && !!grantId,
   });
 
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<any>(null);
   const [isSaved, setIsSaved] = useState<boolean>(false);
-  const [savedGrantId, setSavedGrantId] = useState<number | null>(null);
+  const [savedGrantId, setSavedGrantId] = useState<string | null>(null);
 
-  // Check if grant is saved
-  const { data: savedStatus } = useQuery({
+  const { data: matchStatus } = useQuery({
     queryKey: ['grant-saved-status', grantId],
     queryFn: async () => {
-      const response = await savedGrantsApi.checkSaved(grantId, token || undefined);
+      if (!token) throw new Error('No token available');
+      const response = await savedGrantsApi.checkSaved(grantId, token);
       return response.data;
     },
     enabled: isAuthenticated && !!grantId && !!token,
@@ -66,15 +66,16 @@ export default function GrantDetailsPage() {
 
   // Update saved status when data changes
   useEffect(() => {
-    if (savedStatus) {
-      setIsSaved(savedStatus.is_saved);
+    if (matchStatus) {
+      setIsSaved(matchStatus.is_saved);
     }
-  }, [savedStatus]);
+  }, [matchStatus]);
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       console.log('Analyzing grant:', grantId);
-      const response = await matchingApi.analyze(grantId, token || undefined);
+      if (!token) throw new Error('No token available');
+      const response = await matchingApi.analyze(grantId, token);
       console.log('Analysis response:', response.data);
       return response.data;
     },
@@ -96,7 +97,7 @@ export default function GrantDetailsPage() {
     },
     onSuccess: (data) => {
       setIsSaved(true);
-      setSavedGrantId(data.id);
+      setSavedGrantId(data.id.toString());
     },
     onError: (error) => {
       console.error('Save grant error:', error);
@@ -112,7 +113,7 @@ export default function GrantDetailsPage() {
         const response = await savedGrantsApi.list(token);
         const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
-          await savedGrantsApi.delete(savedGrant.id, token);
+          await savedGrantsApi.delete(savedGrant.id.toString(), token);
         }
       } else {
         await savedGrantsApi.delete(savedGrantId, token);
@@ -129,28 +130,6 @@ export default function GrantDetailsPage() {
 
   if (!isAuthenticated) {
     return null;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Error loading grant</h2>
-          <p className="text-muted-foreground mb-4">{error.message}</p>
-          <Link href="/search">
-            <Button variant="outline">Back to Search</Button>
-          </Link>
-        </div>
-      </div>
-    );
   }
 
   if (!grant) {
