@@ -70,7 +70,8 @@ export default function ProfilePage() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      return profileApi.update(data);
+      if (!token) throw new Error('No token available');
+      return profileApi.update(data, token);
     },
     onSuccess: () => {
       setSuccess(true);
