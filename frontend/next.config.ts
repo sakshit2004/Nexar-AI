@@ -15,7 +15,8 @@ const nextConfig: NextConfig = {
   },
   
   // Vercel deployment optimizations
-  output: 'standalone',
+  // Remove standalone output for Vercel deployment
+  // output: 'standalone',
   
   // API routes configuration for backend integration
   async rewrites() {
