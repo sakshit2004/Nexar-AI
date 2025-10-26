@@ -50,8 +50,8 @@ export default function SearchPage() {
       const response = await grantsApi.search({
         q: activeSearchParams.query,
         category: activeSearchParams.category,
-        min_amount: activeSearchParams.min_amount,
-        max_amount: activeSearchParams.max_amount,
+        min_amount: activeSearchParams.min_amount ? parseInt(activeSearchParams.min_amount) : undefined,
+        max_amount: activeSearchParams.max_amount ? parseInt(activeSearchParams.max_amount) : undefined,
       });
       // Return full response with metadata
       return response.data;
