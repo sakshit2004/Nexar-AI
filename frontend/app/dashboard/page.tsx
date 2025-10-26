@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const { data: recommendedResults, isLoading } = useQuery({
     queryKey: ['recommended-grants'],
     queryFn: async () => {
-      const response = await grantsApi.getRecommended();
+      const response = await grantsApi.getRecommendations(token);
       // Return full response with metadata
       return response.data;
     },

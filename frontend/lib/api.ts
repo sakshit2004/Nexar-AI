@@ -70,6 +70,28 @@ export const matchingApi = {
   },
 };
 
+// Profile API
+export const profileApi = {
+  get: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/v1/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.json();
+  },
+
+  update: async (data: any, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/v1/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+};
+
 // Saved Grants API
 export const savedGrantsApi = {
   save: async (grantId: string, token: string) => {
