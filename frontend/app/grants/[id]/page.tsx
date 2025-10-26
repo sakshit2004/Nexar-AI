@@ -88,27 +88,10 @@ export default function GrantDetailsPage() {
   });
 
   // Save grant mutation
-  const saveGrantMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!grant) throw new Error('Grant data not available');
-      
-      const saveData = {
-        grant_id: grant.id,
-        grant_title: grant.title,
-        grant_agency: grant.agency,
-        grant_description: grant.description,
-        grant_eligibility: grant.eligibility,
-        grant_cfda_number: grant.cfda_number,
-        grant_category: grant.category,
-        grant_award_floor: grant.award_floor,
-        grant_award_ceiling: grant.award_ceiling,
-        grant_close_date: grant.close_date,
-        grant_open_date: grant.open_date,
-        grant_url: grant.url,
-        is_favorite: false,
-      };
-      
-      const response = await savedGrantsApi.save(grantId, token || undefined);
+      if (!token) throw new Error('No token available');
+      const response = await savedGrantsApi.save(grantId, token);
       return response.data;
     },
     onSuccess: (data) => {
@@ -327,10 +310,10 @@ export default function GrantDetailsPage() {
                 <Button 
                   className="w-full" 
                   variant={isSaved ? "default" : "outline"}
-                  onClick={() => isSaved ? unsaveGrantMutation.mutate() : saveGrantMutation.mutate()}
-                  disabled={saveGrantMutation.isPending || unsaveGrantMutation.isPending}
+                  onClick={() => isSaved ? unsaveGrantMutation.mutate() : saveMutation.mutate()}
+                  disabled={saveMutation.isPending || unsaveGrantMutation.isPending}
                 >
-                  {saveGrantMutation.isPending || unsaveGrantMutation.isPending ? (
+                  {saveMutation.isPending || unsaveGrantMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       {isSaved ? 'Removing...' : 'Saving...'}
