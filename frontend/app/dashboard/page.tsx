@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { grantsApi } from '@/lib/api';
+import { grantsApi, savedGrantsApi } from '@/lib/api';
 import { 
   Search, 
   TrendingUp, 
@@ -34,6 +34,16 @@ export default function DashboardPage() {
     queryFn: async () => {
       const response = await grantsApi.getRecommended();
       // Return full response with metadata
+      return response.data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Get saved grants statistics
+  const { data: savedGrantsStats } = useQuery({
+    queryKey: ['saved-grants-stats'],
+    queryFn: async () => {
+      const response = await savedGrantsApi.stats();
       return response.data;
     },
     enabled: isAuthenticated,
@@ -70,9 +80,9 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{savedGrantsStats?.total_saved || 0}</div>
               <p className="text-xs text-muted-foreground">
-                Bookmark grants to save
+                {savedGrantsStats?.total_saved > 0 ? 'Grants saved' : 'Bookmark grants to save'}
               </p>
             </CardContent>
           </Card>
@@ -109,7 +119,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2 mb-8">
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
           <Link href="/search">
             <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
               <CardHeader>
@@ -117,6 +127,18 @@ export default function DashboardPage() {
                 <CardTitle>Search Grants</CardTitle>
                 <CardDescription>
                   Find federal grants matching your criteria
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/saved">
+            <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
+              <CardHeader>
+                <TrendingUp className="h-8 w-8 text-foreground mb-2" />
+                <CardTitle>Saved Grants</CardTitle>
+                <CardDescription>
+                  View and manage your bookmarked grants
                 </CardDescription>
               </CardHeader>
             </Card>

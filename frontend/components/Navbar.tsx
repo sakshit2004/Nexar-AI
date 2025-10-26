@@ -53,6 +53,14 @@ export function Navbar() {
                   Search
                 </Link>
                 <Link
+                  href="/saved"
+                  className={`text-sm transition-colors ${
+                    pathname === '/saved' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Saved
+                </Link>
+                <Link
                   href="/profile"
                   className={`text-sm transition-colors ${
                     pathname === '/profile' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'

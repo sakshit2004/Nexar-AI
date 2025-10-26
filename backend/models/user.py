@@ -2,6 +2,7 @@
 User model
 """
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum as SQLEnum, ForeignKey, JSON, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 import enum
@@ -34,6 +35,9 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    saved_grants = relationship("SavedGrant", back_populates="user")
     
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"

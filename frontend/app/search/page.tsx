@@ -44,7 +44,7 @@ export default function SearchPage() {
     }
   }, [isAuthenticated, router]);
 
-  const { data: searchResults, isLoading } = useQuery({
+  const { data: searchResults, isLoading, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
     queryFn: async () => {
       const response = await grantsApi.search({

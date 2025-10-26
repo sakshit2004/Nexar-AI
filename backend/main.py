@@ -15,7 +15,8 @@ from backend.core.exceptions import GrantMatchException
 from backend.models.database import init_db
 
 # API routes
-from backend.api.v1.routes import auth, profile, grants, webhooks
+from backend.api.v1.routes import auth, profile, grants, saved_grants
+# webhooks removed - no payment processing (Stripe disabled)
 
 
 # Setup logging
@@ -142,8 +143,9 @@ def root():
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(profile.router, prefix=settings.API_V1_PREFIX)
 app.include_router(grants.router, prefix=settings.API_V1_PREFIX)
+app.include_router(saved_grants.router, prefix=settings.API_V1_PREFIX)
 # Matching functionality now handled by grants/recommended endpoint
-app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)
+# app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)  # DISABLED - No Stripe payments
 
 
 if __name__ == "__main__":

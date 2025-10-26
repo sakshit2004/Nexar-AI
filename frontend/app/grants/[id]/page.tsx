@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { grantsApi, matchingApi } from '@/lib/api';
+import { grantsApi, matchingApi, savedGrantsApi } from '@/lib/api';
 import { 
   ArrowLeft,
   DollarSign,
@@ -20,7 +20,10 @@ import {
   ExternalLink,
   TrendingUp,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Bookmark,
+  BookmarkCheck,
+  Heart
 } from 'lucide-react';
 
 export default function GrantDetailsPage() {
@@ -48,6 +51,25 @@ export default function GrantDetailsPage() {
 
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<any>(null);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [savedGrantId, setSavedGrantId] = useState<number | null>(null);
+
+  // Check if grant is saved
+  const { data: savedStatus } = useQuery({
+    queryKey: ['grant-saved-status', grantId],
+    queryFn: async () => {
+      const response = await savedGrantsApi.checkSaved(grantId);
+      return response.data;
+    },
+    enabled: isAuthenticated && !!grantId,
+  });
+
+  // Update saved status when data changes
+  useEffect(() => {
+    if (savedStatus) {
+      setIsSaved(savedStatus.is_saved);
+    }
+  }, [savedStatus]);
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
@@ -62,6 +84,62 @@ export default function GrantDetailsPage() {
     },
     onError: (error) => {
       console.error('Analysis error:', error);
+    },
+  });
+
+  // Save grant mutation
+  const saveGrantMutation = useMutation({
+    mutationFn: async () => {
+      if (!grant) throw new Error('Grant data not available');
+      
+      const saveData = {
+        grant_id: grant.id,
+        grant_title: grant.title,
+        grant_agency: grant.agency,
+        grant_description: grant.description,
+        grant_eligibility: grant.eligibility,
+        grant_cfda_number: grant.cfda_number,
+        grant_category: grant.category,
+        grant_award_floor: grant.award_floor,
+        grant_award_ceiling: grant.award_ceiling,
+        grant_close_date: grant.close_date,
+        grant_open_date: grant.open_date,
+        grant_url: grant.url,
+        is_favorite: false,
+      };
+      
+      const response = await savedGrantsApi.save(saveData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setIsSaved(true);
+      setSavedGrantId(data.id);
+    },
+    onError: (error) => {
+      console.error('Save grant error:', error);
+    },
+  });
+
+  // Unsave grant mutation
+  const unsaveGrantMutation = useMutation({
+    mutationFn: async () => {
+      if (!savedGrantId) {
+        // If we don't have the saved grant ID, we need to find it
+        const response = await savedGrantsApi.list();
+        const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
+        if (savedGrant) {
+          await savedGrantsApi.delete(savedGrant.id);
+        }
+      } else {
+        await savedGrantsApi.delete(savedGrantId);
+      }
+    },
+    onSuccess: () => {
+      setIsSaved(false);
+      setSavedGrantId(null);
+    },
+    onError: (error) => {
+      console.error('Unsave grant error:', error);
     },
   });
 
@@ -246,21 +324,47 @@ export default function GrantDetailsPage() {
                 <CardTitle className="text-base">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                <Button 
+                  className="w-full" 
+                  variant={isSaved ? "default" : "outline"}
+                  onClick={() => isSaved ? unsaveGrantMutation.mutate() : saveGrantMutation.mutate()}
+                  disabled={saveGrantMutation.isPending || unsaveGrantMutation.isPending}
+                >
+                  {saveGrantMutation.isPending || unsaveGrantMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isSaved ? 'Removing...' : 'Saving...'}
+                    </>
+                  ) : isSaved ? (
+                    <>
+                      <BookmarkCheck className="mr-2 h-4 w-4" />
+                      Saved
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="mr-2 h-4 w-4" />
+                      Save Grant
+                    </>
+                  )}
+                </Button>
+                
                 <a 
                   href={grant.url || "https://grants.gov/search"} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="block"
                 >
-                  <Button className="w-full" variant="default">
+                  <Button className="w-full" variant="outline">
                     <ExternalLink className="mr-2 h-4 w-4" />
                      View Official Page
                   </Button>
                 </a>
+                
                 <Button className="w-full" variant="outline">
                   <FileText className="mr-2 h-4 w-4" />
                   Download Summary
                 </Button>
+                
                 <Button 
                   className="w-full" 
                   variant="outline"
