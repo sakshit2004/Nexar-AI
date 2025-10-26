@@ -1,0 +1,47 @@
+# Vercel ignore patterns
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Database files (use PostgreSQL on Vercel)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+
+# Documentation
+docs/
+
+# Docker files (not needed on Vercel)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Local config
+.env.local
+config/
+
+# IDE
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS files
+.DS_Store
+Thumbs.db
+

@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Colors - Clean black & white palette */
+  --color-background: 255 255 255;
+  --color-foreground: 0 0 0;
+  --color-card: 255 255 255;
+  --color-card-foreground: 0 0 0;
+  --color-popover: 255 255 255;
+  --color-popover-foreground: 0 0 0;
+  --color-primary: 0 0 0; /* Black */
+  --color-primary-foreground: 255 255 255;
+  --color-secondary: 245 245 245; /* Gray-100 */
+  --color-secondary-foreground: 0 0 0;
+  --color-muted: 245 245 245;
+  --color-muted-foreground: 115 115 115;
+  --color-accent: 245 245 245;
+  --color-accent-foreground: 0 0 0;
+  --color-destructive: 220 38 38; /* Red */
+  --color-destructive-foreground: 255 255 255;
+  --color-border: 229 229 229;
+  --color-input: 229 229 229;
+  --color-ring: 0 0 0;
+  --radius: 0.375rem;
+}
+
+/* Dark mode styles - triggered by .dark class on html element */
+.dark {
+  --color-background: 0 0 0;
+  --color-foreground: 255 255 255;
+  --color-card: 10 10 10;
+  --color-card-foreground: 255 255 255;
+  --color-popover: 10 10 10;
+  --color-popover-foreground: 255 255 255;
+  --color-primary: 255 255 255; /* White */
+  --color-primary-foreground: 0 0 0;
+  --color-secondary: 38 38 38;
+  --color-secondary-foreground: 255 255 255;
+  --color-muted: 38 38 38;
+  --color-muted-foreground: 163 163 163;
+  --color-accent: 38 38 38;
+  --color-accent-foreground: 255 255 255;
+  --color-destructive: 239 68 68;
+  --color-destructive-foreground: 255 255 255;
+  --color-border: 38 38 38;
+  --color-input: 38 38 38;
+  --color-ring: 255 255 255;
+}
+
+/* Also support system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background: 0 0 0;
+    --color-foreground: 255 255 255;
+    --color-card: 10 10 10;
+    --color-card-foreground: 255 255 255;
+    --color-popover: 10 10 10;
+    --color-popover-foreground: 255 255 255;
+    --color-primary: 255 255 255;
+    --color-primary-foreground: 0 0 0;
+    --color-secondary: 38 38 38;
+    --color-secondary-foreground: 255 255 255;
+    --color-muted: 38 38 38;
+    --color-muted-foreground: 163 163 163;
+    --color-accent: 38 38 38;
+    --color-accent-foreground: 255 255 255;
+    --color-destructive: 239 68 68;
+    --color-destructive-foreground: 255 255 255;
+    --color-border: 38 38 38;
+    --color-input: 38 38 38;
+    --color-ring: 255 255 255;
+  }
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(0.5px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgb(var(--color-foreground));
+    box-shadow: 0 0 0 0 rgba(var(--color-foreground), 0.4);
+  }
+  50% {
+    border-color: rgb(var(--color-muted-foreground));
+    box-shadow: 0 0 0 4px rgba(var(--color-foreground), 0);
+  }
+}
+
+@keyframes counter-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dot-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes scan-down {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(400%);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+.animate-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.animate-scan-down {
+  animation: scan-down 2s ease-in-out infinite;
+}
+
+/* Utility classes */
+.text-balance {
+  text-wrap: balance;
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
+}
+
+.skeleton-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(90deg, 
+    rgb(var(--color-muted)) 0%, 
+    rgb(var(--color-secondary)) 50%, 
+    rgb(var(--color-muted)) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Typography enhancements */
+h1 {
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+h2 {
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+h3 {
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+/* Simple gradient text effect */
+.gradient-text {
+  @apply text-foreground font-bold;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+/* Unique hover effects */
+.group:hover .group-hover\:translate-x-1 {
+  transform: translateX(0.25rem);
+}
+
+/* Smooth transitions */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Better focus states */
+:focus-visible {
+  outline: 2px solid rgb(var(--color-foreground));
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
