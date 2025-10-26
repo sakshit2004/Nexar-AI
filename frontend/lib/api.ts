@@ -1,30 +1,56 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const DEBUG = process.env.NEXT_PUBLIC_DEBUG === 'true';
+
+// Utility function for API calls with error handling
+const fetchWithError = async (url: string, options?: RequestInit) => {
+  try {
+    if (DEBUG) console.log('API Call:', url);
+    
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `API Error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (DEBUG) console.error('API Error:', error);
+    throw error;
+  }
+};
 
 // Auth API
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    return response.json();
+    return response;
   },
 
   register: async (email: string, password: string, name: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name }),
     });
-    return response.json();
+    return response;
   },
 
   me: async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.json();
+    return response;
   },
 };
 
@@ -43,55 +69,55 @@ export const grantsApi = {
       }
     });
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/grants/search?${searchParams}`);
-    return response.json();
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/search?${searchParams}`);
+    return response;
   },
 
   getById: async (id: string, token?: string) => {
     const headers: any = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/grants/${id}`, { headers });
-    return response.json();
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/${id}`, { headers });
+    return response;
   },
 
   getRecommendations: async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/grants/recommendations`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/recommendations`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.json();
+    return response;
   },
 };
 
 // Matching API
 export const matchingApi = {
   getMatch: async (grantId: string, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/grants/${grantId}/match`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/${grantId}/match`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.json();
+    return response;
   },
 
   analyze: async (grantId: string, token?: string) => {
     const headers: any = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/grants/${grantId}/analyze`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/${grantId}/analyze`, {
       headers,
     });
-    return response.json();
+    return response;
   },
 };
 
 // Profile API
 export const profileApi = {
   get: async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/profile`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.json();
+    return response;
   },
 
   update: async (data: any, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/profile`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -99,14 +125,14 @@ export const profileApi = {
       },
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };
 
 // Saved Grants API
 export const savedGrantsApi = {
   save: async (grantId: string, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +140,7 @@ export const savedGrantsApi = {
       },
       body: JSON.stringify({ grant_id: grantId }),
     });
-    return response.json();
+    return response;
   },
 
   list: async (token?: string, params?: any) => {
@@ -128,64 +154,64 @@ export const savedGrantsApi = {
     }
     const headers: any = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants?${searchParams}`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants?${searchParams}`, {
       headers,
     });
-    return response.json();
+    return response;
   },
 
   delete: async (savedGrantId: string, token: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.json();
+    return response;
   },
 
   stats: async (token?: string) => {
     const headers: any = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/stats`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/stats`, {
       headers,
     });
-    return response.json();
+    return response;
   },
 
   checkSaved: async (grantId: string, token?: string) => {
     const headers: any = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${grantId}/check`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${grantId}/check`, {
       headers,
     });
-    return response.json();
+    return response;
   },
 
   search: async (searchQuery: string, token?: string) => {
     const headers: any = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/search?q=${encodeURIComponent(searchQuery)}`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/search?q=${encodeURIComponent(searchQuery)}`, {
       headers,
     });
-    return response.json();
+    return response;
   },
 
   toggleFavorite: async (savedGrantId: string | number, token?: string) => {
     const headers: any = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/favorite`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/favorite`, {
       method: 'PUT',
       headers,
     });
-    return response.json();
+    return response;
   },
 
   archive: async (savedGrantId: string | number, token?: string) => {
     const headers: any = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/archive`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/archive`, {
       method: 'PUT',
       headers,
     });
-    return response.json();
+    return response;
   },
 };
