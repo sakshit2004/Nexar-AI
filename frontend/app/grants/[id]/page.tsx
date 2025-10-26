@@ -41,7 +41,7 @@ export default function GrantDetailsPage() {
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
-      const response = await grantsApi.getById(grantId, token);
+      const response = await grantsApi.getById(grantId, token || undefined);
       console.log('Grant API response:', response.data);
       console.log('Grant URL:', response.data.url);
       return response.data;
@@ -58,7 +58,7 @@ export default function GrantDetailsPage() {
   const { data: savedStatus } = useQuery({
     queryKey: ['grant-saved-status', grantId],
     queryFn: async () => {
-      const response = await savedGrantsApi.checkSaved(grantId, token);
+      const response = await savedGrantsApi.checkSaved(grantId, token || undefined);
       return response.data;
     },
     enabled: isAuthenticated && !!grantId && !!token,
@@ -74,7 +74,7 @@ export default function GrantDetailsPage() {
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       console.log('Analyzing grant:', grantId);
-      const response = await matchingApi.analyze(grantId, token);
+      const response = await matchingApi.analyze(grantId, token || undefined);
       console.log('Analysis response:', response.data);
       return response.data;
     },
@@ -108,7 +108,7 @@ export default function GrantDetailsPage() {
         is_favorite: false,
       };
       
-      const response = await savedGrantsApi.save(grantId, token);
+      const response = await savedGrantsApi.save(grantId, token || undefined);
       return response.data;
     },
     onSuccess: (data) => {
@@ -125,13 +125,13 @@ export default function GrantDetailsPage() {
     mutationFn: async () => {
       if (!savedGrantId) {
         // If we don't have the saved grant ID, we need to find it
-        const response = await savedGrantsApi.list(token);
+        const response = await savedGrantsApi.list(token || undefined);
         const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
-          await savedGrantsApi.delete(savedGrant.id, token);
+          await savedGrantsApi.delete(savedGrant.id, token || undefined);
         }
       } else {
-        await savedGrantsApi.delete(savedGrantId, token);
+        await savedGrantsApi.delete(savedGrantId, token || undefined);
       }
     },
     onSuccess: () => {
