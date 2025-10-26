@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { authApi } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { authApi } from '../../lib/api';
+import { useAuthStore } from '../../lib/store';
 import { AlertCircle } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -35,7 +35,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.register(formData);
+      const response = await authApi.register(formData.email, formData.password, formData.name);
       const { access_token, user } = response.data;
       
       setAuth(user, access_token);

@@ -32,7 +32,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login(email, password);
       const { access_token, user } = response.data;
       
       setAuth(user, access_token);
