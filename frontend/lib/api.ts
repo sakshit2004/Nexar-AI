@@ -1,4 +1,12 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const isProduction = process.env.NODE_ENV === 'production';
+const apiBaseUrlFromEnv = process.env.NEXT_PUBLIC_API_URL;
+
+// Validate that API_BASE_URL is set in production
+if (isProduction && !apiBaseUrlFromEnv) {
+  throw new Error('NEXT_PUBLIC_API_URL is not set. Configure it in your Vercel project settings.');
+}
+
+const API_BASE_URL = apiBaseUrlFromEnv || 'http://localhost:8000';
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG === 'true';
 
 // Utility function for API calls with error handling
