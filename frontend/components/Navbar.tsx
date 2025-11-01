@@ -77,7 +77,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {user?.full_name}
+                  {user?.name}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => logout()}>
                   Sign out

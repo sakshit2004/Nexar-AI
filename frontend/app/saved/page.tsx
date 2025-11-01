@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/lib/store';
-import { savedGrantsApi } from '@/lib/api';
+import { savedGrantsApi, authApi } from '@/lib/api';
 import { 
   Bookmark, 
   Search, 
@@ -30,55 +30,67 @@ import {
 export default function SavedGrantsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, setAuth, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites' | 'archived'>('all');
 
   // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      authApi.login('demo@example.com', 'demo123')
+        .then((response) => {
+          const { access_token, user } = response.data;
+          setAuth(user, access_token);
+        })
+        .catch(() => {
+          // Silent fail for demo login
+        });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setAuth]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({
     queryKey: ['saved-grants', filter],
     queryFn: async () => {
+      if (!token) throw new Error('Not authenticated');
       const params: any = {};
       if (filter === 'favorites') params.favorites_only = true;
       if (filter === 'archived') params.include_archived = true;
       
-      const response = await savedGrantsApi.list(params);
+      const response = await savedGrantsApi.list(token, params);
       return response.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!token,
   });
 
   // Get statistics
   const { data: stats } = useQuery({
     queryKey: ['saved-grants-stats'],
     queryFn: async () => {
-      const response = await savedGrantsApi.getStats();
+      if (!token) throw new Error('Not authenticated');
+      const response = await savedGrantsApi.stats(token);
       return response.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!token,
   });
 
   // Search saved grants
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['saved-grants-search', searchQuery],
     queryFn: async () => {
-      const response = await savedGrantsApi.search({ q: searchQuery });
+      if (!token) throw new Error('Not authenticated');
+      const response = await savedGrantsApi.search(searchQuery, token);
       return response.data;
     },
-    enabled: isAuthenticated && searchQuery.length > 0,
+    enabled: isAuthenticated && searchQuery.length > 0 && !!token,
   });
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.toggleFavorite(id),
+    mutationFn: (id: number) => {
+      if (!token) throw new Error('Not authenticated');
+      return savedGrantsApi.toggleFavorite(id, token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
@@ -87,7 +99,10 @@ export default function SavedGrantsPage() {
 
   // Archive mutation
   const archiveMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.archive(id),
+    mutationFn: (id: number) => {
+      if (!token) throw new Error('Not authenticated');
+      return savedGrantsApi.archive(id, token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
@@ -96,7 +111,10 @@ export default function SavedGrantsPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.delete(id),
+    mutationFn: (id: number) => {
+      if (!token) throw new Error('Not authenticated');
+      return savedGrantsApi.delete(String(id), token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });

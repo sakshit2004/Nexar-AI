@@ -1,27 +1,23 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/.next",
-  "installCommand": "cd frontend && npm install",
-  "framework": null,
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python3.11",
-      "includeFiles": "backend/**"
-    }
-  },
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/v1/(.*)",
-      "destination": "/api/index.py"
+      "src": "frontend/package.json",
+      "use": "@vercel/next"
     },
     {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
     }
   ],
-  "env": {
-    "ENVIRONMENT": "production"
-  },
-  "regions": ["iad1"]
+  "routes": [
+    {
+      "src": "/api/v1/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
+    }
+  ]
 }

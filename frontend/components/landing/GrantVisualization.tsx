@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Badge } from '../ui/badge';
 import { Search, Calendar, DollarSign, Building2, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../lib/store';
@@ -25,7 +25,7 @@ export function GrantVisualization() {
   
   const fullSearchText = 'renewable energy research';
   
-  const grantData: Grant[] = [
+  const grantData: Grant[] = useMemo(() => [
     {
       id: '1',
       title: 'Clean Energy Manufacturing Initiative',
@@ -56,7 +56,7 @@ export function GrantVisualization() {
       visible: false,
       matched: false
     }
-  ];
+  ], []);
 
   useEffect(() => {
     let typeIndex = 0;
@@ -144,7 +144,7 @@ export function GrantVisualization() {
     return () => {
       clearInterval(cursorInterval);
     };
-  }, []);
+  }, [grantData]);
 
   return (
     <div className="relative aspect-square bg-gradient-to-br from-muted/30 via-background to-muted/20 rounded-2xl p-6 sm:p-8 border-2 overflow-hidden">

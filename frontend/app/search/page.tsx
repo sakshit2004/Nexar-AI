@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { grantsApi } from '@/lib/api';
+import { grantsApi, authApi } from '@/lib/api';
 import { 
   Search as SearchIcon, 
   Filter,
@@ -22,7 +22,7 @@ import {
 
 export default function SearchPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, setAuth } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -41,21 +41,36 @@ export default function SearchPage() {
   // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      authApi.login('demo@example.com', 'demo123')
+        .then((response) => {
+          const { access_token, user } = response.data;
+          setAuth(user, access_token);
+        })
+        .catch(() => {
+          // Silent fail for demo login
+        });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setAuth]);
 
   const { data: searchResults, isLoading, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
     queryFn: async () => {
-      const response = await grantsApi.searchGrants(
-        activeSearchParams.query || '',
-        activeSearchParams.category,
-        10
-      );
+      const searchParams: any = {};
+      if (activeSearchParams.query) {
+        searchParams.q = activeSearchParams.query;
+      }
+      if (activeSearchParams.category) {
+        searchParams.category = activeSearchParams.category;
+      }
+      if (activeSearchParams.min_amount) {
+        searchParams.min_amount = parseInt(activeSearchParams.min_amount);
+      }
+      if (activeSearchParams.max_amount) {
+        searchParams.max_amount = parseInt(activeSearchParams.max_amount);
+      }
+      const response = await grantsApi.search(searchParams);
       // Return full response with metadata
-      return response;
+      return response.data;
     },
     enabled: isAuthenticated && activeSearchParams.query !== '',
     refetchOnWindowFocus: false, // Don't refetch on window focus for search

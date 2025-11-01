@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
+import { authApi } from '@/lib/api';
 import { useProfileStore, type OrganizationProfile } from '@/lib/profile-store';
 import { profileApi } from '@/lib/api';
 import { 
@@ -23,7 +24,7 @@ import {
 export default function ProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, setAuth } = useAuthStore();
   const [formData, setFormData] = useState({
     full_name: '',
     organization_name: '',
@@ -40,10 +41,16 @@ export default function ProfilePage() {
   // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      authApi.login('demo@example.com', 'demo123')
+        .then((response) => {
+          const { access_token, user } = response.data;
+          setAuth(user, access_token);
+        })
+        .catch(() => {
+          // Silent fail for demo login
+        });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setAuth]);
 
   const { profile, updateProfile } = useProfileStore();
 

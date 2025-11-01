@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { grantsApi, savedGrantsApi } from '@/lib/api';
+import { grantsApi, savedGrantsApi, authApi, matchingApi } from '@/lib/api';
 import { 
   ArrowLeft,
   DollarSign,
@@ -30,15 +30,21 @@ export default function GrantDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const grantId = params.id as string;
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, setAuth, token } = useAuthStore();
 
   // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      authApi.login('demo@example.com', 'demo123')
+        .then((response) => {
+          const { access_token, user } = response.data;
+          setAuth(user, access_token);
+        })
+        .catch(() => {
+          // Silent fail for demo login
+        });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setAuth]);
 
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
@@ -60,10 +66,11 @@ export default function GrantDetailsPage() {
   const { data: savedStatus } = useQuery({
     queryKey: ['grant-saved-status', grantId],
     queryFn: async () => {
-      const response = await savedGrantsApi.check(grantId);
+      if (!token) throw new Error('Not authenticated');
+      const response = await savedGrantsApi.checkSaved(grantId, token);
       return response.data;
     },
-    enabled: isAuthenticated && !!grantId,
+    enabled: isAuthenticated && !!grantId && !!token,
   });
 
   // Update saved status when data changes
@@ -75,8 +82,9 @@ export default function GrantDetailsPage() {
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
+      if (!token) throw new Error('Not authenticated');
       console.log('Analyzing grant:', grantId);
-      const response = await grantsApi.analyze(grantId);
+      const response = await matchingApi.analyze(grantId, token);
       console.log('Analysis response:', response.data);
       return response.data;
     },
@@ -93,21 +101,11 @@ export default function GrantDetailsPage() {
   const saveGrantMutation = useMutation({
     mutationFn: async () => {
       if (!grant) throw new Error('Grant data not available');
+      if (!token) throw new Error('Not authenticated');
       
-      // Map grant data to API format
-      const saveData = {
-        grant_id: grant.id || grantId,
-        title: grant.title || 'Untitled Grant',
-        agency: grant.agency,
-        description: grant.description,
-        award_amount: grant.award_amount || (grant.award_ceiling ? `$0 - $${grant.award_ceiling}` : undefined),
-        deadline: grant.deadline || grant.close_date,
-        category: grant.category,
-        url: grant.url,
-        opportunity_number: grant.opportunity_number || grant.cfda_number,
-      };
-      
-      const response = await savedGrantsApi.save(saveData);
+      // API wrapper only accepts grantId string, sends { grant_id: grantId } in body
+      const grantIdToSave = grant.id || grantId;
+      const response = await savedGrantsApi.save(grantIdToSave, token);
       return response.data;
     },
     onSuccess: (data) => {
@@ -122,15 +120,17 @@ export default function GrantDetailsPage() {
   // Unsave grant mutation
   const unsaveGrantMutation = useMutation({
     mutationFn: async () => {
+      if (!token) throw new Error('Not authenticated');
+      
       if (!savedGrantId) {
         // If we don't have the saved grant ID, we need to find it
-        const response = await savedGrantsApi.list();
+        const response = await savedGrantsApi.list(token);
         const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
-          await savedGrantsApi.delete(savedGrant.id);
+          await savedGrantsApi.delete(String(savedGrant.id), token);
         }
       } else {
-        await savedGrantsApi.delete(savedGrantId);
+        await savedGrantsApi.delete(String(savedGrantId), token);
       }
     },
     onSuccess: () => {
