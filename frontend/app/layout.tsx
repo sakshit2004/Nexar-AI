@@ -7,8 +7,8 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GrantMatch Advisor - AI-Powered Federal Grant Discovery",
-  description: "Find and match with US federal grants using AI. Simplify complex grant applications with plain-English summaries and eligibility analysis.",
+  title: "GrantMatch Advisor - Federal Grant Discovery",
+  description: "Find and match with US federal grants. Simplify complex grant applications with plain-English summaries and eligibility analysis.",
 };
 
 export default function RootLayout({

@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Button } from '../../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
-import { useAuthStore } from '../../../lib/store';
-import { grantsApi, matchingApi, savedGrantsApi } from '../../../lib/api';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useAuthStore } from '@/lib/store';
+import { grantsApi, savedGrantsApi } from '@/lib/api';
 import { 
   ArrowLeft,
   DollarSign,
@@ -30,15 +30,17 @@ export default function GrantDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const grantId = params.id as string;
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
+  // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      const { login } = useAuthStore.getState();
+      login('demo@example.com', 'demo123').catch(() => {});
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
-  const { data: grant } = useQuery({
+  const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
       const response = await grantsApi.getById(grantId);
@@ -52,30 +54,29 @@ export default function GrantDetailsPage() {
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<any>(null);
   const [isSaved, setIsSaved] = useState<boolean>(false);
-  const [savedGrantId, setSavedGrantId] = useState<string | null>(null);
+  const [savedGrantId, setSavedGrantId] = useState<number | null>(null);
 
-  const { data: matchStatus } = useQuery({
+  // Check if grant is saved
+  const { data: savedStatus } = useQuery({
     queryKey: ['grant-saved-status', grantId],
     queryFn: async () => {
-      if (!token) throw new Error('No token available');
-      const response = await savedGrantsApi.checkSaved(grantId, token);
+      const response = await savedGrantsApi.check(grantId);
       return response.data;
     },
-    enabled: isAuthenticated && !!grantId && !!token,
+    enabled: isAuthenticated && !!grantId,
   });
 
   // Update saved status when data changes
   useEffect(() => {
-    if (matchStatus) {
-      setIsSaved(matchStatus.is_saved);
+    if (savedStatus) {
+      setIsSaved(savedStatus.is_saved);
     }
-  }, [matchStatus]);
+  }, [savedStatus]);
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       console.log('Analyzing grant:', grantId);
-      if (!token) throw new Error('No token available');
-      const response = await matchingApi.analyze(grantId, token);
+      const response = await grantsApi.analyze(grantId);
       console.log('Analysis response:', response.data);
       return response.data;
     },
@@ -89,15 +90,29 @@ export default function GrantDetailsPage() {
   });
 
   // Save grant mutation
-  const saveMutation = useMutation({
+  const saveGrantMutation = useMutation({
     mutationFn: async () => {
-      if (!token) throw new Error('No token available');
-      const response = await savedGrantsApi.save(grantId, token);
+      if (!grant) throw new Error('Grant data not available');
+      
+      // Map grant data to API format
+      const saveData = {
+        grant_id: grant.id || grantId,
+        title: grant.title || 'Untitled Grant',
+        agency: grant.agency,
+        description: grant.description,
+        award_amount: grant.award_amount || (grant.award_ceiling ? `$0 - $${grant.award_ceiling}` : undefined),
+        deadline: grant.deadline || grant.close_date,
+        category: grant.category,
+        url: grant.url,
+        opportunity_number: grant.opportunity_number || grant.cfda_number,
+      };
+      
+      const response = await savedGrantsApi.save(saveData);
       return response.data;
     },
     onSuccess: (data) => {
       setIsSaved(true);
-      setSavedGrantId(data.id.toString());
+      setSavedGrantId(data.id);
     },
     onError: (error) => {
       console.error('Save grant error:', error);
@@ -107,16 +122,15 @@ export default function GrantDetailsPage() {
   // Unsave grant mutation
   const unsaveGrantMutation = useMutation({
     mutationFn: async () => {
-      if (!token) throw new Error('No token available');
       if (!savedGrantId) {
         // If we don't have the saved grant ID, we need to find it
-        const response = await savedGrantsApi.list(token);
+        const response = await savedGrantsApi.list();
         const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
-          await savedGrantsApi.delete(savedGrant.id.toString(), token);
+          await savedGrantsApi.delete(savedGrant.id);
         }
       } else {
-        await savedGrantsApi.delete(savedGrantId, token);
+        await savedGrantsApi.delete(savedGrantId);
       }
     },
     onSuccess: () => {
@@ -128,8 +142,27 @@ export default function GrantDetailsPage() {
     },
   });
 
-  if (!isAuthenticated) {
-    return null;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Error loading grant</h2>
+          <p className="text-muted-foreground mb-4">{error.message}</p>
+          <Link href="/search">
+            <Button variant="outline">Back to Search</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (!grant) {
@@ -200,10 +233,10 @@ export default function GrantDetailsPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-foreground" />
-                  <CardTitle>AI Summary</CardTitle>
+                  <CardTitle>Grant Summary</CardTitle>
                 </div>
                 <CardDescription>
-                  Plain-English summary generated by AI
+                  Plain-English summary for easy understanding
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -232,7 +265,7 @@ export default function GrantDetailsPage() {
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Generate an AI summary to understand this grant better
+                      Generate a summary to understand this grant better
                     </p>
                     <Button 
                       onClick={() => analyzeMutation.mutate()}
@@ -246,7 +279,7 @@ export default function GrantDetailsPage() {
                       ) : (
                         <>
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Generate AI Summary
+                          Generate Summary
                         </>
                       )}
                     </Button>
@@ -290,10 +323,10 @@ export default function GrantDetailsPage() {
                 <Button 
                   className="w-full" 
                   variant={isSaved ? "default" : "outline"}
-                  onClick={() => isSaved ? unsaveGrantMutation.mutate() : saveMutation.mutate()}
-                  disabled={saveMutation.isPending || unsaveGrantMutation.isPending}
+                  onClick={() => isSaved ? unsaveGrantMutation.mutate() : saveGrantMutation.mutate()}
+                  disabled={saveGrantMutation.isPending || unsaveGrantMutation.isPending}
                 >
-                  {saveMutation.isPending || unsaveGrantMutation.isPending ? (
+                  {saveGrantMutation.isPending || unsaveGrantMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       {isSaved ? 'Removing...' : 'Saving...'}

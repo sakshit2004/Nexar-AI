@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { useAuthStore } from '../../lib/store';
-import { grantsApi } from '../../lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useAuthStore } from '@/lib/store';
+import { grantsApi } from '@/lib/api';
 import { 
   Search as SearchIcon, 
   Filter,
@@ -38,25 +38,27 @@ export default function SearchPage() {
     max_amount: '',
   });
 
+  // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      const { login } = useAuthStore.getState();
+      login('demo@example.com', 'demo123').catch(() => {});
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   const { data: searchResults, isLoading, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
     queryFn: async () => {
-      const response = await grantsApi.search({
-        q: activeSearchParams.query,
-        category: activeSearchParams.category,
-        min_amount: activeSearchParams.min_amount ? parseInt(activeSearchParams.min_amount) : undefined,
-        max_amount: activeSearchParams.max_amount ? parseInt(activeSearchParams.max_amount) : undefined,
-      });
+      const response = await grantsApi.searchGrants(
+        activeSearchParams.query || '',
+        activeSearchParams.category,
+        10
+      );
       // Return full response with metadata
-      return response.data;
+      return response;
     },
     enabled: isAuthenticated && activeSearchParams.query !== '',
+    refetchOnWindowFocus: false, // Don't refetch on window focus for search
   });
   
   const grants = searchResults?.grants || [];
@@ -72,9 +74,6 @@ export default function SearchPage() {
     });
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-background pt-20">
@@ -113,7 +112,7 @@ export default function SearchPage() {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Category</label>
                   <select
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>option]:bg-background [&>option]:text-foreground"
                     value={filters.category}
                     onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                   >
@@ -157,7 +156,7 @@ export default function SearchPage() {
                 <h3 className="text-lg font-semibold mb-2">Searching for Grants...</h3>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
-                  Querying OpenAI and Claude in parallel for best results
+                  Searching grant databases for best results
                 </p>
               </CardContent>
             </Card>
@@ -182,7 +181,7 @@ export default function SearchPage() {
                     <div className="flex items-center gap-1">
                       <Sparkles className="h-3 w-3 text-primary" />
                       <span className="text-xs text-muted-foreground">
-                        Powered by {providersUsed.length > 1 ? 'OpenAI + Claude' : providersUsed[0]}
+                        Advanced search technology
                       </span>
                       {responseTime && (
                         <span className="text-xs text-muted-foreground">

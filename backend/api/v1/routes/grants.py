@@ -1,13 +1,9 @@
 """Grant routes - Real-time grant discovery using web search"""
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 
-from backend.models.database import get_db
-from backend.api.v1.middleware.auth import get_current_user
-from backend.api.v1.middleware.rate_limit import check_rate_limit
 from backend.services.llm.web_search import WebSearchService
-from backend.models.user import User
+from backend.core.user_helper import get_current_user_simple
 from backend.core.logging import get_logger
 
 
@@ -20,16 +16,14 @@ def search_grants(
     q: Optional[str] = Query(default="", description="Search query for grants"),
     category: Optional[str] = Query(default=None, description="Category filter (e.g., Education, Health, Environment)"),
     limit: int = Query(default=10, le=50, description="Max number of results"),
-    provider: str = Query(default="auto", description="LLM provider: 'openai', 'claude', or 'auto'"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    provider: str = Query(default="auto", description="Search provider: 'openai', 'claude', or 'auto'")
 ) -> Dict[str, Any]:
     """
-    Real-time federal grant search using AI web search
-    
-    Searches the live web for current federal grant opportunities using LLM web search tools.
+    Real-time federal grant search using web search
+
+    Searches the live web for current federal grant opportunities using web search tools.
     """
-    check_rate_limit(current_user, "search")
+    current_user = get_current_user_simple()
     
     # Build search query
     search_query = q if q else "federal grants USA"
@@ -69,46 +63,23 @@ def search_grants(
 
 @router.get("/recommended")
 def get_recommended_grants(
-    limit: int = Query(default=10, le=50),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    q: Optional[str] = Query(default=None, description="Personalized search query based on user profile"),
+    limit: int = Query(default=10, le=50)
 ) -> Dict[str, Any]:
     """
-    Get personalized grant recommendations based on user profile
+    Get personalized grant recommendations
     
-    Uses AI web search to find grants matching the user's profile and interests.
+    Uses web search to find grants matching the user's interests.
+    If a query is provided, it's assumed to be personalized based on user profile.
     """
-    check_rate_limit(current_user, "search")
+    current_user = get_current_user_simple()
     
-    # Build personalized search query based on user profile
-    search_query = "federal grants USA"
+    # Build personalized search query
+    # If query is provided, it's personalized; otherwise use default
+    search_query = q if q else "federal grants USA"
+    is_personalized = q is not None and q != "federal grants USA" and len(q) > len("federal grants USA")
     
-    # Get user profile to personalize search
-    from backend.repositories.user_repository import UserProfileRepository
-    profile_repo = UserProfileRepository(db)
-    profile = profile_repo.get_by_user_id(current_user.id)
-    
-    if profile:
-        # Add organization type for better targeting
-        if profile.organization_type:
-            search_query += f" for {profile.organization_type} organizations"
-        
-        # Add focus areas (top 3 most important)
-        if profile.focus_areas and len(profile.focus_areas) > 0:
-            areas = ", ".join(profile.focus_areas[:3])
-            search_query += f" in {areas}"
-        
-        # Add location for location-specific grants
-        if profile.location_state:
-            search_query += f" {profile.location_state}"
-        
-        # Add organization name context if available
-        if profile.organization_name:
-            logger.info(f"Personalizing for organization: {profile.organization_name}")
-    else:
-        logger.info(f"No profile found for user {current_user.id}, using generic search")
-    
-    logger.info(f"Personalized grant recommendations for user {current_user.id}: '{search_query}'")
+    logger.info(f"Grant recommendations for user {current_user.id}: '{search_query}' (personalized: {is_personalized})")
     
     try:
         web_search = WebSearchService()
@@ -124,7 +95,7 @@ def get_recommended_grants(
             "providers_used": result.get("providers_used", []),
             "query": search_query,
             "count": len(result["grants"]),
-            "personalized": profile is not None,
+            "personalized": is_personalized,
             "response_time_ms": result["response_time_ms"],
             "errors": result.get("errors")
         }
@@ -139,12 +110,10 @@ def get_recommended_grants(
 
 @router.get("")
 def list_grants(
-    limit: int = Query(default=20, le=50),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    limit: int = Query(default=20, le=50)
 ) -> Dict[str, Any]:
     """List current federal grants using real-time web search"""
-    check_rate_limit(current_user, "search")
+    current_user = get_current_user_simple()
     
     try:
         web_search = WebSearchService()
@@ -171,12 +140,10 @@ def list_grants(
 
 @router.get("/{grant_id}")
 def get_grant(
-    grant_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    grant_id: str
 ) -> Dict[str, Any]:
     """
-    Get detailed information about a specific grant using AI generation
+    Get detailed information about a specific grant
     """
     logger.info(f"Fetching grant details for ID: {grant_id}")
     
@@ -228,7 +195,7 @@ def get_grant(
             "category": grant.get("category", "Science"),
             "url": grant_url,  # Use constructed URL
             "opportunity_number": grant.get("opportunity_number", grant_id),
-            "ai_summary": None,  # Will be generated when user clicks "Generate AI Summary"
+            "ai_summary": None,  # Will be generated when user clicks "Generate Summary"
             "provider": result["provider"],
             "response_time_ms": result["response_time_ms"]
         })
@@ -247,17 +214,14 @@ def get_grant(
 
 @router.post("/{grant_id}/analyze")
 def analyze_grant(
-    grant_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    grant_id: str
 ) -> Dict[str, Any]:
     """
-    Get AI analysis and summary of a specific grant
-    
-    Uses AI to provide plain-English summary, eligibility analysis, and recommendations.
+    Get analysis and summary of a specific grant
+
+    Provides plain-English summary, eligibility analysis, and recommendations.
     """
-    check_rate_limit(current_user, "summary")
-    
+    current_user = get_current_user_simple()
     logger.info(f"Analyzing grant {grant_id} for user {current_user.id}")
     
     try:
@@ -301,26 +265,9 @@ Provide:
             max_tokens=1000
         )
         
-        # Get user profile for match scoring
-        from backend.repositories.user_repository import UserProfileRepository
-        profile_repo = UserProfileRepository(db)
-        profile = profile_repo.get_by_user_id(current_user.id)
-        
-        # Calculate match score based on profile
+        # Calculate match score (simple default scoring)
         match_score = 75  # Default score
         recommendation = "This grant appears to be a good match for your organization."
-        
-        if profile:
-            # Simple matching logic based on profile
-            if profile.organization_type and "research" in profile.organization_type.lower():
-                match_score = 85
-                recommendation = "Excellent match! Your research background aligns well with this grant's focus."
-            elif profile.focus_areas and any(area in ["science", "technology", "energy"] for area in profile.focus_areas):
-                match_score = 80
-                recommendation = "Good match based on your focus areas."
-            else:
-                match_score = 70
-                recommendation = "Moderate match. Consider reviewing the eligibility requirements carefully."
         
         return {
             "grant_id": grant_id,
