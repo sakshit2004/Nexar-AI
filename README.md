@@ -1,8 +1,8 @@
 # GrantMatch Advisor
 
-**AI-Powered Grant Discovery for Nonprofits and Small Businesses**
+**Grant Discovery Platform for Nonprofits and Small Businesses**
 
-> Find federal grants in 5 minutes, not 5 hours. Plain-English summaries, intelligent matching, and instant answers—powered by GPT-4o mini.
+> Find federal grants in 5 minutes, not 5 hours. Plain-English summaries, intelligent matching, and instant answers.
 
 ---
 
@@ -59,7 +59,7 @@ This repository contains everything to launch **GrantMatch Advisor**:
 
 ### For MVP (Week 1):
 
-1. **OpenAI API** - [Get it here](https://platform.openai.com/api-keys)
+1. **Text Processing API** - Configure your preferred provider
    - Used for: Grant matching, summaries, chat
    - Cost: ~$20-40/month
    
@@ -86,9 +86,9 @@ See [`docs/API_SETUP_GUIDE.md`](docs/API_SETUP_GUIDE.md) for detailed instructio
 | Component | Technology | Why? |
 |-----------|------------|------|
 | **Frontend** | Streamlit | Rapid prototyping, Python-native |
-| **Backend** | Python 3.11+ | LLM integration, data processing |
+| **Backend** | Python 3.11+ | Text processing, data analysis |
 | **Database** | SQLite | Perfect for <10K users, easy scaling |
-| **LLM** | GPT-4o mini | Best price/performance ($0.15-0.60/1M tokens) |
+| **Text Processing** | Advanced NLP | Natural language processing for grant matching |
 | **Grant Data** | Grants.gov API | Official federal source, free |
 | **Email** | SendGrid | 100 emails/day free tier |
 | **Payments** | Stripe | Industry standard, easy integration |
@@ -146,7 +146,7 @@ Nexar-AI/
 ### MVP (2-Week Launch)
 
 - [x] **Smart Profile Builder** - 5 questions, 3 minutes to complete
-- [x] **AI Grant Matching** - Fit scores (1-100) for every grant
+- [x] **Intelligent Grant Matching** - Fit scores (1-100) for every grant
 - [x] **Plain-English Summaries** - No more jargon or bureaucratic language
 - [x] **Chat Interface** - Ask anything about a grant, get instant answers
 - [x] **Email Alerts** - Weekly digest of new matching grants
@@ -268,7 +268,7 @@ Shows configuration status and which APIs are available.
 ### Week 1: Core Infrastructure
 
 - **Days 1-2:** Setup, data pipeline, Grants.gov integration
-- **Days 3-4:** LLM integration (matching + summaries)
+- **Days 3-4:** Text processing integration (matching + summaries)
 - **Days 5-7:** Streamlit frontend MVP
 
 ### Week 2: Polish & Launch
@@ -326,7 +326,7 @@ If that fails, the Grants.gov API might be down. Check status or use Simpler.Gra
 - **API Setup:** [`docs/API_SETUP_GUIDE.md`](docs/API_SETUP_GUIDE.md)
 - **Backend API:** [`backend/README.md`](backend/README.md)
 - **Grants.gov API:** https://grants.gov/api/api-guide
-- **OpenAI Docs:** https://platform.openai.com/docs
+- **API Documentation:** See configuration files for details
 - **FastAPI Docs:** https://fastapi.tiangolo.com
 
 ---
@@ -351,7 +351,7 @@ See [`LICENSE`](LICENSE) file for details.
 ## 🙏 Acknowledgments
 
 - **Grants.gov** for providing free public API access
-- **OpenAI** for GPT-4o mini affordability
+- **Technology Partners** for making grant discovery accessible
 - **Streamlit** for making Python web apps easy
 
 ---
@@ -373,7 +373,7 @@ Questions? Suggestions? Found a bug?
 - [x] Tech stack defined
 - [ ] Database schema implemented
 - [ ] Grants fetcher built
-- [ ] LLM integration complete
+- [ ] Text processing integration complete
 - [ ] Streamlit frontend MVP
 - [ ] Beta testing
 - [ ] Public launch

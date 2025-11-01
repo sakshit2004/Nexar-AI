@@ -12,11 +12,9 @@ import time
 from backend.core.config import settings
 from backend.core.logging import setup_logging, get_logger
 from backend.core.exceptions import GrantMatchException
-from backend.models.database import init_db
 
-# API routes
-from backend.api.v1.routes import auth, profile, grants, saved_grants
-# webhooks removed - no payment processing (Stripe disabled)
+# API routes - Simplified: no auth, no profile, no payments
+from backend.api.v1.routes import grants, saved_grants
 
 
 # Setup logging
@@ -30,10 +28,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
-    
-    # Initialize database
-    init_db()
-    logger.info("Database initialized")
+    logger.info("Session-based storage (no database)")
     
     yield
     
@@ -139,13 +134,11 @@ def root():
     }
 
 
-# Include routers
-app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
-app.include_router(profile.router, prefix=settings.API_V1_PREFIX)
+# Include routers - Simplified scope: grants and saved grants only
 app.include_router(grants.router, prefix=settings.API_V1_PREFIX)
 app.include_router(saved_grants.router, prefix=settings.API_V1_PREFIX)
-# Matching functionality now handled by grants/recommended endpoint
-# app.include_router(webhooks.router, prefix=settings.API_V1_PREFIX)  # DISABLED - No Stripe payments
+# Auth and profile routes removed - using hardcoded user
+# Payment routes removed - no payment processing needed
 
 
 if __name__ == "__main__":

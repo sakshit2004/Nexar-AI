@@ -1,5 +1,5 @@
 """
-Real-time web search using OpenAI and Anthropic web search tools
+Real-time web search using text processing providers
 """
 from typing import List, Dict, Any, Optional
 import time
@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 
 class WebSearchService:
-    """Real-time web search for grants using LLM providers"""
+    """Real-time web search for grants using text processing providers"""
     
     def __init__(self):
         self.openai_client = None
@@ -47,7 +47,7 @@ class WebSearchService:
         limit: int = 10
     ) -> Dict[str, Any]:
         """
-        Generate federal grant recommendations using OpenAI
+        Generate federal grant recommendations
         
         Returns structured grant data
         """
@@ -107,7 +107,7 @@ Return ONLY valid JSON array with {limit} grants. No markdown, no explanation.""
             # Try to parse JSON from the response
             grants = self._extract_grants_from_response(content)
             
-            logger.info(f"OpenAI generated {len(grants)} grant recommendations in {elapsed_ms}ms")
+            logger.info(f"Generated {len(grants)} grant recommendations in {elapsed_ms}ms")
             
             return {
                 "provider": "openai",
@@ -129,7 +129,7 @@ Return ONLY valid JSON array with {limit} grants. No markdown, no explanation.""
         limit: int = 10
     ) -> Dict[str, Any]:
         """
-        Generate federal grant recommendations using Claude
+        Generate federal grant recommendations (alternative provider)
         
         Returns structured grant data
         """
@@ -191,7 +191,7 @@ Return ONLY valid JSON array. No other text."""
             # Parse grants from response
             grants = self._extract_grants_from_response(content)
             
-            logger.info(f"Claude generated {len(grants)} grant recommendations in {elapsed_ms}ms")
+            logger.info(f"Generated {len(grants)} grant recommendations in {elapsed_ms}ms")
             
             return {
                 "provider": "claude",
@@ -372,7 +372,7 @@ Return ONLY valid JSON array. No other text."""
         return "https://grants.gov/search"
     
     def _extract_grants_from_response(self, content: str) -> List[Dict[str, Any]]:
-        """Extract grant data from LLM response"""
+        """Extract grant data from text processing response"""
         
         # Try to find JSON in the response
         try:

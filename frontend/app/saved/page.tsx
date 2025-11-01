@@ -34,11 +34,13 @@ export default function SavedGrantsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites' | 'archived'>('all');
 
+  // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      const { login } = useAuthStore.getState();
+      login('demo@example.com', 'demo123').catch(() => {});
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({
@@ -58,7 +60,7 @@ export default function SavedGrantsPage() {
   const { data: stats } = useQuery({
     queryKey: ['saved-grants-stats'],
     queryFn: async () => {
-      const response = await savedGrantsApi.stats();
+      const response = await savedGrantsApi.getStats();
       return response.data;
     },
     enabled: isAuthenticated,
@@ -68,7 +70,7 @@ export default function SavedGrantsPage() {
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['saved-grants-search', searchQuery],
     queryFn: async () => {
-      const response = await savedGrantsApi.search(searchQuery);
+      const response = await savedGrantsApi.search({ q: searchQuery });
       return response.data;
     },
     enabled: isAuthenticated && searchQuery.length > 0,
@@ -101,9 +103,6 @@ export default function SavedGrantsPage() {
     },
   });
 
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const savedGrants = searchQuery ? searchResults?.saved_grants || [] : savedGrantsData?.saved_grants || [];
 
