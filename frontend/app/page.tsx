@@ -2,14 +2,14 @@
 
 import { useRef } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 import { 
   ArrowRight,
   Check,
   ChevronRight
 } from 'lucide-react';
-import { GrantVisualization } from '@/components/landing/GrantVisualization';
+import { GrantVisualization } from '../components/landing/GrantVisualization';
 
 export default function Home() {
   const demoRef = useRef<HTMLElement>(null);

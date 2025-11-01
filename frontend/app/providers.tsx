@@ -10,6 +10,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       queries: {
         staleTime: 60 * 1000,
         refetchOnWindowFocus: false,
+        retry: 1, // Retry failed requests once
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      },
+      mutations: {
+        retry: 0, // Don't retry mutations automatically
       },
     },
   }));

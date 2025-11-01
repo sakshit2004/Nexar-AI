@@ -75,6 +75,8 @@ frontend/
 - `npm run dev` - Start development server with Turbopack
 - `npm run build` - Build for production
 - `npm start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
 
 ## Environment Variables
 
@@ -85,3 +87,45 @@ frontend/
 - Make sure the backend is running on port 8000 before starting the frontend
 - The app uses localStorage for authentication token storage
 - Dark mode is automatic based on system preferences
+
+## Deployment on Vercel
+
+This frontend is configured for deployment on Vercel. Follow these steps:
+
+### 1. Prerequisites
+- Ensure you have a Vercel account
+- Install Vercel CLI: `npm i -g vercel`
+
+### 2. Deploy from Root Directory
+```bash
+# From the project root (not frontend directory)
+vercel --prod
+```
+
+### 3. Environment Variables
+Set these in your Vercel dashboard:
+- `NEXT_PUBLIC_API_URL` - Your backend API URL
+- `NEXT_PUBLIC_APP_NAME` - GrantMatch
+- `NEXT_PUBLIC_APP_VERSION` - 1.0.0
+
+### 4. Build Configuration
+The project is configured with:
+- Framework: Next.js
+- Build Command: `cd frontend && npm run build`
+- Output Directory: `frontend/.next`
+- Install Command: `cd frontend && npm install`
+
+### 5. Automatic Deployments
+Connect your GitHub repository to Vercel for automatic deployments on push to main branch.
+
+## Troubleshooting
+
+### Build Issues
+- Ensure all dependencies are installed: `npm install`
+- Check TypeScript errors: `npm run type-check`
+- Check linting: `npm run lint`
+
+### API Connection Issues
+- Verify `NEXT_PUBLIC_API_URL` environment variable
+- Check CORS settings on backend
+- Ensure backend is deployed and accessible

@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '../ui/badge';
 import { Search, Calendar, DollarSign, Building2, Sparkles } from 'lucide-react';
+import { useAuthStore } from '../../lib/store';
 
 interface Grant {
   id: string;
