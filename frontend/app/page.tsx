@@ -85,9 +85,9 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/search">
+            <Link href="/login">
               <Button size="lg" className="h-12 px-8 text-base font-medium">
-                Start searching
+                Sign in
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -237,9 +237,9 @@ export default function Home() {
             Join 500+ organizations discovering grants with AI
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/search">
+            <Link href="/login">
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-medium">
-                Start searching
+                Sign in
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

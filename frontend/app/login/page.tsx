@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { authApi } from '../../lib/api';
 import { useAuthStore } from '../../lib/store';
 import { AlertCircle } from 'lucide-react';
+
+// Hardcoded credentials
+const HARDCODED_EMAIL = 'admin@nexar.ai';
+const HARDCODED_PASSWORD = 'admin123';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,21 +30,31 @@ export default function LoginPage() {
       return;
     }
 
-    // Second step: submit login
+    // Second step: submit login with hardcoded authentication
     setError('');
     setLoading(true);
 
-    try {
-      const response = await authApi.login(email, password);
-      const { access_token, user } = response.data;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Check hardcoded credentials
+    if (email === HARDCODED_EMAIL && password === HARDCODED_PASSWORD) {
+      // Create mock user and token
+      const mockUser = {
+        id: '1',
+        email: HARDCODED_EMAIL,
+        name: 'Admin User',
+        tier: 'premium' as const,
+      };
+      const mockToken = 'hardcoded-auth-token';
       
-      setAuth(user, access_token);
+      setAuth(mockUser, mockToken);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid email or password');
-    } finally {
-      setLoading(false);
+    } else {
+      setError('Invalid email or password');
     }
+    
+    setLoading(false);
   };
 
   return (
