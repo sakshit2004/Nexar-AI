@@ -1,399 +1,121 @@
-# GrantMatch Advisor - Backend API
+# GrantMatch Advisor - Simplified Backend
 
-Production-grade FastAPI backend for grant matching and processing.
+A simplified FastAPI backend for searching and managing federal grants. Session-based storage with no authentication or database persistence.
 
 ## Architecture
 
-**Pattern**: Clean Architecture with layers
-- **API Layer**: HTTP routes, request/response handling
-- **Service Layer**: Business logic, orchestration
-- **Repository Layer**: Data access abstraction  
-- **Models**: Database schemas
-
-See [ARCHITECTURE.md](../ARCHITECTURE.md) for detailed system design.
-
-## Quick Start
-
-### Development
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set environment variables
-cp env.example .env
-# Edit .env with your API keys
-
-# Initialize database
-make init-db
-
-# Run development server
-make dev
-
-# API will be available at:
-# http://localhost:8000
-# Docs: http://localhost:8000/api/docs
-```
-
-### Docker
-
-```bash
-# Build and start all services
-make docker-build
-make docker-up
-
-# Stop services
-make docker-down
-```
-
-## API Documentation
-
-Once running, visit:
-- **Interactive docs**: http://localhost:8000/api/docs
-- **ReDoc**: http://localhost:8000/api/redoc
-- **Health check**: http://localhost:8000/health
-
-## Project Structure
-
 ```
 backend/
-├── api/v1/              # API endpoints
-│   ├── routes/          # Route handlers
-│   │   ├── auth.py      # /auth/* endpoints
-│   │   ├── profile.py   # /profile/* endpoints
-│   │   ├── grants.py    # /grants/* endpoints
-│   │   ├── matching.py  # /matches/* endpoints
-│   │   └── webhooks.py  # /webhooks/* endpoints
-│   ├── schemas/         # Pydantic models
-│   └── middleware/      # Auth, rate limiting
+├── api/
+│   └── v1/
+│       ├── routes/
+│       │   ├── grants.py          # Grant search endpoints
+│       │   └── saved_grants.py    # Saved grants (session-based)
+│       └── schemas/
+│           ├── grant.py           # Grant data schemas
+│           └── saved_grant.py     # Saved grant schemas
 │
-├── core/                # Core utilities
-│   ├── config.py        # Settings (from .env)
-│   ├── security.py      # JWT, password hashing
-│   ├── logging.py       # Structured logging
-│   └── exceptions.py    # Custom exceptions
+├── core/
+│   ├── config.py                  # Application configuration
+│   ├── session_storage.py      # In-memory session storage
+│   ├── user_helper.py            # Hardcoded user (no auth)
+│   ├── logging.py                 # Logging setup
+│   └── exceptions.py             # Custom exceptions
 │
-├── models/              # SQLAlchemy models
-│   ├── database.py      # DB connection
-│   ├── user.py          # User, UserTier
-│   └── grant.py         # Grant, UserMatch, etc
+├── services/
+│   └── llm/
+│       ├── client.py              # Text processing API wrapper
+│       ├── providers.py           # Text processing providers
+│       ├── prompts.py             # Prompt templates
+│       └── web_search.py          # Web search for grants
 │
-├── repositories/        # Data access layer
-│   ├── base.py          # Generic CRUD
-│   ├── user_repository.py
-│   └── grant_repository.py
-│
-├── services/            # Business logic
-│   ├── grants/
-│   │   ├── fetcher.py   # Fetch from Grants.gov
-│   │   └── processor.py # Process & sync
-│   ├── llm/
-│   │   ├── client.py    # OpenAI wrapper
-│   │   ├── prompts.py   # Prompt templates
-│   │   └── matcher.py   # AI matching
-│   ├── email/
-│   │   └── service.py   # SendGrid emails
-│   └── payment/
-│       └── stripe_service.py
-│
-└── main.py              # FastAPI app
+└── main.py                        # FastAPI application
 ```
 
 ## Key Features
 
-### 🔐 Authentication
-- JWT tokens with HS256
-- Password hashing with bcrypt
-- User tiers (free, premium, enterprise)
+### 🔍 Grant Search
+- Real-time federal grant search using web search
+- Intelligent grant discovery
+- Filter by category, agency, amount
+- Detailed grant analysis and summaries
 
-### 📊 Grant Management
-- Daily sync from Grants.gov API
-- Intelligent caching
-- Full-text search
-- Filter by agency, amount, deadline
+### 💾 Session Storage
+- In-memory storage for saved grants
+- No database required
+- Data persists during session (lost on server restart)
 
-### 🤖 AI Matching
-- LLM-powered semantic matching
-- Fit scores (1-100)
-- Plain-English summaries
-- Interactive chat Q&A
+### 🔧 Text Processing Integration
+- Multi-provider text processing support
+- Automatic failover between providers
+- Advanced grant analysis and recommendations
 
-### ⚡ Rate Limiting
-- Free: 5 queries/week
-- Premium: 1000/day
-- In-memory (upgradable to Redis)
+## API Endpoints
 
-### 💳 Payments
-- Stripe integration
-- Subscription management
-- Webhook handling
+### Grants
+- `GET /api/v1/grants/search` - Search for grants
+- `GET /api/v1/grants` - List current grants
+- `GET /api/v1/grants/{grant_id}` - Get grant details
+- `GET /api/v1/grants/recommended` - Get recommendations
+- `POST /api/v1/grants/{grant_id}/analyze` - Grant analysis
 
-### 📧 Email
-- Welcome emails
-- Grant alerts
-- Upgrade confirmations
+### Saved Grants
+- `POST /api/v1/saved-grants` - Save a grant
+- `GET /api/v1/saved-grants` - List saved grants
+- `GET /api/v1/saved-grants/search` - Search saved grants
+- `GET /api/v1/saved-grants/stats` - Get statistics
+- `PUT /api/v1/saved-grants/{id}` - Update saved grant
+- `DELETE /api/v1/saved-grants/{id}` - Delete saved grant
 
 ## Environment Variables
 
-Required:
 ```bash
-# Core
-SECRET_KEY=your-secret-key
-JWT_SECRET=your-jwt-secret
-OPENAI_API_KEY=your-openai-api-key
+# Application
+APP_URL=http://localhost:8000
+ENVIRONMENT=development
+DEBUG=True
 
-# Database (optional, defaults to SQLite)
-DATABASE_URL=postgresql://user:pass@localhost/dbname
+# Text Processing Configuration
+TEXT_PROCESSING_PROVIDER=default
+PROCESSING_API_KEY=your-key-here
 
-# Optional services
-SENDGRID_API_KEY=your-sendgrid-key
-STRIPE_SECRET_KEY=your-stripe-key
-SIMPLER_GRANTS_API_KEY=your-grants-api-key
+# Optional
+# CORS_ORIGINS=http://localhost:3000
 ```
 
-See `env.example` for full list.
+## Setup
 
-## Database
-
-### Models
-
-**Core Tables**:
-- `users` - User accounts and subscriptions
-- `user_profiles` - Organization details
-- `grants` - Federal grant opportunities
-- `user_matches` - AI-generated matches with scores
-- `grant_summaries` - Cached LLM outputs
-- `query_usage` - Rate limit tracking
-
-### Migrations
-
+1. Install dependencies:
 ```bash
-# Initialize database
-python scripts/init_db.py
-
-# Or with make
-make init-db
+pip install -r requirements.txt
 ```
 
-## Background Jobs
-
-### Daily Grant Sync
-
+2. Set up environment variables:
 ```bash
-# Manual run
-python scripts/sync_grants.py
-
-# Or with make
-make sync-grants
-
-# Setup cron (Linux/Mac)
-0 2 * * * cd /path/to/app && python scripts/sync_grants.py
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
-## Testing
-
+3. Run the server:
 ```bash
-# Run all tests
-pytest
-
-# With coverage
-pytest --cov=backend
-
-# Specific module
-pytest tests/test_grants.py -v
+python -m backend.main
+# or
+uvicorn backend.main:app --reload
 ```
 
-## Code Quality
+## What's Simplified
 
-```bash
-# Format code
-black backend/
+- ✅ **No Authentication** - Hardcoded user, no JWT tokens
+- ✅ **No Database** - Session-based in-memory storage
+- ✅ **No Payments** - No Stripe integration
+- ✅ **No Email** - No email service
+- ✅ **Minimal Dependencies** - Only what's needed for grants
 
-# Lint
-flake8 backend/
+## Session Storage
 
-# Type check
-mypy backend/
-```
+Saved grants are stored in memory and will be lost when:
+- The server restarts
+- The application is redeployed
+- The process is terminated
 
-## Deployment
-
-### Railway
-
-```bash
-# Install CLI
-npm i -g @railway/cli
-
-# Deploy
-railway login
-railway link
-railway up
-```
-
-### Render
-
-1. Connect GitHub repo
-2. Select "Web Service"
-3. Build: `pip install -r requirements.txt`
-4. Start: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-
-### Docker (Production)
-
-```bash
-# Build
-docker build -t grantmatch-api .
-
-# Run
-docker run -p 8000:8000 \
-  --env-file .env \
-  grantmatch-api
-```
-
-## Monitoring
-
-### Logs
-
-**Development**: Human-readable console logs
-**Production**: Structured JSON logs
-
-```python
-from backend.core.logging import get_logger
-
-logger = get_logger(__name__)
-logger.info("User logged in", extra={"user_id": 123})
-```
-
-### Sentry (Error Tracking)
-
-```bash
-# Set in .env
-SENTRY_DSN=https://...@sentry.io/...
-```
-
-Automatic error reporting with stack traces.
-
-### Health Check
-
-```bash
-curl http://localhost:8000/health
-
-{
-  "status": "healthy",
-  "version": "1.0.0",
-  "environment": "production"
-}
-```
-
-## Performance
-
-**Benchmarks** (MacBook Pro M1):
-- Auth endpoint: ~50ms
-- Grant list: ~100ms
-- AI matching (100 grants): ~4s
-- Summary generation: ~2s
-
-**Optimization**:
-- Database connection pooling
-- LLM response caching (80% hit rate)
-- Gzip compression
-- Query result caching with Redis
-
-## Security
-
-- ✅ JWT authentication
-- ✅ Password hashing (bcrypt)
-- ✅ Rate limiting
-- ✅ Input validation (Pydantic)
-- ✅ SQL injection protection (ORM)
-- ✅ CORS configuration
-- ✅ Environment-based secrets
-- ✅ HTTPS enforced (production)
-
-## API Examples
-
-### Register & Login
-
-```bash
-# Register
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"YOUR_EMAIL","password":"YOUR_PASSWORD","full_name":"YOUR_NAME"}'
-
-# Login
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"YOUR_EMAIL","password":"YOUR_PASSWORD"}'
-
-# Returns: {"access_token":"eyJ...","token_type":"bearer"}
-```
-
-### Create Profile & Get Matches
-
-```bash
-# Set token
-TOKEN="eyJ..."
-
-# Create profile
-curl -X POST http://localhost:8000/api/v1/profile \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "organization_type":"Nonprofit",
-    "focus_areas":["Education","Technology"],
-    "location_state":"California",
-    "grant_amount_min":10000,
-    "grant_amount_max":100000
-  }'
-
-# Get matches
-curl http://localhost:8000/api/v1/matches \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-## Troubleshooting
-
-### Database connection errors
-
-```bash
-# Check connection
-python -c "from backend.models.database import engine; engine.connect()"
-
-# Reset database
-rm grantmatch.db
-make init-db
-```
-
-### LLM errors
-
-```bash
-# Test OpenAI connection
-python -c "from backend.services.llm.client import LLMClient; client = LLMClient(); print('OK')"
-```
-
-### Rate limit issues
-
-```bash
-# Check user tier
-curl http://localhost:8000/api/v1/auth/me \
-  -H "Authorization: Bearer $TOKEN"
-
-# Check rate limit status
-curl http://localhost:8000/api/v1/matches/rate-limit \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-## Contributing
-
-1. Create feature branch
-2. Write tests
-3. Ensure `make lint` passes
-4. Submit PR
-
-## License
-
-See [LICENSE](../LICENSE)
-
----
-
-**Questions?** Open an issue on GitHub
-
+This is intentional for the simplified architecture - perfect for demos and single-session use cases.

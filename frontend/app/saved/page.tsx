@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Input } from '../../components/ui/input';
-import { useAuthStore } from '../../lib/store';
-import { savedGrantsApi } from '../../lib/api';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/lib/store';
+import { savedGrantsApi } from '@/lib/api';
 import { 
   Bookmark, 
   Search, 
@@ -30,15 +30,17 @@ import {
 export default function SavedGrantsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites' | 'archived'>('all');
 
+  // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      const { login } = useAuthStore.getState();
+      login('demo@example.com', 'demo123').catch(() => {});
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({
@@ -48,38 +50,35 @@ export default function SavedGrantsPage() {
       if (filter === 'favorites') params.favorites_only = true;
       if (filter === 'archived') params.include_archived = true;
       
-      if (!token) throw new Error('No token available');
-      const response = await savedGrantsApi.list(token, params);
+      const response = await savedGrantsApi.list(params);
       return response.data;
     },
-    enabled: isAuthenticated && !!token,
+    enabled: isAuthenticated,
   });
 
   // Get statistics
   const { data: stats } = useQuery({
     queryKey: ['saved-grants-stats'],
     queryFn: async () => {
-      if (!token) throw new Error('No token available');
-      const response = await savedGrantsApi.stats(token);
+      const response = await savedGrantsApi.getStats();
       return response.data;
     },
-    enabled: isAuthenticated && !!token,
+    enabled: isAuthenticated,
   });
 
   // Search saved grants
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['saved-grants-search', searchQuery],
     queryFn: async () => {
-      if (!token) throw new Error('No token available');
-      const response = await savedGrantsApi.search(searchQuery, token);
+      const response = await savedGrantsApi.search({ q: searchQuery });
       return response.data;
     },
-    enabled: isAuthenticated && searchQuery.length > 0 && !!token,
+    enabled: isAuthenticated && searchQuery.length > 0,
   });
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.toggleFavorite(id, token || undefined),
+    mutationFn: (id: number) => savedGrantsApi.toggleFavorite(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
@@ -88,7 +87,7 @@ export default function SavedGrantsPage() {
 
   // Archive mutation
   const archiveMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.archive(id, token || undefined),
+    mutationFn: (id: number) => savedGrantsApi.archive(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
@@ -97,16 +96,13 @@ export default function SavedGrantsPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => savedGrantsApi.delete(id.toString(), token || ''),
+    mutationFn: (id: number) => savedGrantsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
     },
   });
 
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const savedGrants = searchQuery ? searchResults?.saved_grants || [] : savedGrantsData?.saved_grants || [];
 

@@ -85,7 +85,7 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/register">
+            <Link href="/search">
               <Button size="lg" className="h-12 px-8 text-base font-medium">
                 Start searching
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -237,20 +237,20 @@ export default function Home() {
             Join 500+ organizations discovering grants with AI
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register">
+            <Link href="/search">
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-medium">
-                Get started free
+                Start searching
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/search">
+            <Link href="/dashboard">
               <Button size="lg" variant="outline" className="h-12 px-8 text-base font-medium border-background text-background hover:bg-background/10">
-                Browse grants
+                View dashboard
               </Button>
             </Link>
           </div>
           <p className="text-sm opacity-60 mt-8">
-            No credit card required • Free forever plan
+            Session-based • No account required
           </p>
         </div>
       </section>
