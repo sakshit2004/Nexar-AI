@@ -4,12 +4,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useAuthStore } from '@/lib/store';
-import { useProfileStore } from '@/lib/profile-store';
-import { grantsApi, savedGrantsApi } from '@/lib/api';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { useAuthStore } from '../../lib/store';
+import { grantsApi, savedGrantsApi } from '../../lib/api';
 import { 
   Search, 
   TrendingUp, 
@@ -21,35 +20,43 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
+  // Dashboard page component
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
-  const { profile } = useProfileStore();
+  const { isAuthenticated, user, token } = useAuthStore();
 
   // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      const { setAuth } = useAuthStore.getState();
+      // Create demo user for session-based approach
+      const demoUser = {
+        id: 'demo',
+        email: 'demo@example.com',
+        name: 'Demo User',
+        tier: 'free' as const,
+      };
+      setAuth(demoUser, 'demo-token');
     }
   }, [isAuthenticated]);
 
   const { data: recommendedResults, isLoading } = useQuery({
     queryKey: ['recommended-grants'],
     queryFn: async () => {
-      const response = await grantsApi.getRecommendedGrants(10);
+      if (!token) throw new Error('No token available');
+      const response = await grantsApi.getRecommendations(token);
       // Return data from response
-      return response.data;
+      return response;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!token,
     refetchOnWindowFocus: true, // Refetch when user comes back to page
-  });
+    });
 
   // Get saved grants statistics
   const { data: savedGrantsStats } = useQuery({
     queryKey: ['saved-grants-stats'],
     queryFn: async () => {
-      const response = await savedGrantsApi.getStats();
-      return response.data;
+      const response = await savedGrantsApi.stats(token || undefined);
+      return response;
     },
     enabled: isAuthenticated,
   });
@@ -65,10 +72,10 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {profile?.full_name?.split(' ')[0] || profile?.full_name || user?.full_name?.split(' ')[0] || user?.full_name || 'there'}
+            Welcome back, {user?.name?.split(' ')[0] || user?.name || 'there'}
           </h1>
           <p className="text-muted-foreground">
-            Here's your grant discovery overview
+            Here&apos;s your grant discovery overview
           </p>
         </div>
 
@@ -169,9 +176,7 @@ export default function DashboardPage() {
                   {isPersonalized && <Sparkles className="h-4 w-4 text-primary" />}
                 </CardTitle>
                 <CardDescription>
-                  {profile && (profile.focus_areas?.length > 0 || profile.keywords?.length > 0 || profile.organization_type || profile.location_state) 
-                    ? `Personalized grant recommendations based on your profile${profile.focus_areas?.length > 0 ? ` (${profile.focus_areas.join(', ')})` : ''}${profile.location_state ? ` in ${profile.location_state}` : ''}`
-                    : 'Personalized grant recommendations for you'}
+                  Personalized grant recommendations for you
                 </CardDescription>
               </div>
               <Link href="/search">
