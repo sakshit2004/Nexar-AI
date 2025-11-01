@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { authApi } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { authApi } from '../../lib/api';
+import { useAuthStore } from '../../lib/store';
 import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
@@ -32,7 +32,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login(email, password);
       const { access_token, user } = response.data;
       
       setAuth(user, access_token);
