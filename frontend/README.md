@@ -65,7 +65,7 @@ frontend/
 - 🎨 **Beautiful UI** - Modern, responsive design with Tailwind CSS
 - 🔐 **Authentication** - Login/Register with JWT tokens
 - 🔍 **Grant Search** - Search and filter federal grants
-- 🤖 **AI Matching** - Get AI-powered grant recommendations
+- 🎯 **Intelligent Matching** - Get personalized grant recommendations
 - 📊 **Dashboard** - View stats and recommended grants
 - 👤 **Profile Management** - Manage organization profile
 - 🌗 **Dark Mode** - Automatic dark mode support

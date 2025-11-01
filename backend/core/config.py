@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(default=False, env="DEBUG")
     API_V1_PREFIX: str = "/api/v1"
     
-    # Security
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
-    JWT_SECRET: str = Field(..., env="JWT_SECRET")
+    # Security (Optional - not needed for session-based app without auth)
+    SECRET_KEY: Optional[str] = Field(default=None, env="SECRET_KEY")
+    JWT_SECRET: Optional[str] = Field(default=None, env="JWT_SECRET")
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     ALLOWED_HOSTS: List[str] = ["*"]

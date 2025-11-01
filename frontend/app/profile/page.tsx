@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
+import { useProfileStore, type OrganizationProfile } from '@/lib/profile-store';
 import { profileApi } from '@/lib/api';
 import { 
   User,
@@ -21,6 +22,7 @@ import {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuthStore();
   const [formData, setFormData] = useState({
     full_name: '',
@@ -35,22 +37,17 @@ export default function ProfilePage() {
   });
   const [success, setSuccess] = useState(false);
 
+  // Auto-login with demo user if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      const { login } = useAuthStore.getState();
+      login('demo@example.com', 'demo123').catch(() => {});
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
-  const { data: profile, isLoading, refetch } = useQuery({
-    queryKey: ['profile'],
-    queryFn: async () => {
-      const response = await profileApi.get();
-      return response.data;
-    },
-    enabled: isAuthenticated,
-  });
+  const { profile, updateProfile } = useProfileStore();
 
-  // Update form data when profile loads
+  // Initialize form data from profile store
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -69,29 +66,59 @@ export default function ProfilePage() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      return profileApi.update(data);
+      try {
+        console.log('Processing profile data:', data);
+        // Update profile store directly
+        // Convert strings to arrays and parse numbers
+        const profileData: Partial<OrganizationProfile> = {
+          full_name: data.full_name || '',
+          organization_name: data.organization_name || '',
+          organization_type: data.organization_type || '',
+          focus_areas: typeof data.focus_areas === 'string' && data.focus_areas.trim()
+            ? data.focus_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : (Array.isArray(data.focus_areas) ? data.focus_areas : []),
+          location_state: data.location_state || '',
+          location_county: data.location_county || '',
+          grant_amount_min: data.grant_amount_min && data.grant_amount_min.toString().trim()
+            ? (typeof data.grant_amount_min === 'string' ? parseInt(data.grant_amount_min, 10) : data.grant_amount_min)
+            : null,
+          grant_amount_max: data.grant_amount_max && data.grant_amount_max.toString().trim()
+            ? (typeof data.grant_amount_max === 'string' ? parseInt(data.grant_amount_max, 10) : data.grant_amount_max)
+            : null,
+          keywords: typeof data.keywords === 'string' && data.keywords.trim()
+            ? data.keywords.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : (Array.isArray(data.keywords) ? data.keywords : []),
+        };
+        console.log('Processed profile data:', profileData);
+        updateProfile(profileData);
+        const savedProfile = useProfileStore.getState().profile;
+        console.log('Profile saved to store:', savedProfile);
+        return { data: profileData };
+      } catch (error) {
+        console.error('Error in mutationFn:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('Mutation successful, showing success message');
       setSuccess(true);
-      refetch(); // Refresh profile data
+      // Invalidate queries so recommendations/search refresh with new profile
+      queryClient.invalidateQueries({ queryKey: ['recommended-grants'] });
+      queryClient.invalidateQueries({ queryKey: ['grants'] });
       setTimeout(() => setSuccess(false), 3000);
+    },
+    onError: (error) => {
+      console.error('Profile update error:', error);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate({
-      ...formData,
-      focus_areas: formData.focus_areas.split(',').map(s => s.trim()).filter(Boolean),
-      keywords: formData.keywords.split(',').map(s => s.trim()).filter(Boolean),
-      grant_amount_min: formData.grant_amount_min ? parseInt(formData.grant_amount_min) : null,
-      grant_amount_max: formData.grant_amount_max ? parseInt(formData.grant_amount_max) : null,
-    });
+    console.log('Submitting form data:', formData);
+    // Pass formData as-is (strings), mutationFn will handle conversion
+    updateMutation.mutate(formData);
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-background pt-20">
@@ -104,18 +131,13 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="space-y-6">
+        <div className="space-y-6">
             {/* Account Info */}
             <Card>
               <CardHeader>
                 <CardTitle>Account Information</CardTitle>
                 <CardDescription>
-                  Your email and subscription details
+                  Your account information
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -124,13 +146,6 @@ export default function ProfilePage() {
                   <div className="mt-1 flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{user?.email}</span>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Subscription Tier</label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-muted-foreground" />
-                    <Badge className="capitalize">{user?.subscription_tier || 'free'}</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -186,7 +201,7 @@ export default function ProfilePage() {
                     </label>
                     <select
                       id="organization_type"
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>option]:bg-background [&>option]:text-foreground"
                       value={formData.organization_type}
                       onChange={(e) => setFormData({ ...formData, organization_type: e.target.value })}
                     >
@@ -310,45 +325,7 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Upgrade CTA */}
-            {user?.subscription_tier === 'free' && (
-              <Card className="bg-muted border-2">
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-5 w-5 text-foreground" />
-                    <CardTitle>Upgrade to Premium</CardTitle>
-                  </div>
-                  <CardDescription>
-                    Get unlimited searches, priority support, and advanced AI features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Unlimited grant searches
-                    </li>
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Advanced AI matching
-                    </li>
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Priority email support
-                    </li>
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Custom alerts and tracking
-                    </li>
-                  </ul>
-                  <Button className="w-full sm:w-auto">
-                    Upgrade Now - $29/month
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
           </div>
-        )}
       </div>
     </div>
   );
