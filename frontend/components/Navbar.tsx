@@ -6,10 +6,12 @@ import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuthStore } from '../lib/store';
+import { useProfileStore } from '../lib/profile-store';
 
 export function Navbar() {
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { profile } = useProfileStore();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -77,15 +79,15 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {user?.name}
+                  {profile?.full_name || profile?.organization_name || user?.name}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => logout()}>
                   Sign out
                 </Button>
               </>
             ) : (
-              <Link href="/search">
-                <Button size="sm">Start searching</Button>
+              <Link href="/login">
+                <Button size="sm">Login</Button>
               </Link>
             )}
           </div>

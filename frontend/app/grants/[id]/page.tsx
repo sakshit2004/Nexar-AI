@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { grantsApi, savedGrantsApi, authApi, matchingApi } from '@/lib/api';
+import { grantsApi, savedGrantsApi, matchingApi } from '@/lib/api';
 import { 
   ArrowLeft,
   DollarSign,
@@ -32,27 +32,41 @@ export default function GrantDetailsPage() {
   const grantId = params.id as string;
   const { isAuthenticated, setAuth, token } = useAuthStore();
 
-  // Auto-login with demo user if not authenticated
+  // Auto-login with hardcoded user if not authenticated (unless just logged out)
   useEffect(() => {
     if (!isAuthenticated) {
-      authApi.login('demo@example.com', 'demo123')
-        .then((response) => {
-          const { access_token, user } = response.data;
-          setAuth(user, access_token);
-        })
-        .catch(() => {
-          // Silent fail for demo login
-        });
+      // Check if user just logged out - don't auto-login in that case
+      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
+      if (justLoggedOut) {
+        // Clear the flag and redirect to home instead of auto-login
+        sessionStorage.removeItem('just-logged-out');
+        router.push('/');
+        return;
+      }
+      
+      const mockUser = {
+        id: '1',
+        email: 'admin@nexar.ai',
+        name: 'Admin User',
+        tier: 'premium' as const,
+      };
+      const mockToken = 'hardcoded-auth-token';
+      setAuth(mockUser, mockToken);
     }
-  }, [isAuthenticated, setAuth]);
+  }, [isAuthenticated, setAuth, router]);
 
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
       const response = await grantsApi.getById(grantId);
-      console.log('Grant API response:', response.data);
-      console.log('Grant URL:', response.data.url);
-      return response.data;
+      console.log('Grant API response:', response);
+      console.log('Grant URL:', response?.url);
+      // Handle both response formats: response.data or response directly
+      const grantData = response?.data || response;
+      if (!grantData) {
+        throw new Error('Grant data not found in response');
+      }
+      return grantData;
     },
     enabled: isAuthenticated && !!grantId,
   });
@@ -68,7 +82,8 @@ export default function GrantDetailsPage() {
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
       const response = await savedGrantsApi.checkSaved(grantId, token);
-      return response.data;
+      // Handle both response formats
+      return response?.data || response;
     },
     enabled: isAuthenticated && !!grantId && !!token,
   });
@@ -85,12 +100,16 @@ export default function GrantDetailsPage() {
       if (!token) throw new Error('Not authenticated');
       console.log('Analyzing grant:', grantId);
       const response = await matchingApi.analyze(grantId, token);
-      console.log('Analysis response:', response.data);
-      return response.data;
+      console.log('Analysis response:', response);
+      // Handle both response formats: response.data or response directly
+      return response?.data || response;
     },
     onSuccess: (data) => {
-      setAiSummary(data.ai_summary);
-      setMatchData(data);
+      console.log('Analysis data:', data);
+      if (data) {
+        setAiSummary(data.ai_summary || data.summary);
+        setMatchData(data);
+      }
     },
     onError: (error) => {
       console.error('Analysis error:', error);
@@ -103,10 +122,11 @@ export default function GrantDetailsPage() {
       if (!grant) throw new Error('Grant data not available');
       if (!token) throw new Error('Not authenticated');
       
-      // API wrapper only accepts grantId string, sends { grant_id: grantId } in body
+      // Use grant data to save with all required fields
       const grantIdToSave = grant.id || grantId;
-      const response = await savedGrantsApi.save(grantIdToSave, token);
-      return response.data;
+      const response = await savedGrantsApi.save(grantIdToSave, token, grant);
+      // Handle both response formats
+      return response?.data || response;
     },
     onSuccess: (data) => {
       setIsSaved(true);
@@ -345,7 +365,7 @@ export default function GrantDetailsPage() {
                 </Button>
                 
                 <a 
-                  href={grant.url || "https://grants.gov/search"} 
+                  href={grant.url && !grant.url.includes('page-not-found') ? grant.url : "https://grants.gov/web/grants/search-grants.html"} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="block"

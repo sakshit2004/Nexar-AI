@@ -28,8 +28,24 @@ export const useAuthStore = create<AuthState>()(
           set({ user, token, isAuthenticated: true });
         }
       },
-      clearAuth: () => set({ user: null, token: null, isAuthenticated: false }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+      clearAuth: () => {
+        set({ user: null, token: null, isAuthenticated: false });
+        // Clear localStorage manually to ensure it's cleared
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-storage');
+        }
+      },
+      logout: () => {
+        set({ user: null, token: null, isAuthenticated: false });
+        // Clear localStorage manually to ensure it's cleared
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-storage');
+          // Set a flag to prevent auto-login immediately after logout
+          sessionStorage.setItem('just-logged-out', 'true');
+          // Redirect to home page after logout
+          window.location.href = '/';
+        }
+      },
     }),
     {
       name: 'auth-storage',

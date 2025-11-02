@@ -8,9 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { authApi } from '@/lib/api';
 import { useProfileStore, type OrganizationProfile } from '@/lib/profile-store';
-import { profileApi } from '@/lib/api';
 import { 
   User,
   Building,
@@ -38,19 +36,28 @@ export default function ProfilePage() {
   });
   const [success, setSuccess] = useState(false);
 
-  // Auto-login with demo user if not authenticated
+  // Auto-login with hardcoded user if not authenticated (unless just logged out)
   useEffect(() => {
     if (!isAuthenticated) {
-      authApi.login('demo@example.com', 'demo123')
-        .then((response) => {
-          const { access_token, user } = response.data;
-          setAuth(user, access_token);
-        })
-        .catch(() => {
-          // Silent fail for demo login
-        });
+      // Check if user just logged out - don't auto-login in that case
+      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
+      if (justLoggedOut) {
+        // Clear the flag and redirect to home instead of auto-login
+        sessionStorage.removeItem('just-logged-out');
+        router.push('/');
+        return;
+      }
+      
+      const mockUser = {
+        id: '1',
+        email: 'admin@nexar.ai',
+        name: 'Admin User',
+        tier: 'premium' as const,
+      };
+      const mockToken = 'hardcoded-auth-token';
+      setAuth(mockUser, mockToken);
     }
-  }, [isAuthenticated, setAuth]);
+  }, [isAuthenticated, setAuth, router]);
 
   const { profile, updateProfile } = useProfileStore();
 
@@ -109,9 +116,13 @@ export default function ProfilePage() {
     onSuccess: () => {
       console.log('Mutation successful, showing success message');
       setSuccess(true);
-      // Invalidate queries so recommendations/search refresh with new profile
+      // Invalidate all queries so recommendations/search refresh with new profile
       queryClient.invalidateQueries({ queryKey: ['recommended-grants'] });
       queryClient.invalidateQueries({ queryKey: ['grants'] });
+      queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
+      // Force refetch all queries
+      queryClient.refetchQueries({ queryKey: ['recommended-grants'] });
       setTimeout(() => setSuccess(false), 3000);
     },
     onError: (error) => {

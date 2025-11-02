@@ -11,6 +11,53 @@ router = APIRouter(prefix="/grants", tags=["Grants"])
 logger = get_logger(__name__)
 
 
+@router.get("/recommended")
+def get_recommended_grants(
+    q: Optional[str] = Query(default=None, description="Personalized search query based on user profile"),
+    limit: int = Query(default=10, le=50)
+) -> Dict[str, Any]:
+    """
+    Get personalized grant recommendations
+    
+    Uses web search to find grants matching the user's interests.
+    If a query is provided, it's assumed to be personalized based on user profile.
+    """
+    current_user = get_current_user_simple()
+    
+    # Build personalized search query
+    # If query is provided, it's personalized; otherwise use default
+    search_query = q if q else "federal grants USA"
+    is_personalized = q is not None and q != "federal grants USA" and len(q) > len("federal grants USA")
+    
+    logger.info(f"Grant recommendations for user {current_user.id}: '{search_query}' (personalized: {is_personalized})")
+    
+    try:
+        web_search = WebSearchService()
+        result = web_search.search_grants(
+            query=search_query,
+            limit=limit,
+            provider="auto"
+        )
+        
+        return {
+            "grants": result["grants"],
+            "provider": result["provider"],
+            "providers_used": result.get("providers_used", []),
+            "query": search_query,
+            "count": len(result["grants"]),
+            "personalized": is_personalized,
+            "response_time_ms": result["response_time_ms"],
+            "errors": result.get("errors")
+        }
+    
+    except Exception as e:
+        logger.error(f"Recommended grants error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get recommendations: {str(e)}"
+        )
+
+
 @router.get("/search")
 def search_grants(
     q: Optional[str] = Query(default="", description="Search query for grants"),
@@ -58,53 +105,6 @@ def search_grants(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Grant search failed: {str(e)}"
-        )
-
-
-@router.get("/recommended")
-def get_recommended_grants(
-    q: Optional[str] = Query(default=None, description="Personalized search query based on user profile"),
-    limit: int = Query(default=10, le=50)
-) -> Dict[str, Any]:
-    """
-    Get personalized grant recommendations
-    
-    Uses web search to find grants matching the user's interests.
-    If a query is provided, it's assumed to be personalized based on user profile.
-    """
-    current_user = get_current_user_simple()
-    
-    # Build personalized search query
-    # If query is provided, it's personalized; otherwise use default
-    search_query = q if q else "federal grants USA"
-    is_personalized = q is not None and q != "federal grants USA" and len(q) > len("federal grants USA")
-    
-    logger.info(f"Grant recommendations for user {current_user.id}: '{search_query}' (personalized: {is_personalized})")
-    
-    try:
-        web_search = WebSearchService()
-        result = web_search.search_grants(
-            query=search_query,
-            limit=limit,
-            provider="auto"
-        )
-        
-        return {
-            "grants": result["grants"],
-            "provider": result["provider"],
-            "providers_used": result.get("providers_used", []),
-            "query": search_query,
-            "count": len(result["grants"]),
-            "personalized": is_personalized,
-            "response_time_ms": result["response_time_ms"],
-            "errors": result.get("errors")
-        }
-    
-    except Exception as e:
-        logger.error(f"Recommended grants error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get recommendations: {str(e)}"
         )
 
 
@@ -164,24 +164,24 @@ def get_grant(
         
         grant = result["grants"][0]
         
-        # Construct proper URL if not provided or if it's a generic URL
-        grant_url = grant.get("url", "")
-        if not grant_url or grant_url == "https://grants.gov/search":
-            # Construct URL from opportunity number or grant ID
+        # Construct proper URL - use the existing web_search instance to construct valid URLs
+        grant_url = web_search._construct_grant_url(grant)
+        
+        # Double-check: never allow page-not-found URLs
+        if 'page-not-found' in grant_url.lower():
+            # Fallback: construct a search URL based on opportunity number or title
             opportunity_number = grant.get("opportunity_number", grant_id)
-            if opportunity_number and opportunity_number != grant_id:
-                grant_url = f"https://grants.gov/search-results-detail/{opportunity_number}"
+            if opportunity_number:
+                import urllib.parse
+                encoded_opp = urllib.parse.quote(opportunity_number)
+                grant_url = f"https://grants.gov/web/grants/search-grants.html?keywords={encoded_opp}"
+            elif grant.get("title"):
+                import urllib.parse
+                keywords = ' '.join(grant.get("title", "").split()[:3])
+                encoded_keywords = urllib.parse.quote(keywords)
+                grant_url = f"https://grants.gov/web/grants/search-grants.html?keywords={encoded_keywords}"
             else:
-                # Agency-specific fallback
-                agency = grant.get("agency", "").upper()
-                if 'NSF' in agency:
-                    grant_url = "https://www.nsf.gov/funding/opportunities.jsp"
-                elif 'NIH' in agency:
-                    grant_url = "https://grants.nih.gov/grants/guide/"
-                elif 'DOE' in agency or 'ENERGY' in agency:
-                    grant_url = "https://www.energy.gov/funding-opportunities"
-                else:
-                    grant_url = "https://grants.gov/search"
+                grant_url = "https://grants.gov/web/grants/search-grants.html"
         
         # Ensure the grant has all required fields with proper values
         grant.update({

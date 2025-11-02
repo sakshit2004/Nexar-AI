@@ -243,11 +243,6 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base font-medium border-background text-background hover:bg-background/10">
-                View dashboard
-              </Button>
-            </Link>
           </div>
           <p className="text-sm opacity-60 mt-8">
             Session-based • No account required

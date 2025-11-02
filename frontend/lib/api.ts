@@ -26,34 +26,6 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
   }
 };
 
-// Auth API
-export const authApi = {
-  login: async (email: string, password: string) => {
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    return response;
-  },
-
-  register: async (email: string, password: string, name: string) => {
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-    });
-    return response;
-  },
-
-  me: async (token: string) => {
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response;
-  },
-};
-
 // Grants API
 export const grantsApi = {
   search: async (params: {
@@ -81,7 +53,7 @@ export const grantsApi = {
   },
 
   getRecommendations: async (token: string) => {
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/recommendations`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/recommended`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response;
@@ -101,29 +73,8 @@ export const matchingApi = {
     const headers: any = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
     const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/${grantId}/analyze`, {
+      method: 'POST',
       headers,
-    });
-    return response;
-  },
-};
-
-// Profile API
-export const profileApi = {
-  get: async (token: string) => {
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response;
-  },
-
-  update: async (data: any, token: string) => {
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/profile`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
     });
     return response;
   },
@@ -131,14 +82,39 @@ export const profileApi = {
 
 // Saved Grants API
 export const savedGrantsApi = {
-  save: async (grantId: string, token: string) => {
+  save: async (grantId: string, token: string, grantData?: any) => {
+    // Build the request body with required fields
+    const body: any = {
+      grant_id: grantId,
+      grant_title: grantData?.title || `Grant ${grantId}`,
+    };
+    
+    // Add optional fields if grant data is provided
+    if (grantData) {
+      if (grantData.agency) body.grant_agency = grantData.agency;
+      if (grantData.description) body.grant_description = grantData.description;
+      if (grantData.eligibility) body.grant_eligibility = grantData.eligibility;
+      if (grantData.category) body.grant_category = grantData.category;
+      if (grantData.award_amount) {
+        // Parse award amount range (e.g., "$50,000 - $500,000")
+        const amountMatch = grantData.award_amount.match(/\$?([\d,]+)\s*-\s*\$?([\d,]+)/);
+        if (amountMatch) {
+          body.grant_award_floor = parseInt(amountMatch[1].replace(/,/g, ''));
+          body.grant_award_ceiling = parseInt(amountMatch[2].replace(/,/g, ''));
+        }
+      }
+      if (grantData.deadline) body.grant_close_date = grantData.deadline;
+      if (grantData.url) body.grant_url = grantData.url;
+      if (grantData.opportunity_number) body.grant_cfda_number = grantData.opportunity_number;
+    }
+    
     const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ grant_id: grantId }),
+      body: JSON.stringify(body),
     });
     return response;
   },
@@ -180,7 +156,7 @@ export const savedGrantsApi = {
   checkSaved: async (grantId: string, token?: string) => {
     const headers: any = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${grantId}/check`, {
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/check/${grantId}`, {
       headers,
     });
     return response;

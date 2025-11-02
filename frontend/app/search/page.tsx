@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
-import { grantsApi, authApi } from '@/lib/api';
+import { grantsApi } from '@/lib/api';
 import { 
   Search as SearchIcon, 
   Filter,
@@ -38,19 +38,28 @@ export default function SearchPage() {
     max_amount: '',
   });
 
-  // Auto-login with demo user if not authenticated
+  // Auto-login with hardcoded user if not authenticated (unless just logged out)
   useEffect(() => {
     if (!isAuthenticated) {
-      authApi.login('demo@example.com', 'demo123')
-        .then((response) => {
-          const { access_token, user } = response.data;
-          setAuth(user, access_token);
-        })
-        .catch(() => {
-          // Silent fail for demo login
-        });
+      // Check if user just logged out - don't auto-login in that case
+      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
+      if (justLoggedOut) {
+        // Clear the flag and redirect to home instead of auto-login
+        sessionStorage.removeItem('just-logged-out');
+        router.push('/');
+        return;
+      }
+      
+      const mockUser = {
+        id: '1',
+        email: 'admin@nexar.ai',
+        name: 'Admin User',
+        tier: 'premium' as const,
+      };
+      const mockToken = 'hardcoded-auth-token';
+      setAuth(mockUser, mockToken);
     }
-  }, [isAuthenticated, setAuth]);
+  }, [isAuthenticated, setAuth, router]);
 
   const { data: searchResults, isLoading, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],

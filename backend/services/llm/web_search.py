@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from openai import OpenAI
-import anthropic
+from anthropic import Anthropic, AnthropicError
 
 from backend.core.config import settings
 from backend.core.logging import get_logger
@@ -30,7 +30,7 @@ class WebSearchService:
             self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
         
         if settings.ANTHROPIC_API_KEY:
-            self.anthropic_client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+            self.anthropic_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
         
         if not self.openai_client and not self.anthropic_client:
             raise ValueError("At least one LLM API key must be configured for web search")
@@ -79,6 +79,9 @@ For each grant, provide:
 - deadline: Future date between {min_date_str} and {max_date_str} in format "YYYY-MM-DD"
 - category: One of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
 - opportunity_number: Realistic grants.gov opportunity number format (e.g., "HHS-2025-ACF-OPRE-ZB-1234", "ED-2025-OESE-0123")
+- url: A realistic grants.gov or agency-specific URL where this grant can be found. For grants.gov, use format like "https://grants.gov/web/grants/search-grants.html?keywords=STEM" or agency-specific URLs like "https://www.nsf.gov/funding/pgm_summ.jsp?pims_id=12345" (do NOT use curly braces or variables in URLs, use actual keywords)
+
+CRITICAL: Include a url field for each grant pointing to where it would be found (grants.gov search or agency website).
 
 Return ONLY valid JSON array with {limit} grants. No markdown, no explanation."""
 
@@ -105,7 +108,12 @@ Return ONLY valid JSON array with {limit} grants. No markdown, no explanation.""
             content = response.choices[0].message.content
             
             # Try to parse JSON from the response
-            grants = self._extract_grants_from_response(content)
+            try:
+                grants = self._extract_grants_from_response(content)
+            except Exception as e:
+                logger.error(f"Error extracting grants from response: {e}")
+                logger.error(f"Response content: {content[:500]}")  # Log first 500 chars
+                grants = []
             
             logger.info(f"Generated {len(grants)} grant recommendations in {elapsed_ms}ms")
             
@@ -161,6 +169,9 @@ For each grant, provide:
 - deadline: Future date between {min_date_str} and {max_date_str} in YYYY-MM-DD format
 - category: One of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
 - opportunity_number: Realistic grants.gov opportunity number format (e.g., "HHS-2025-ACF-OPRE-ZB-1234", "ED-2025-OESE-0123")
+- url: A realistic grants.gov or agency-specific URL where this grant can be found. Use grants.gov search URLs with keywords from the grant title or opportunity number, or agency-specific funding pages.
+
+CRITICAL: Include a url field for each grant pointing to where it would be found (grants.gov search or agency website).
 
 Return ONLY valid JSON array. No other text."""
 
@@ -182,11 +193,8 @@ Return ONLY valid JSON array. No other text."""
             
             elapsed_ms = int((time.time() - start_time) * 1000)
             
-            # Extract content
-            content = ""
-            for block in response.content:
-                if hasattr(block, 'text'):
-                    content += block.text
+            # Extract content (Anthropic returns content as a list of blocks)
+            content = response.content[0].text
             
             # Parse grants from response
             grants = self._extract_grants_from_response(content)
@@ -330,46 +338,99 @@ Return ONLY valid JSON array. No other text."""
         Returns a direct link to the grant on grants.gov if possible, otherwise
         returns agency-specific URLs
         """
+        # ALWAYS construct a proper URL - don't trust AI-generated URLs as they may be invalid
+        # We'll reconstruct based on grant data to ensure validity
+        
+        def validate_and_return(url: str) -> str:
+            """Validate URL and ensure it's not page-not-found"""
+            if url and 'page-not-found' not in url.lower():
+                return url
+            # If somehow we got an invalid URL, return default search page
+            return "https://grants.gov/web/grants/search-grants.html"
+        
         # Try to use opportunity_number first for grants.gov URL
         opportunity_number = grant.get('opportunity_number', '')
+        title = grant.get('title', '')
+        
         if opportunity_number:
-            # Format: https://grants.gov/search-results-detail/OPPORTUNITY_NUMBER
-            return f"https://grants.gov/search-results-detail/{opportunity_number}"
+            # Use grants.gov search with opportunity number
+            # Format: https://grants.gov/web/grants/search-grants.html?keywords=OPPORTUNITY_NUMBER
+            import urllib.parse
+            encoded_opp = urllib.parse.quote(opportunity_number)
+            url = f"https://grants.gov/web/grants/search-grants.html?keywords={encoded_opp}"
+            logger.debug(f"Constructed URL from opportunity_number: {url}")
+            return validate_and_return(url)
+        
+        # Try to use grant title for search
+        if title:
+            # Extract key words from title for search
+            try:
+                import urllib.parse
+                # Take first 3-4 meaningful words from title
+                words = [w for w in title.split() if len(w) > 2][:4]  # Skip short words like "a", "the", "of"
+                if words:
+                    keywords = ' '.join(words)
+                    encoded_keywords = urllib.parse.quote(keywords)
+                    url = f"https://grants.gov/web/grants/search-grants.html?keywords={encoded_keywords}"
+                    logger.debug(f"Constructed URL from title: {url}")
+                    return validate_and_return(url)
+            except Exception as e:
+                logger.warning(f"Error constructing URL from title: {e}")
+                # Fall through to agency-specific URLs
+        
+        # Try to use grant ID for search if it contains meaningful parts
+        grant_id = grant.get('id', '')
+        if grant_id and '-' in grant_id:
+            try:
+                import urllib.parse
+                # Extract agency or topic from grant ID (e.g., "NSF-2025-STEM-001" -> search for "NSF STEM")
+                parts = grant_id.split('-')
+                if len(parts) >= 3:
+                    # Use agency and topic parts
+                    search_terms = [parts[0]]  # Agency code
+                    if len(parts) >= 3 and parts[2]:  # Topic
+                        search_terms.append(parts[2])
+                    keywords = ' '.join(search_terms)
+                    encoded_keywords = urllib.parse.quote(keywords)
+                    url = f"https://grants.gov/web/grants/search-grants.html?keywords={encoded_keywords}"
+                    logger.debug(f"Constructed URL from grant_id: {url}")
+                    return validate_and_return(url)
+            except Exception as e:
+                logger.warning(f"Error constructing URL from grant_id: {e}")
         
         # Fallback: Try to construct agency-specific URLs
-        grant_id = grant.get('id', '')
         agency = grant.get('agency', '').upper()
         
         # NSF grants
         if 'NSF' in agency or grant_id.startswith('NSF-'):
-            return f"https://www.nsf.gov/funding/opportunities.jsp"
+            return validate_and_return(f"https://www.nsf.gov/funding/pgm_list.jsp?ord=rcnt&org={agency}")
         
         # NIH grants
         elif 'NIH' in agency or grant_id.startswith('NIH-'):
-            return f"https://grants.nih.gov/grants/guide/"
+            return validate_and_return("https://grants.nih.gov/grants/guide/")
         
         # DOE grants
         elif 'DOE' in agency or 'ENERGY' in agency or grant_id.startswith('DOE-'):
-            return f"https://www.energy.gov/funding-opportunities"
+            return validate_and_return("https://www.energy.gov/funding-opportunities")
         
         # USDA grants
         elif 'USDA' in agency or grant_id.startswith('USDA-'):
-            return f"https://www.usda.gov/topics/farming/grants-and-loans"
+            return validate_and_return("https://www.usda.gov/topics/farming/grants-and-loans")
         
         # HHS/Health grants
         elif 'HHS' in agency or 'HEALTH' in agency or grant_id.startswith('HHS-'):
-            return f"https://www.hhs.gov/grants/"
+            return validate_and_return("https://www.hhs.gov/grants/")
         
         # Education grants
         elif 'EDUCATION' in agency or 'ED-' in grant_id or grant_id.startswith('ED-'):
-            return f"https://www.ed.gov/fund/grants-apply.html"
+            return validate_and_return("https://www.ed.gov/fund/grants-apply.html")
         
         # EPA grants
         elif 'EPA' in agency or grant_id.startswith('EPA-'):
-            return f"https://www.epa.gov/grants"
+            return validate_and_return("https://www.epa.gov/grants")
         
-        # Default to grants.gov search
-        return "https://grants.gov/search"
+        # Default to grants.gov search page (not page-not-found)
+        return validate_and_return("https://grants.gov/web/grants/search-grants.html")
     
     def _extract_grants_from_response(self, content: str) -> List[Dict[str, Any]]:
         """Extract grant data from text processing response"""
@@ -385,32 +446,38 @@ Return ONLY valid JSON array. No other text."""
                 grants = json.loads(json_str)
                 
                 if isinstance(grants, list):
-                    # Add proper URLs to each grant
+                    # ALWAYS reconstruct URLs - never trust AI-generated URLs
                     for grant in grants:
-                        if 'url' not in grant or not grant['url'] or grant['url'] == 'https://grants.gov/search':
-                            grant['url'] = self._construct_grant_url(grant)
+                        grant['url'] = self._construct_grant_url(grant)
+                        # Final safety check - never allow page-not-found
+                        if 'page-not-found' in grant.get('url', '').lower():
+                            grant['url'] = "https://grants.gov/web/grants/search-grants.html"
                     return grants
                 elif isinstance(grants, dict):
-                    if 'url' not in grants or not grants['url'] or grants['url'] == 'https://grants.gov/search':
-                        grants['url'] = self._construct_grant_url(grants)
+                    grants['url'] = self._construct_grant_url(grants)
+                    if 'page-not-found' in grants.get('url', '').lower():
+                        grants['url'] = "https://grants.gov/web/grants/search-grants.html"
                     return [grants]
             
             # Try to parse the entire content as JSON
             data = json.loads(content)
             if isinstance(data, list):
                 for grant in data:
-                    if 'url' not in grant or not grant['url'] or grant['url'] == 'https://grants.gov/search':
-                        grant['url'] = self._construct_grant_url(grant)
+                    grant['url'] = self._construct_grant_url(grant)
+                    if 'page-not-found' in grant.get('url', '').lower():
+                        grant['url'] = "https://grants.gov/web/grants/search-grants.html"
                 return data
             elif isinstance(data, dict):
                 # Check if it's a wrapper object
                 if "grants" in data:
                     for grant in data["grants"]:
-                        if 'url' not in grant or not grant['url'] or grant['url'] == 'https://grants.gov/search':
-                            grant['url'] = self._construct_grant_url(grant)
+                        grant['url'] = self._construct_grant_url(grant)
+                        if 'page-not-found' in grant.get('url', '').lower():
+                            grant['url'] = "https://grants.gov/web/grants/search-grants.html"
                     return data["grants"]
-                if 'url' not in data or not data['url'] or data['url'] == 'https://grants.gov/search':
-                    data['url'] = self._construct_grant_url(data)
+                data['url'] = self._construct_grant_url(data)
+                if 'page-not-found' in data.get('url', '').lower():
+                    data['url'] = "https://grants.gov/web/grants/search-grants.html"
                 return [data]
         
         except json.JSONDecodeError:
