@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useAuthStore } from '@/lib/store';
-import { useProfileStore, type OrganizationProfile } from '@/lib/profile-store';
-import { profileApi } from '@/lib/api';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { useAuthStore } from '../../lib/store';
+import { profileApi } from '../../lib/api';
 import { 
   User,
   Building,
@@ -22,10 +21,9 @@ import {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuthStore();
   const [formData, setFormData] = useState({
-    full_name: '',
+    name: '',
     organization_name: '',
     organization_type: '',
     focus_areas: '',
@@ -45,13 +43,21 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated]);
 
-  const { profile, updateProfile } = useProfileStore();
+  // Fetch profile data
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const response = await profileApi.get();
+      return response.data;
+    },
+    enabled: isAuthenticated,
+  });
 
-  // Initialize form data from profile store
+  // Initialize form data from profile
   useEffect(() => {
     if (profile) {
       setFormData({
-        full_name: profile.full_name || '',
+        name: profile.name || '',
         organization_name: profile.organization_name || '',
         organization_type: profile.organization_type || '',
         focus_areas: profile.focus_areas?.join(', ') || '',
@@ -66,45 +72,31 @@ export default function ProfilePage() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      try {
-        console.log('Processing profile data:', data);
-        // Update profile store directly
-        // Convert strings to arrays and parse numbers
-        const profileData: Partial<OrganizationProfile> = {
-          full_name: data.full_name || '',
-          organization_name: data.organization_name || '',
-          organization_type: data.organization_type || '',
-          focus_areas: typeof data.focus_areas === 'string' && data.focus_areas.trim()
-            ? data.focus_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
-            : (Array.isArray(data.focus_areas) ? data.focus_areas : []),
-          location_state: data.location_state || '',
-          location_county: data.location_county || '',
-          grant_amount_min: data.grant_amount_min && data.grant_amount_min.toString().trim()
-            ? (typeof data.grant_amount_min === 'string' ? parseInt(data.grant_amount_min, 10) : data.grant_amount_min)
-            : null,
-          grant_amount_max: data.grant_amount_max && data.grant_amount_max.toString().trim()
-            ? (typeof data.grant_amount_max === 'string' ? parseInt(data.grant_amount_max, 10) : data.grant_amount_max)
-            : null,
-          keywords: typeof data.keywords === 'string' && data.keywords.trim()
-            ? data.keywords.split(',').map((s: string) => s.trim()).filter(Boolean)
-            : (Array.isArray(data.keywords) ? data.keywords : []),
-        };
-        console.log('Processed profile data:', profileData);
-        updateProfile(profileData);
-        const savedProfile = useProfileStore.getState().profile;
-        console.log('Profile saved to store:', savedProfile);
-        return { data: profileData };
-      } catch (error) {
-        console.error('Error in mutationFn:', error);
-        throw error;
-      }
+      // Process profile data - convert strings to arrays and parse numbers
+      const profileData = {
+        name: data.name || '',
+        organization_name: data.organization_name || '',
+        organization_type: data.organization_type || '',
+        focus_areas: typeof data.focus_areas === 'string' && data.focus_areas.trim()
+          ? data.focus_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : (Array.isArray(data.focus_areas) ? data.focus_areas : []),
+        location_state: data.location_state || '',
+        location_county: data.location_county || '',
+        grant_amount_min: data.grant_amount_min && data.grant_amount_min.toString().trim()
+          ? (typeof data.grant_amount_min === 'string' ? parseInt(data.grant_amount_min, 10) : data.grant_amount_min)
+          : null,
+        grant_amount_max: data.grant_amount_max && data.grant_amount_max.toString().trim()
+          ? (typeof data.grant_amount_max === 'string' ? parseInt(data.grant_amount_max, 10) : data.grant_amount_max)
+          : null,
+        keywords: typeof data.keywords === 'string' && data.keywords.trim()
+          ? data.keywords.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : (Array.isArray(data.keywords) ? data.keywords : []),
+      };
+      return profileApi.update(profileData);
     },
     onSuccess: () => {
       console.log('Mutation successful, showing success message');
       setSuccess(true);
-      // Invalidate queries so recommendations/search refresh with new profile
-      queryClient.invalidateQueries({ queryKey: ['recommended-grants'] });
-      queryClient.invalidateQueries({ queryKey: ['grants'] });
       setTimeout(() => setSuccess(false), 3000);
     },
     onError: (error) => {
@@ -162,17 +154,17 @@ export default function ProfilePage() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="full_name" className="text-sm font-medium block mb-2">
+                    <label htmlFor="name" className="text-sm font-medium block mb-2">
                       Full Name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="full_name"
+                        id="name"
                         type="text"
                         placeholder="John Doe"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="pl-10"
                       />
                     </div>
@@ -324,7 +316,6 @@ export default function ProfilePage() {
                 </form>
               </CardContent>
             </Card>
-
           </div>
       </div>
     </div>

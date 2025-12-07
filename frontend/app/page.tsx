@@ -141,7 +141,7 @@ export default function Home() {
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 Our AI analyzes federal, state, foundation, and corporate grants in real-time, 
-                matching them to your organization's profile, mission, and eligibility.
+                matching them to your organization&apos;s profile, mission, and eligibility.
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
@@ -181,7 +181,7 @@ export default function Home() {
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
               Everything you need.
               <br />
-              <span className="opacity-40">Nothing you don't.</span>
+              <span className="opacity-40">Nothing you don&apos;t.</span>
             </h2>
           </div>
           

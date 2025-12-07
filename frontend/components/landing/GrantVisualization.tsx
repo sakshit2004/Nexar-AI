@@ -16,16 +16,7 @@ interface Grant {
   matched: boolean;
 }
 
-export function GrantVisualization() {
-  const [searchText, setSearchText] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
-  const [grants, setGrants] = useState<Grant[]>([]);
-  const [showResults, setShowResults] = useState(false);
-  
-  const fullSearchText = 'renewable energy research';
-  
-  const grantData: Grant[] = [
+const grantData: Grant[] = [
     {
       id: '1',
       title: 'Clean Energy Manufacturing Initiative',
@@ -57,6 +48,15 @@ export function GrantVisualization() {
       matched: false
     }
   ];
+
+const fullSearchText = 'renewable energy research';
+
+export function GrantVisualization() {
+  const [searchText, setSearchText] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
+  const [grants, setGrants] = useState<Grant[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     let typeIndex = 0;
