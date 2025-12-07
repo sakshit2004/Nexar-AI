@@ -22,9 +22,9 @@ export function GrantVisualization() {
   const [showCursor, setShowCursor] = useState(true);
   const [grants, setGrants] = useState<Grant[]>([]);
   const [showResults, setShowResults] = useState(false);
-  
+
   const fullSearchText = 'renewable energy research';
-  
+
   const grantData: Grant[] = useMemo(() => [
     {
       id: '1',
@@ -66,19 +66,19 @@ export function GrantVisualization() {
     const runAnimation = () => {
       // Increment cycle counter
       currentCycle++;
-      
+
       // Reset everything
       setSearchText('');
       setGrants([]);
       setIsSearching(false);
       setShowCursor(true);
       setShowResults(false);
-      
+
       // Cursor blink
       cursorInterval = setInterval(() => {
         setShowCursor(prev => !prev);
       }, 530);
-      
+
       // Typing animation - smoother with variable timing
       const typeCharacter = () => {
         if (typeIndex < fullSearchText.length) {
@@ -91,16 +91,16 @@ export function GrantVisualization() {
           // Stop cursor blink when done typing
           clearInterval(cursorInterval);
           setShowCursor(false);
-          
+
           // Brief pause before searching
           setTimeout(() => {
             setIsSearching(true);
-            
+
             // Searching state
             setTimeout(() => {
               setIsSearching(false);
               setShowResults(true);
-              
+
               // Clear grants first, then show new ones with smooth stagger
               setGrants([]);
               grantData.forEach((grant, index) => {
@@ -114,10 +114,10 @@ export function GrantVisualization() {
                     const newGrant = { ...grant, id: grantId, visible: true };
                     return [...prev, newGrant];
                   });
-                  
+
                   // Match animation slightly after appearance
                   setTimeout(() => {
-                    setGrants(prev => prev.map((g, i) => 
+                    setGrants(prev => prev.map((g, i) =>
                       i === index ? { ...g, matched: true } : g
                     ));
                   }, 400);
@@ -127,7 +127,7 @@ export function GrantVisualization() {
           }, 400);
         }
       };
-      
+
       // Start typing after short delay
       setTimeout(typeCharacter, 300);
 
@@ -156,12 +156,10 @@ export function GrantVisualization() {
 
       <div className="relative h-full flex flex-col gap-4">
         {/* Search Box with smooth transitions */}
-        <div className={`bg-background border-2 rounded-xl px-4 py-3.5 shadow-sm flex items-center gap-3 transition-all duration-500 ${
-          isSearching ? 'border-foreground scale-[1.02]' : 'border-foreground/60'
-        }`}>
-          <Search className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
-            isSearching ? 'animate-pulse scale-110' : 'scale-100'
-          }`} />
+        <div className={`bg-background border-2 rounded-xl px-4 py-3.5 shadow-sm flex items-center gap-3 transition-all duration-500 ${isSearching ? 'border-foreground scale-[1.02]' : 'border-foreground/60'
+          }`}>
+          <Search className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${isSearching ? 'animate-pulse scale-110' : 'scale-100'
+            }`} />
           <div className="flex-1 text-base font-medium">
             <span className="transition-all duration-200">
               {searchText}
@@ -183,37 +181,32 @@ export function GrantVisualization() {
         </div>
 
         {/* Results with smooth entrance */}
-        <div className={`flex-1 space-y-3 overflow-y-auto scrollbar-hide transition-opacity duration-700 ${
-          showResults ? 'opacity-100' : 'opacity-0'
-        }`}>
+        <div className={`flex-1 space-y-3 overflow-y-auto scrollbar-hide transition-opacity duration-700 ${showResults ? 'opacity-100' : 'opacity-0'
+          }`}>
           {grants.map((grant, index) => (
             <div
               key={grant.id}
-              className={`bg-background border-2 rounded-xl p-4 transition-all duration-700 ease-out hover:border-foreground hover:shadow-lg hover:scale-[1.02] cursor-pointer group ${
-                grant.visible ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-8 blur-sm'
-              } ${
-                grant.matched ? 'border-foreground/80' : 'border-border'
-              }`}
+              className={`bg-background border-2 rounded-xl p-4 transition-all duration-700 ease-out hover:border-foreground hover:shadow-lg hover:scale-[1.02] cursor-pointer group ${grant.visible ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-8 blur-sm'
+                } ${grant.matched ? 'border-foreground/80' : 'border-border'
+                }`}
             >
               {/* Header with smooth reveal */}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <h3 className="font-semibold text-sm leading-tight flex-1 transition-all duration-300 group-hover:translate-x-0.5">
                   {grant.title}
                 </h3>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs flex-shrink-0 transition-all duration-500 ${
-                    grant.matched ? 'bg-foreground text-background border-foreground scale-105' : 'scale-100'
-                  }`}
+                <Badge
+                  variant="outline"
+                  className={`text-xs flex-shrink-0 transition-all duration-500 ${grant.matched ? 'bg-foreground text-background border-foreground scale-105' : 'scale-100'
+                    }`}
                 >
                   {grant.category}
                 </Badge>
               </div>
 
               {/* Agency with smooth transition */}
-              <div className={`flex items-center gap-2 text-xs text-muted-foreground mb-3 transition-all duration-500 ${
-                grant.matched ? 'opacity-100' : 'opacity-70'
-              }`}>
+              <div className={`flex items-center gap-2 text-xs text-muted-foreground mb-3 transition-all duration-500 ${grant.matched ? 'opacity-100' : 'opacity-70'
+                }`}>
                 <Building2 className="h-3.5 w-3.5" />
                 <span>{grant.agency}</span>
               </div>
@@ -237,9 +230,8 @@ export function GrantVisualization() {
               </div>
 
               {/* Match indicator with smooth animation */}
-              <div className={`mt-3 pt-3 border-t transition-all duration-500 ${
-                grant.matched ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-              }`}>
+              <div className={`mt-3 pt-3 border-t transition-all duration-500 ${grant.matched ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+                }`}>
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="text-muted-foreground flex items-center gap-1">
                     <Sparkles className="h-3 w-3" />
@@ -248,9 +240,9 @@ export function GrantVisualization() {
                   <span className="font-semibold tabular-nums">{95 - index * 3}%</span>
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-foreground transition-all duration-[1500ms] ease-out"
-                    style={{ 
+                    style={{
                       width: grant.matched ? `${95 - index * 3}%` : '0%',
                       transitionDelay: '200ms'
                     }}
@@ -280,28 +272,20 @@ export function GrantVisualization() {
       </div>
 
       {/* Smooth ambient effects */}
-      <div className="absolute -top-8 -right-8 w-32 h-32 bg-foreground/5 rounded-full blur-3xl transition-all duration-[3000ms] ease-in-out" 
-        style={{ 
+      <div className="absolute -top-8 -right-8 w-32 h-32 bg-foreground/5 rounded-full blur-3xl transition-all duration-[3000ms] ease-in-out"
+        style={{
           transform: isSearching ? 'scale(1.2)' : 'scale(1)',
           opacity: isSearching ? 0.8 : 0.5
-        }} 
+        }}
       />
-      <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-foreground/5 rounded-full blur-2xl transition-all duration-[3000ms] ease-in-out" 
-        style={{ 
+      <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-foreground/5 rounded-full blur-2xl transition-all duration-[3000ms] ease-in-out"
+        style={{
           transform: showResults ? 'scale(1.3)' : 'scale(1)',
           opacity: showResults ? 0.7 : 0.5
-        }} 
+        }}
       />
-      
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+
+
     </div>
   );
 }

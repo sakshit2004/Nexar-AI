@@ -1,4 +1,4 @@
-# GrantMatch Advisor - Git Ignore
+# Nexar-AI - Git Ignore
 
 # Environment variables (CRITICAL - DO NOT COMMIT)
 .env
@@ -88,3 +88,19 @@ temp/
 Thumbs.db
 .DS_Store
 
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Debug scripts (auto-generated)
+debug_test.py
+run_tests_debug.py
+test_config.py
+tests/test_simple.py
