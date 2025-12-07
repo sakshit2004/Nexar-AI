@@ -1,4 +1,4 @@
-# GrantMatch Advisor - Simplified Backend
+# Nexar-AI - Simplified Backend
 
 A simplified FastAPI backend for searching and managing federal grants. Session-based storage with no authentication or database persistence.
 
