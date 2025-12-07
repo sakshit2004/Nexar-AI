@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings with validation"""
     
     # Application
-    APP_NAME: str = "GrantMatch Advisor"
+    APP_NAME: str = "Nexar-AI"
     APP_VERSION: str = "1.0.0"
     APP_URL: str = Field(default="http://localhost:8000", env="APP_URL")
     ENVIRONMENT: str = Field(default="development", env="ENVIRONMENT")
@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     # Email
     SENDGRID_API_KEY: Optional[str] = Field(default=None, env="SENDGRID_API_KEY")
     SENDGRID_FROM_EMAIL: str = Field(default="noreply@yourdomain.com", env="SENDGRID_FROM_EMAIL")
-    SENDGRID_FROM_NAME: str = Field(default="GrantMatch Advisor", env="SENDGRID_FROM_NAME")
+    SENDGRID_FROM_NAME: str = Field(default="Nexar-AI", env="SENDGRID_FROM_NAME")
     
     # Stripe
     STRIPE_PUBLISHABLE_KEY: Optional[str] = Field(default=None, env="STRIPE_PUBLISHABLE_KEY")
