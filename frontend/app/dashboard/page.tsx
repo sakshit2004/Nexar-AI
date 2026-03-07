@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore } from '../../lib/profile-store';
+import { MLH_DEFAULT_PROFILE, MLH_FELLOWSHIP_URL } from '../../lib/mlh-defaults';
 import { grantsApi, savedGrantsApi } from '../../lib/api';
 import { 
   Search, 
@@ -40,6 +41,10 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
 
     return await response.json();
   } catch (error) {
+    if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      throw new Error(`Could not reach the backend. Make sure it's running (e.g. \`python -m backend.main\`) at ${baseUrl}`);
+    }
     console.error('API Error:', error);
     throw error;
   }
@@ -50,7 +55,17 @@ export default function DashboardPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAuthenticated, user, token } = useAuthStore();
-  const { profile } = useProfileStore();
+  const { profile, updateProfile } = useProfileStore();
+
+  // Seed MLH default profile when MLH Fellow has no profile (run after rehydration so persist doesn't overwrite)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
+        updateProfile(MLH_DEFAULT_PROFILE);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
   // Auto-login with hardcoded user if not authenticated (unless just logged out)
   useEffect(() => {
@@ -108,7 +123,7 @@ export default function DashboardPage() {
     return undefined;
   }, [profile]);
 
-  const { data: recommendedResults, isLoading } = useQuery({
+  const { data: recommendedResults, isLoading, isError: isRecommendationsError, error: recommendationsError } = useQuery({
     queryKey: ['recommended-grants', profile?.focus_areas, profile?.organization_type, profile?.keywords, profile?.location_state, profile?.grant_amount_min, profile?.grant_amount_max],
     queryFn: async () => {
       if (!token) throw new Error('No token available');
@@ -130,17 +145,19 @@ export default function DashboardPage() {
       return response;
     },
     enabled: isAuthenticated && !!token && !!profile && (!!profile.focus_areas?.length || !!profile.organization_type || !!profile.keywords?.length), // Only fetch when profile has relevant data
-    refetchOnWindowFocus: true, // Refetch when user comes back to page
+    refetchOnWindowFocus: true,
+    retry: false, // Avoid repeated "Failed to fetch" when backend is down
     });
 
   // Get saved grants statistics
-  const { data: savedGrantsStats } = useQuery({
+  const { data: savedGrantsStats, isError: isSavedStatsError } = useQuery({
     queryKey: ['saved-grants-stats'],
     queryFn: async () => {
       const response = await savedGrantsApi.stats(token || undefined);
       return response;
     },
     enabled: isAuthenticated,
+    retry: false,
   });
 
   // Refetch recommendations when profile changes
@@ -161,9 +178,17 @@ export default function DashboardPage() {
   console.log('recommendedGrants.length:', recommendedGrants.length);
 
 
+  const apiUnreachable = isRecommendationsError || isSavedStatsError;
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {apiUnreachable && (
+          <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+            {recommendationsError?.message || 'Could not reach the backend.'} Start the server with{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">python -m backend.main</code> and refresh.
+          </div>
+        )}
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
@@ -174,6 +199,14 @@ export default function DashboardPage() {
               ? `${profile.organization_name} • Here's your grant discovery overview`
               : "Here's your grant discovery overview"}
           </p>
+          {user?.email === 'admin@mlh.com' && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Configured for{' '}
+              <a href={MLH_FELLOWSHIP_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                MLH Fellowship
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Profile Info Card */}
@@ -361,6 +394,12 @@ export default function DashboardPage() {
             ) : isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : isRecommendationsError ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">
+                  {recommendationsError?.message || 'Could not load recommendations.'} Make sure the backend is running.
+                </p>
               </div>
             ) : recommendedGrants && recommendedGrants.length > 0 ? (
               <div className="space-y-4">

@@ -67,9 +67,10 @@ export default function SavedGrantsPage() {
       if (filter === 'archived') params.include_archived = true;
       
       const response = await savedGrantsApi.list(token, params);
-      return response.data;
+      return response ?? { saved_grants: [], total_count: 0, favorites_count: 0, archived_count: 0 };
     },
     enabled: isAuthenticated && !!token,
+    retry: false,
   });
 
   // Get statistics
@@ -78,9 +79,10 @@ export default function SavedGrantsPage() {
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
       const response = await savedGrantsApi.stats(token);
-      return response.data;
+      return response ?? { total_saved: 0, favorites: 0, archived: 0, by_category: {}, by_agency: {}, recent_saves: [] };
     },
     enabled: isAuthenticated && !!token,
+    retry: false,
   });
 
   // Search saved grants
@@ -89,9 +91,10 @@ export default function SavedGrantsPage() {
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
       const response = await savedGrantsApi.search(searchQuery, token);
-      return response.data;
+      return response ?? { saved_grants: [] };
     },
     enabled: isAuthenticated && searchQuery.length > 0 && !!token,
+    retry: false,
   });
 
   // Toggle favorite mutation

@@ -21,6 +21,10 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
 
     return await response.json();
   } catch (error) {
+    if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      throw new Error(`Could not reach the backend at ${baseUrl}. Make sure it's running (e.g. \`python -m backend.main\`).`);
+    }
     if (DEBUG) console.error('API Error:', error);
     throw error;
   }
