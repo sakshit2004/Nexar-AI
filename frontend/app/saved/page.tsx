@@ -33,6 +33,7 @@ export default function SavedGrantsPage() {
   const { isAuthenticated, setAuth, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites' | 'archived'>('all');
+  const [heartRedById, setHeartRedById] = useState<Record<number, boolean>>({});
 
   // Auto-login with hardcoded user if not authenticated (unless just logged out)
   useEffect(() => {
@@ -270,15 +271,15 @@ export default function SavedGrantsPage() {
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
                         <span className="flex items-center gap-1">
                           <Building className="h-4 w-4" />
-                          {grant.agency}
+                          {grant.agency || 'Federal Agency'}
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
-                          {grant.award_ceiling ? `Up to $${grant.award_ceiling.toLocaleString()}` : 'Amount varies'}
+                          {grant.award_amount || (grant.award_ceiling ? `Up to $${Number(grant.award_ceiling).toLocaleString()}` : 'Amount varies')}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          {grant.close_date ? new Date(grant.close_date).toLocaleDateString() : 'Rolling'}
+                          {(grant.deadline || grant.close_date) ? new Date(grant.deadline || grant.close_date).toLocaleDateString() : 'Rolling'}
                         </span>
                       </div>
 
@@ -322,10 +323,20 @@ export default function SavedGrantsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleFavoriteMutation.mutate(grant.id)}
+                        onClick={() => {
+                          const showRed = heartRedById[grant.id] ?? grant.is_favorite;
+                          setHeartRedById((prev) => ({ ...prev, [grant.id]: !showRed }));
+                          toggleFavoriteMutation.mutate(grant.id);
+                        }}
                         disabled={toggleFavoriteMutation.isPending}
                       >
-                        <Heart className={`h-4 w-4 ${grant.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
+                        <Heart
+                          className={`h-4 w-4 transition-colors ${
+                            heartRedById[grant.id] ?? grant.is_favorite
+                              ? 'fill-red-500 text-red-500'
+                              : ''
+                          }`}
+                        />
                       </Button>
                       
                       <Button

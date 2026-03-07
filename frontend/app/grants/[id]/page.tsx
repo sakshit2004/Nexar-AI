@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,7 @@ import {
 export default function GrantDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const queryClient = useQueryClient();
   const grantId = params.id as string;
   const { isAuthenticated, setAuth, token } = useAuthStore();
 
@@ -130,7 +131,11 @@ export default function GrantDetailsPage() {
     },
     onSuccess: (data) => {
       setIsSaved(true);
-      setSavedGrantId(data.id);
+      setSavedGrantId(data?.id ?? null);
+      queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
+      queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
+      queryClient.refetchQueries({ queryKey: ['saved-grants'] });
+      queryClient.refetchQueries({ queryKey: ['saved-grants-stats'] });
     },
     onError: (error) => {
       console.error('Save grant error:', error);
@@ -143,9 +148,9 @@ export default function GrantDetailsPage() {
       if (!token) throw new Error('Not authenticated');
       
       if (!savedGrantId) {
-        // If we don't have the saved grant ID, we need to find it
         const response = await savedGrantsApi.list(token);
-        const savedGrant = response.data.saved_grants.find((sg: any) => sg.grant_id === grantId);
+        const list = response?.saved_grants ?? [];
+        const savedGrant = list.find((sg: any) => sg.grant_id === grantId);
         if (savedGrant) {
           await savedGrantsApi.delete(String(savedGrant.id), token);
         }
@@ -156,6 +161,8 @@ export default function GrantDetailsPage() {
     onSuccess: () => {
       setIsSaved(false);
       setSavedGrantId(null);
+      queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
+      queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
     },
     onError: (error) => {
       console.error('Unsave grant error:', error);
