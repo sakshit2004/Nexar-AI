@@ -21,6 +21,10 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
 
     return await response.json();
   } catch (error) {
+    if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      throw new Error(`Could not reach the backend at ${baseUrl}. Make sure it's running (e.g. \`python -m backend.main\`).`);
+    }
     if (DEBUG) console.error('API Error:', error);
     throw error;
   }
@@ -96,11 +100,11 @@ export const savedGrantsApi = {
       if (grantData.eligibility) body.grant_eligibility = grantData.eligibility;
       if (grantData.category) body.grant_category = grantData.category;
       if (grantData.award_amount) {
-        // Parse award amount range (e.g., "$50,000 - $500,000")
-        const amountMatch = grantData.award_amount.match(/\$?([\d,]+)\s*-\s*\$?([\d,]+)/);
+        body.grant_award_amount = grantData.award_amount;
+        const amountMatch = String(grantData.award_amount).match(/\$?([\d,]+)\s*-\s*\$?([\d,]+)/);
         if (amountMatch) {
-          body.grant_award_floor = parseInt(amountMatch[1].replace(/,/g, ''));
-          body.grant_award_ceiling = parseInt(amountMatch[2].replace(/,/g, ''));
+          body.grant_award_floor = parseInt(amountMatch[1].replace(/,/g, ''), 10);
+          body.grant_award_ceiling = parseInt(amountMatch[2].replace(/,/g, ''), 10);
         }
       }
       if (grantData.deadline) body.grant_close_date = grantData.deadline;
@@ -174,8 +178,8 @@ export const savedGrantsApi = {
   toggleFavorite: async (savedGrantId: string | number, token?: string) => {
     const headers: any = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/favorite`, {
-      method: 'PUT',
+    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/toggle-favorite`, {
+      method: 'POST',
       headers,
     });
     return response;
@@ -185,7 +189,7 @@ export const savedGrantsApi = {
     const headers: any = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
     const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/archive`, {
-      method: 'PUT',
+      method: 'POST',
       headers,
     });
     return response;

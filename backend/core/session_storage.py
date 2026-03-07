@@ -21,7 +21,7 @@ class SessionStorage:
         return self._global_session_id
     
     def save_grant(self, grant_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Save a grant to the session"""
+        """Save a grant to the session. Reads grant_* keys from API and stores same format as grant detail page."""
         session_id = self.get_session_id()
         
         if session_id not in self._storage:
@@ -33,22 +33,42 @@ class SessionStorage:
         if grant_id in self._storage[session_id]:
             raise ValueError("Grant is already saved")
         
+        # Map from API grant_* keys to stored shape (same as grant detail page display)
+        close_date = grant_data.get("grant_close_date") or grant_data.get("close_date") or ""
+        award_floor = grant_data.get("grant_award_floor")
+        award_ceiling = grant_data.get("grant_award_ceiling")
+        award_amount = grant_data.get("grant_award_amount") or grant_data.get("award_amount")
+        if not award_amount and (award_floor is not None or award_ceiling is not None):
+            if award_floor is not None and award_ceiling is not None:
+                award_amount = f"${award_floor:,} - ${award_ceiling:,}"
+            elif award_ceiling is not None:
+                award_amount = f"Up to ${award_ceiling:,}"
+            elif award_floor is not None:
+                award_amount = f"From ${award_floor:,}"
+        
+        now = datetime.utcnow().isoformat()
         saved_grant = {
-            "id": len(self._storage[session_id]) + 1,  # Simple incrementing ID
+            "id": len(self._storage[session_id]) + 1,
             "grant_id": grant_id,
-            "title": grant_data.get("title", ""),
-            "agency": grant_data.get("agency", ""),
-            "description": grant_data.get("description", ""),
-            "award_amount": grant_data.get("award_amount", ""),
-            "deadline": grant_data.get("deadline", ""),
-            "category": grant_data.get("category", ""),
-            "url": grant_data.get("url", ""),
-            "opportunity_number": grant_data.get("opportunity_number", ""),
+            "title": grant_data.get("grant_title") or grant_data.get("title", ""),
+            "agency": grant_data.get("grant_agency") or grant_data.get("agency", ""),
+            "description": grant_data.get("grant_description") or grant_data.get("description", ""),
+            "eligibility": grant_data.get("grant_eligibility") or grant_data.get("eligibility", ""),
+            "cfda_number": grant_data.get("grant_cfda_number") or grant_data.get("opportunity_number", ""),
+            "category": grant_data.get("grant_category") or grant_data.get("category", ""),
+            "award_floor": award_floor,
+            "award_ceiling": award_ceiling,
+            "award_amount": award_amount or "",
+            "close_date": close_date,
+            "deadline": close_date,
+            "open_date": grant_data.get("grant_open_date") or grant_data.get("open_date", ""),
+            "url": grant_data.get("grant_url") or grant_data.get("url", ""),
+            "user_notes": grant_data.get("user_notes") or grant_data.get("notes", ""),
+            "user_tags": grant_data.get("user_tags") or [],
             "is_favorite": grant_data.get("is_favorite", False),
             "is_archived": grant_data.get("is_archived", False),
-            "notes": grant_data.get("notes", ""),
-            "saved_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": now,
+            "updated_at": now,
         }
         
         self._storage[session_id][grant_id] = saved_grant
@@ -77,8 +97,8 @@ class SessionStorage:
         if favorites_only:
             grants = [g for g in grants if g.get("is_favorite", False)]
         
-        # Sort by saved_at (most recent first)
-        grants.sort(key=lambda x: x.get("saved_at", ""), reverse=True)
+        # Sort by created_at (most recent first)
+        grants.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         
         # Apply pagination
         return grants[offset:offset + limit]
@@ -125,8 +145,10 @@ class SessionStorage:
         if not grant_to_update:
             return None
         
-        # Update fields
-        grant_to_update.update(update_data)
+        # Update fields (avoid overwriting id, grant_id, created_at)
+        for key, value in update_data.items():
+            if key not in ("id", "grant_id", "created_at"):
+                grant_to_update[key] = value
         grant_to_update["updated_at"] = datetime.utcnow().isoformat()
         
         return grant_to_update

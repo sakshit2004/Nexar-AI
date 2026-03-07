@@ -9,6 +9,7 @@ class SavedGrantCreate(BaseModel):
     grant_id: str = Field(..., description="External grant ID")
     grant_title: str = Field(..., description="Grant title")
     grant_agency: Optional[str] = Field(None, description="Granting agency")
+    grant_award_amount: Optional[str] = Field(None, description="Display award amount string as shown on grant page")
     grant_description: Optional[str] = Field(None, description="Grant description")
     grant_eligibility: Optional[str] = Field(None, description="Eligibility requirements")
     grant_cfda_number: Optional[str] = Field(None, description="CFDA number")
@@ -32,7 +33,7 @@ class SavedGrantUpdate(BaseModel):
 
 
 class SavedGrantResponse(BaseModel):
-    """Schema for saved grant responses"""
+    """Schema for saved grant responses - same field names as grant detail page for consistent display"""
     id: int
     grant_id: str
     title: str
@@ -43,7 +44,9 @@ class SavedGrantResponse(BaseModel):
     category: Optional[str] = None
     award_floor: Optional[int] = None
     award_ceiling: Optional[int] = None
+    award_amount: Optional[str] = None  # Display string as on grant page (e.g. "$50,000 - $500,000")
     close_date: Optional[str] = None
+    deadline: Optional[str] = None  # Same as close_date, for same display format as grant page
     open_date: Optional[str] = None
     url: Optional[str] = None
     user_notes: Optional[str] = None
@@ -52,7 +55,7 @@ class SavedGrantResponse(BaseModel):
     is_archived: bool = False
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 

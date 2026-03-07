@@ -6,11 +6,15 @@ import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useAuthStore } from '../../lib/store';
-import { AlertCircle } from 'lucide-react';
+import { useProfileStore } from '../../lib/profile-store';
+import { MLH_DEFAULT_PROFILE } from '../../lib/mlh-defaults';
+import { AlertCircle, Info } from 'lucide-react';
 
 // Hardcoded credentials
-const HARDCODED_EMAIL = 'admin@nexar.ai';
-const HARDCODED_PASSWORD = 'admin123';
+const CREDENTIALS = [
+  { email: 'admin@nexar.ai', password: 'admin123', name: 'Admin User' },
+  { email: 'admin@mlh.com', password: 'mlh', name: 'MLH Fellow' },
+] as const;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,15 +42,25 @@ export default function LoginPage() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Check hardcoded credentials
-    if (email === HARDCODED_EMAIL && password === HARDCODED_PASSWORD) {
+    const match = CREDENTIALS.find((c) => c.email === email && c.password === password);
+    if (match) {
       // Create mock user and token
       const mockUser = {
         id: '1',
-        email: HARDCODED_EMAIL,
-        name: 'Admin User',
+        email: match.email,
+        name: match.name,
         tier: 'premium' as const,
       };
       const mockToken = 'hardcoded-auth-token';
+
+      // Seed MLH profile when logging in as MLH Fellow (so it's set before navigation and not overwritten by rehydration)
+      if (match.email === 'admin@mlh.com') {
+        const { profile, updateProfile } = useProfileStore.getState();
+        const profileEmpty = !profile?.organization_name && !profile?.focus_areas?.length;
+        if (profileEmpty) {
+          updateProfile(MLH_DEFAULT_PROFILE);
+        }
+      }
       
       setAuth(mockUser, mockToken);
       router.push('/dashboard');
@@ -70,6 +84,26 @@ export default function LoginPage() {
             <p className="text-muted-foreground">
               Welcome back to Nexar AI
             </p>
+
+            {/* Major League Hacking (MLH) Fellowship sign-in hint */}
+            <div className="mt-6 rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-left">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+                <div className="space-y-1.5 text-sm">
+                  <p className="font-medium text-foreground">
+                    Major League Hacking (MLH) Fellowship
+                  </p>
+                  <p className="text-muted-foreground">
+                    Use email <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground text-xs">admin@mlh.com</code> and password <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground text-xs">mlh</code>
+                  </p>
+                  <p className="text-muted-foreground">
+                    <a href="https://fellowship.mlh.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                      Learn more
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Form */}
@@ -102,17 +136,9 @@ export default function LoginPage() {
             {/* Password (shown after email) */}
             {showPassword && (
               <div className="space-y-2 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+                <label htmlFor="password" className="text-sm font-medium block">
+                  Password
+                </label>
                 <Input
                   id="password"
                   type="password"
