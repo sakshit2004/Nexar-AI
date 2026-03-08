@@ -54,10 +54,31 @@ async function proxy(request: NextRequest) {
     }
   }
 
-  const res = await fetch(backendUrl, init);
-  const contentType = res.headers.get('content-type') || 'application/json';
+  let res: Response;
+  try {
+    res = await fetch(backendUrl, init);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { detail: `Backend unreachable: ${message}. Check that the Python function is deployed and env vars (e.g. OPENAI_API_KEY) are set.` },
+      { status: 503 }
+    );
+  }
+
+  const contentType = res.headers.get('content-type') || '';
   const isJson = contentType.includes('application/json');
-  const body = isJson ? await res.json() : await res.text();
+  const body = isJson ? await res.json().catch(() => ({})) : await res.text();
+
+  // Always return JSON for errors so the client can show the message
+  if (!res.ok) {
+    const detail =
+      typeof body === 'object' && body && typeof (body as { detail?: string }).detail === 'string'
+        ? (body as { detail: string }).detail
+        : typeof body === 'string'
+          ? body.slice(0, 600)
+          : 'Backend error';
+    return NextResponse.json({ detail }, { status: res.status });
+  }
 
   if (isJson) {
     return NextResponse.json(body, { status: res.status, statusText: res.statusText });
@@ -65,6 +86,6 @@ async function proxy(request: NextRequest) {
   return new NextResponse(typeof body === 'string' ? body : JSON.stringify(body), {
     status: res.status,
     statusText: res.statusText,
-    headers: { 'Content-Type': contentType },
+    headers: { 'Content-Type': contentType || 'application/json' },
   });
 }
