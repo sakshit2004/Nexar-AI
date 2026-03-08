@@ -98,19 +98,14 @@ async def grantmatch_exception_handler(request: Request, exc: GrantMatchExceptio
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Handle unexpected exceptions"""
+    """Handle unexpected exceptions. In production, still return real error for /api/v1 so you can see it in Network tab."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    
-    if settings.is_production:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Internal server error"}
-        )
-    else:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": str(exc)}
-        )
+    is_api_v1 = request.url.path.startswith("/api/v1/")
+    show_detail = not settings.is_production or is_api_v1
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": str(exc) if show_detail else "Internal server error"}
+    )
 
 
 # Health check
