@@ -10,7 +10,7 @@ import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore } from '../../lib/profile-store';
 import { MLH_DEFAULT_PROFILE, MLH_FELLOWSHIP_URL } from '../../lib/mlh-defaults';
-import { grantsApi, savedGrantsApi } from '../../lib/api';
+import { getApiBaseUrl, grantsApi, savedGrantsApi } from '../../lib/api';
 import { 
   Search, 
   TrendingUp, 
@@ -21,9 +21,6 @@ import {
   Sparkles,
   RefreshCw
 } from 'lucide-react';
-
-// Helper function for API calls
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const RECOMMENDED_LOADING_MESSAGES = [
   'Finding the best grants for your business...',
@@ -51,8 +48,7 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
     return await response.json();
   } catch (error) {
     if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      throw new Error(`Could not reach the backend. Make sure it's running (e.g. \`python -m backend.main\`) at ${baseUrl}`);
+      throw new Error(`Could not reach the backend. Make sure it's running (e.g. \`python -m backend.main\`) at ${getApiBaseUrl()}`);
     }
     console.error('API Error:', error);
     throw error;
@@ -148,7 +144,7 @@ export default function DashboardPage() {
       // seed param makes each refresh a distinct request; backend ignores it but ensures no cache hits
       if (refreshSeed > 0) searchParams.append('seed', String(refreshSeed));
       
-      const url = `${API_BASE_URL}/api/v1/grants/recommended?${searchParams}`;
+      const url = `${getApiBaseUrl()}/api/v1/grants/recommended?${searchParams}`;
       const response = await fetchWithError(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
