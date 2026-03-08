@@ -45,7 +45,6 @@ async function proxy(request: NextRequest) {
   const init: RequestInit = {
     method: request.method,
     headers,
-    duplex: 'half',
   };
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     try {
