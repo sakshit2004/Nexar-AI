@@ -194,8 +194,10 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {apiUnreachable && (
           <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-            {recommendationsError?.message || 'Could not reach the backend.'} Start the server with{' '}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">python -m backend.main</code> and refresh.
+            {recommendationsError?.message || 'Could not reach the backend.'}
+            {recommendationsError?.message?.includes('not configured') ? null : (
+              <> Start the server with <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">python -m backend.main</code> and refresh.</>
+            )}
           </div>
         )}
         {/* Header */}
@@ -366,7 +368,8 @@ export default function DashboardPage() {
             ) : isRecommendationsError ? (
               <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">
-                  {recommendationsError?.message || 'Could not load recommendations.'} Make sure the backend is running.
+                  {recommendationsError?.message || 'Could not load recommendations.'}
+                  {recommendationsError?.message?.includes('not configured') ? '' : ' Make sure the backend is running.'}
                 </p>
               </div>
             ) : recommendedGrants && recommendedGrants.length > 0 ? (

@@ -41,8 +41,17 @@ def get_recommended_grants(
             "personalized": is_personalized,
             "response_time_ms": result["response_time_ms"],
         }
+    except ValueError as e:
+        msg = str(e)
+        if "API key" in msg or "configured" in msg.lower():
+            logger.warning(f"Grant discovery not configured: {msg}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Grant discovery is not configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY in your deployment environment."
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
     except Exception as e:
-        logger.error(f"Recommended grants error: {e}")
+        logger.error(f"Recommended grants error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get recommendations: {str(e)}"
@@ -83,8 +92,17 @@ def search_grants(
             "count": len(grants),
             "response_time_ms": result["response_time_ms"],
         }
+    except ValueError as e:
+        msg = str(e)
+        if "API key" in msg or "configured" in msg.lower():
+            logger.warning(f"Grant search not configured: {msg}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Grant discovery is not configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY in your deployment environment."
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
     except Exception as e:
-        logger.error(f"Grant search error: {e}")
+        logger.error(f"Grant search error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Grant search failed: {str(e)}"
