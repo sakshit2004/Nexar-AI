@@ -60,8 +60,10 @@ export default function GrantDetailsPage() {
     queryKey: ['grant', grantId],
     queryFn: async () => {
       const response = await grantsApi.getById(grantId);
-      console.log('Grant API response:', response);
-      console.log('Grant URL:', response?.url);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Grant API response:', response);
+        console.log('Grant URL:', response?.url);
+      }
       // Handle both response formats: response.data or response directly
       const grantData = response?.data || response;
       if (!grantData) {
@@ -99,14 +101,14 @@ export default function GrantDetailsPage() {
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      console.log('Analyzing grant:', grantId);
+      if (process.env.NODE_ENV === 'development') console.log('Analyzing grant:', grantId);
       const response = await matchingApi.analyze(grantId, token);
-      console.log('Analysis response:', response);
+      if (process.env.NODE_ENV === 'development') console.log('Analysis response:', response);
       // Handle both response formats: response.data or response directly
       return response?.data || response;
     },
     onSuccess: (data) => {
-      console.log('Analysis data:', data);
+      if (process.env.NODE_ENV === 'development') console.log('Analysis data:', data);
       if (data) {
         setAiSummary(data.ai_summary || data.summary);
         setMatchData(data);

@@ -81,7 +81,7 @@ export default function ProfilePage() {
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       try {
-        console.log('Processing profile data:', data);
+        if (process.env.NODE_ENV === 'development') console.log('Processing profile data:', data);
         // Update profile store directly
         // Convert strings to arrays and parse numbers
         const profileData: Partial<OrganizationProfile> = {
@@ -103,10 +103,10 @@ export default function ProfilePage() {
             ? data.keywords.split(',').map((s: string) => s.trim()).filter(Boolean)
             : (Array.isArray(data.keywords) ? data.keywords : []),
         };
-        console.log('Processed profile data:', profileData);
+        if (process.env.NODE_ENV === 'development') console.log('Processed profile data:', profileData);
         updateProfile(profileData);
         const savedProfile = useProfileStore.getState().profile;
-        console.log('Profile saved to store:', savedProfile);
+        if (process.env.NODE_ENV === 'development') console.log('Profile saved to store:', savedProfile);
         return { data: profileData };
       } catch (error) {
         console.error('Error in mutationFn:', error);
@@ -132,7 +132,7 @@ export default function ProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting form data:', formData);
+    if (process.env.NODE_ENV === 'development') console.log('Submitting form data:', formData);
     // Pass formData as-is (strings), mutationFn will handle conversion
     updateMutation.mutate(formData);
   };

@@ -29,7 +29,6 @@ class SavedGrantUpdate(BaseModel):
     user_notes: Optional[str] = Field(None, description="User's personal notes")
     user_tags: Optional[List[str]] = Field(None, description="User-defined tags")
     is_favorite: Optional[bool] = Field(None, description="Mark as favorite")
-    is_archived: Optional[bool] = Field(None, description="Archive status")
 
 
 class SavedGrantResponse(BaseModel):
@@ -52,7 +51,6 @@ class SavedGrantResponse(BaseModel):
     user_notes: Optional[str] = None
     user_tags: List[str] = []
     is_favorite: bool = False
-    is_archived: bool = False
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
@@ -65,14 +63,12 @@ class SavedGrantListResponse(BaseModel):
     saved_grants: List[SavedGrantResponse]
     total_count: int
     favorites_count: int
-    archived_count: int
 
 
 class SavedGrantStatsResponse(BaseModel):
     """Schema for saved grants statistics"""
     total_saved: int
     favorites: int
-    archived: int
     by_category: dict
     by_agency: dict
     recent_saves: List[SavedGrantResponse]

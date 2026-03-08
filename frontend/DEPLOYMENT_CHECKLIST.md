@@ -1,5 +1,27 @@
 # Vercel Deployment Checklist
 
+## All-on-Vercel (one project: Next.js + Python API)
+
+To run **everything on Vercel** (no separate backend host):
+
+1. **Root Directory**  
+   In Vercel → Project Settings → General → **Root Directory** must be the **repository root** (leave empty or `.`).  
+   Do **not** set it to `frontend`, or the `api/` and `backend/` folders will not be deployed and `/api/v1/*` will 404.
+
+2. **Build**  
+   The root `vercel.json` runs `npm run build` (which builds the Next.js app in `frontend/`) and sets `outputDirectory` to `frontend/.next`. The Python serverless function is at `api/index.py` and handles `/api/v1/*` via rewrites.
+
+3. **Backend env vars (in Vercel)**  
+   Set these in Vercel → Project Settings → Environment Variables (for Production/Preview):
+   - `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` (for grant search/recommendations)
+   - Optional: `LLM_PROVIDER` = `openai` or `anthropic`
+   - Optional: `ENVIRONMENT` = `production`
+
+4. **Frontend API URL**  
+   You can leave `NEXT_PUBLIC_API_URL` **unset** in production. The app will use the same origin, and rewrites send `/api/v1/*` to the Python function.
+
+---
+
 ## Pre-deployment Steps
 
 ### 1. Dependencies
@@ -38,9 +60,9 @@ vercel --prod
 ```
 
 ### 3. Configure Environment Variables in Vercel Dashboard
-- `NEXT_PUBLIC_API_URL`
-- `NEXT_PUBLIC_APP_NAME`
-- `NEXT_PUBLIC_APP_VERSION`
+- `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_VERSION` (optional)
+- For all-on-Vercel: `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` (see “All-on-Vercel” above).  
+  `NEXT_PUBLIC_API_URL` can be left unset so the app uses the same origin.
 
 ### 4. Verify Deployment
 - [ ] Frontend loads correctly

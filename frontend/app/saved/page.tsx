@@ -14,10 +14,7 @@ import {
   Bookmark, 
   Search, 
   Heart, 
-  Archive, 
   Trash2, 
-  Edit3, 
-  Filter,
   Loader2,
   Star,
   Clock,
@@ -32,7 +29,7 @@ export default function SavedGrantsPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated, setAuth, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'favorites' | 'archived'>('all');
+  const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [heartRedById, setHeartRedById] = useState<Record<number, boolean>>({});
 
   // Auto-login with hardcoded user if not authenticated (unless just logged out)
@@ -65,10 +62,9 @@ export default function SavedGrantsPage() {
       if (!token) throw new Error('Not authenticated');
       const params: any = {};
       if (filter === 'favorites') params.favorites_only = true;
-      if (filter === 'archived') params.include_archived = true;
       
       const response = await savedGrantsApi.list(token, params);
-      return response ?? { saved_grants: [], total_count: 0, favorites_count: 0, archived_count: 0 };
+      return response ?? { saved_grants: [], total_count: 0, favorites_count: 0 };
     },
     enabled: isAuthenticated && !!token,
     retry: false,
@@ -80,7 +76,7 @@ export default function SavedGrantsPage() {
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
       const response = await savedGrantsApi.stats(token);
-      return response ?? { total_saved: 0, favorites: 0, archived: 0, by_category: {}, by_agency: {}, recent_saves: [] };
+      return response ?? { total_saved: 0, favorites: 0, by_category: {}, by_agency: {}, recent_saves: [] };
     },
     enabled: isAuthenticated && !!token,
     retry: false,
@@ -103,18 +99,6 @@ export default function SavedGrantsPage() {
     mutationFn: (id: number) => {
       if (!token) throw new Error('Not authenticated');
       return savedGrantsApi.toggleFavorite(id, token);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
-      queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
-    },
-  });
-
-  // Archive mutation
-  const archiveMutation = useMutation({
-    mutationFn: (id: number) => {
-      if (!token) throw new Error('Not authenticated');
-      return savedGrantsApi.archive(id, token);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
@@ -150,7 +134,7 @@ export default function SavedGrantsPage() {
 
         {/* Stats */}
         {stats && (
-          <div className="grid gap-4 md:grid-cols-4 mb-8">
+          <div className="grid gap-4 md:grid-cols-3 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
@@ -168,16 +152,6 @@ export default function SavedGrantsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.favorites}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Archived</CardTitle>
-                <Archive className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.archived}</div>
               </CardContent>
             </Card>
 
@@ -211,27 +185,21 @@ export default function SavedGrantsPage() {
           
           <div className="flex gap-2">
             <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
+              variant="outline"
               size="sm"
               onClick={() => setFilter('all')}
+              className={filter === 'all' ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
             >
               All
             </Button>
             <Button
-              variant={filter === 'favorites' ? 'default' : 'outline'}
+              variant="outline"
               size="sm"
               onClick={() => setFilter('favorites')}
+              className={filter === 'favorites' ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
             >
               <Heart className="mr-2 h-4 w-4" />
               Favorites
-            </Button>
-            <Button
-              variant={filter === 'archived' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('archived')}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              Archived
             </Button>
           </div>
         </div>
@@ -254,12 +222,6 @@ export default function SavedGrantsPage() {
                           <Badge variant="default" className="bg-yellow-500">
                             <Star className="mr-1 h-3 w-3" />
                             Favorite
-                          </Badge>
-                        )}
-                        {grant.is_archived && (
-                          <Badge variant="outline">
-                            <Archive className="mr-1 h-3 w-3" />
-                            Archived
                           </Badge>
                         )}
                       </div>
@@ -337,15 +299,6 @@ export default function SavedGrantsPage() {
                               : ''
                           }`}
                         />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => archiveMutation.mutate(grant.id)}
-                        disabled={archiveMutation.isPending}
-                      >
-                        <Archive className="h-4 w-4" />
                       </Button>
                       
                       <Button

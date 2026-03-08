@@ -61,7 +61,7 @@ export default function SearchPage() {
     }
   }, [isAuthenticated, setAuth, router]);
 
-  const { data: searchResults, isLoading, refetch } = useQuery({
+  const { data: searchResults, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
     queryFn: async () => {
       const searchParams: any = {};
@@ -78,20 +78,18 @@ export default function SearchPage() {
         searchParams.max_amount = parseInt(activeSearchParams.max_amount);
       }
       const response = await grantsApi.search(searchParams);
-      // Return full response with metadata
-      return response.data;
+      return response ?? { grants: [], providers_used: [], response_time_ms: 0 };
     },
     enabled: isAuthenticated && activeSearchParams.query !== '',
     refetchOnWindowFocus: false, // Don't refetch on window focus for search
   });
-  
+
   const grants = searchResults?.grants || [];
   const providersUsed = searchResults?.providers_used || [];
   const responseTime = searchResults?.response_time_ms;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Update active search params only when button is clicked
     setActiveSearchParams({
       query: searchQuery,
       ...filters,
@@ -122,6 +120,12 @@ export default function SearchPage() {
                     placeholder="Search by keywords, agency, or opportunity number..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setActiveSearchParams({ query: searchQuery, ...filters });
+                      }
+                    }}
                     className="pl-10"
                   />
                 </div>
@@ -173,7 +177,17 @@ export default function SearchPage() {
 
         {/* Results */}
         <div>
-          {isLoading ? (
+          {isError ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <h3 className="text-lg font-semibold mb-2 text-destructive">Search failed</h3>
+                <p className="text-sm text-muted-foreground text-center max-w-md">
+                  {error instanceof Error ? error.message : String(error)}
+                </p>
+                <Button className="mt-4" onClick={() => refetch()}>Try again</Button>
+              </CardContent>
+            </Card>
+          ) : isLoading ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -188,9 +202,13 @@ export default function SearchPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Start Your Grant Search</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {searchQuery.trim() ? 'Run your search' : 'Start Your Grant Search'}
+                </h3>
                 <p className="text-sm text-muted-foreground text-center max-w-md">
-                  Enter keywords, select filters, and click Search to discover federal grant opportunities.
+                  {searchQuery.trim()
+                    ? 'Click Search or press Enter to find grants matching your query.'
+                    : 'Enter keywords, select filters, and click Search to discover federal grant opportunities.'}
                 </p>
               </CardContent>
             </Card>
@@ -263,15 +281,22 @@ export default function SearchPage() {
             <div className="text-center py-12">
               <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h4 className="font-semibold mb-2">No grants found</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Try adjusting your search criteria or filters
+              <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                The search completed but no federal grants matched &quot;{activeSearchParams.query}&quot;.{' '}
+                {(() => {
+                  const suggestions = ['Education', 'Health', 'Technology', 'Environment', 'federal grants'];
+                  const current = activeSearchParams.query?.trim().toLowerCase();
+                  const others = suggestions.filter(s => s.toLowerCase() !== current);
+                  if (others.length === 0) {
+                    return 'Try a different or broader search.';
+                  }
+                  const last = others.pop();
+                  const text = others.length ? `${others.join(', ')}, or "${last}"` : `"${last}"`;
+                  return `Try keywords like ${text} to see results.`;
+                })()}
               </p>
-              <Button onClick={() => {
-                setSearchQuery('');
-                setFilters({ category: '', min_amount: '', max_amount: '' });
-                refetch();
-              }}>
-                Clear Filters
+              <Button variant="outline" onClick={() => refetch()}>
+                Try again
               </Button>
             </div>
           )}

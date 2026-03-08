@@ -58,7 +58,6 @@ def save_grant(
 
 @router.get("", response_model=SavedGrantListResponse)
 def list_saved_grants(
-    include_archived: bool = Query(default=False, description="Include archived grants"),
     favorites_only: bool = Query(default=False, description="Show only favorites"),
     limit: int = Query(default=50, le=100, description="Maximum number of results"),
     offset: int = Query(default=0, ge=0, description="Number of results to skip")
@@ -68,25 +67,20 @@ def list_saved_grants(
         current_user = get_current_user_simple()
         storage = get_session_storage()
         
-        # Get saved grants
         saved_grants = storage.get_saved_grants(
-            include_archived=include_archived,
             favorites_only=favorites_only,
             limit=limit,
             offset=offset
         )
         
-        # Get counts
-        all_grants = storage.get_saved_grants(include_archived=True, limit=1000)
+        all_grants = storage.get_saved_grants(limit=1000)
         total_count = len(all_grants)
         favorites_count = len([g for g in all_grants if g.get("is_favorite", False)])
-        archived_count = len([g for g in all_grants if g.get("is_archived", False)])
         
         return SavedGrantListResponse(
             saved_grants=[SavedGrantResponse.model_validate(g) for g in saved_grants],
             total_count=total_count,
-            favorites_count=favorites_count,
-            archived_count=archived_count
+            favorites_count=favorites_count
         )
     
     except Exception as e:
@@ -106,16 +100,11 @@ def get_saved_grants_stats():
         
         stats = storage.get_stats()
         
-        # Get recent saves (last 5)
-        recent_saves = storage.get_saved_grants(
-            include_archived=False,
-            limit=5
-        )
+        recent_saves = storage.get_saved_grants(limit=5)
         
         return SavedGrantStatsResponse(
             total_saved=stats["total_saved"],
             favorites=stats["favorites"],
-            archived=stats["archived"],
             by_category=stats["by_category"],
             by_agency=stats["by_agency"],
             recent_saves=[SavedGrantResponse.model_validate(g) for g in recent_saves]
@@ -132,7 +121,6 @@ def get_saved_grants_stats():
 @router.get("/search")
 def search_saved_grants(
     q: str = Query(..., description="Search query"),
-    include_archived: bool = Query(default=False, description="Include archived grants"),
     limit: int = Query(default=50, le=100, description="Maximum number of results")
 ):
     """Search saved grants"""
@@ -140,11 +128,7 @@ def search_saved_grants(
         current_user = get_current_user_simple()
         storage = get_session_storage()
         
-        results = storage.search_saved_grants(
-            query=q,
-            include_archived=include_archived,
-            limit=limit
-        )
+        results = storage.search_saved_grants(query=q, limit=limit)
         
         return {
             "saved_grants": [SavedGrantResponse.model_validate(g) for g in results],
@@ -258,37 +242,6 @@ def toggle_favorite(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to toggle favorite: {str(e)}"
-        )
-
-
-@router.post("/{saved_grant_id}/archive")
-def archive_saved_grant(
-    saved_grant_id: int
-):
-    """Archive a saved grant (soft delete)"""
-    try:
-        current_user = get_current_user_simple()
-        storage = get_session_storage()
-        
-        success = storage.archive_saved_grant(saved_grant_id)
-        
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Saved grant not found"
-            )
-        
-        logger.info(f"Grant {saved_grant_id} archived by user {current_user.id}")
-        
-        return {"message": "Grant archived successfully"}
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error archiving saved grant: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to archive grant: {str(e)}"
         )
 
 

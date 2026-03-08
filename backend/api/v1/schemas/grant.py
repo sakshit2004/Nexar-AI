@@ -4,6 +4,55 @@ from typing import Optional, List
 from datetime import date
 
 
+# Canonical schema for discovered grants (web search → LLM extraction → session/API)
+class DiscoveredGrantSchema(BaseModel):
+    """Schema for grant objects returned by grant discovery (search/recommended/list/get-by-id)."""
+    id: str
+    title: str = ""
+    agency: str = ""
+    description: Optional[str] = None
+    eligibility: Optional[str] = None
+    award_amount: Optional[str] = None
+    deadline: Optional[str] = None
+    category: Optional[str] = None
+    url: Optional[str] = None
+    opportunity_number: Optional[str] = None
+
+    class Config:
+        extra = "ignore"
+
+
+def normalize_to_discovered_schema(g: dict) -> dict:
+    """Normalize a dict to canonical discovered grant shape (for session/API)."""
+    try:
+        obj = DiscoveredGrantSchema(
+            id=str(g.get("id", "")),
+            title=str(g.get("title", "")),
+            agency=str(g.get("agency", "")),
+            description=g.get("description"),
+            eligibility=g.get("eligibility"),
+            award_amount=g.get("award_amount"),
+            deadline=g.get("deadline"),
+            category=g.get("category"),
+            url=g.get("url"),
+            opportunity_number=g.get("opportunity_number"),
+        )
+        return obj.model_dump()
+    except Exception:
+        return {
+            "id": str(g.get("id", "")),
+            "title": str(g.get("title", "")),
+            "agency": str(g.get("agency", "")),
+            "description": g.get("description"),
+            "eligibility": g.get("eligibility"),
+            "award_amount": g.get("award_amount"),
+            "deadline": g.get("deadline"),
+            "category": g.get("category"),
+            "url": g.get("url"),
+            "opportunity_number": g.get("opportunity_number"),
+        }
+
+
 class GrantResponse(BaseModel):
     id: str
     title: str

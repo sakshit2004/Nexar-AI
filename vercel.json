@@ -1,14 +1,16 @@
 {
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "frontend/.next",
   "functions": {
     "api/index.py": {
-      "runtime": "python3.11",
       "includeFiles": "backend/**"
     }
   },
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "/api/index.py"
+      "destination": "/api/index"
     }
   ]
 }

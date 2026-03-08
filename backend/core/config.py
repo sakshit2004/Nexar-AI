@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     SIMPLER_GRANTS_API_KEY: Optional[str] = Field(default=None, env="SIMPLER_GRANTS_API_KEY")
     SIMPLER_GRANTS_BASE_URL: str = "https://api.simpler.grants.gov/v1"
     
+    # Web search (for grant discovery)
+    # No third-party key needed: uses built-in web search in OpenAI and Anthropic APIs
+
     # LLM Configuration
     LLM_PROVIDER: str = Field(default="openai", env="LLM_PROVIDER")  # "openai" or "anthropic"
     
@@ -50,7 +53,8 @@ class Settings(BaseSettings):
     
     # Anthropic Claude (Fallback)
     ANTHROPIC_API_KEY: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
-    ANTHROPIC_MODEL: str = "claude-3-haiku-20240307"
+    # claude-3-5-haiku-latest supports the native web_search tool; older haiku does not
+    ANTHROPIC_MODEL: str = "claude-3-5-haiku-latest"
     
     # Common LLM settings
     LLM_MAX_TOKENS: int = 2000
