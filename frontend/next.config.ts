@@ -18,15 +18,11 @@ const nextConfig: NextConfig = {
   // Remove standalone output for Vercel deployment
   // output: 'standalone',
   
-  // API routes configuration for backend integration
+  // API routes: in production, do NOT rewrite /api so Vercel routes /api/v1/* to the Python serverless function (vercel.json). In dev, proxy to local backend.
   async rewrites() {
+    if (process.env.NODE_ENV === 'production') return [];
     return [
-      {
-        source: '/api/:path*',
-        destination: process.env.NODE_ENV === 'production' 
-          ? '/api/:path*' 
-          : 'http://localhost:8000/api/:path*',
-      },
+      { source: '/api/:path*', destination: 'http://localhost:8000/api/:path*' },
     ];
   },
   
