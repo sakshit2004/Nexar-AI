@@ -195,8 +195,8 @@ export default function DashboardPage() {
         {apiUnreachable && (
           <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
             {recommendationsError?.message || 'Could not reach the backend.'}
-            {recommendationsError?.message?.includes('not configured') ? null : recommendationsError?.message?.includes('API Error: 500') ? (
-              <> Add <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">OPENAI_API_KEY</code> or <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">ANTHROPIC_API_KEY</code> in Vercel → Project Settings → Environment Variables, then redeploy.</>
+            {recommendationsError?.message?.includes('not configured') ? null : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? (
+              <> Server error or timeout. Check Vercel → Deployments → your deployment → Functions → Logs for the Python error.</>
             ) : (
               <> Start the server with <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">python -m backend.main</code> and refresh.</>
             )}
@@ -371,7 +371,7 @@ export default function DashboardPage() {
               <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">
                   {recommendationsError?.message || 'Could not load recommendations.'}
-                  {recommendationsError?.message?.includes('not configured') ? '' : recommendationsError?.message?.includes('API Error: 500') ? ' Add OPENAI_API_KEY or ANTHROPIC_API_KEY in Vercel environment variables and redeploy.' : ' Make sure the backend is running.'}
+                  {recommendationsError?.message?.includes('not configured') ? '' : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? ' Check Vercel → Deployments → Functions → Logs for the error.' : ' Make sure the backend is running.'}
                 </p>
               </div>
             ) : recommendedGrants && recommendedGrants.length > 0 ? (

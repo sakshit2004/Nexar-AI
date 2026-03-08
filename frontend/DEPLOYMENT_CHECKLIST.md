@@ -12,10 +12,11 @@ To run **everything on Vercel** (no separate backend host):
    The root `vercel.json` runs `npm run build` (which builds the Next.js app in `frontend/`) and sets `outputDirectory` to `frontend/.next`. The Python serverless function is at `api/index.py` and handles `/api/v1/*` via rewrites.
 
 3. **Backend env vars (in Vercel)**  
-   Set these in Vercel → Project Settings → Environment Variables (for Production/Preview):
+   Set these in Vercel → Project Settings → Environment Variables (for **Production** and optionally Preview):
    - `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` (for grant search/recommendations)
    - Optional: `LLM_PROVIDER` = `openai` or `anthropic`
-   - Optional: `ENVIRONMENT` = `production`
+   - Optional: `ENVIRONMENT` = `production`  
+   Ensure each variable is enabled for **Runtime** (not only Build), so the serverless function can read it. If you still get 500 with keys set, check **Deployments → [your deployment] → Functions → Logs** for the Python error (timeout, API error, etc.).
 
 4. **Frontend API URL**  
    You can leave `NEXT_PUBLIC_API_URL` **unset** in production. The app will use the same origin, and rewrites send `/api/v1/*` to the Python function.
