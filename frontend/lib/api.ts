@@ -44,7 +44,6 @@ export const grantsApi = {
         searchParams.append(key, value.toString());
       }
     });
-    
     const response = await fetchWithError(`${API_BASE_URL}/api/v1/grants/search?${searchParams}`);
     return response;
   },
@@ -185,13 +184,4 @@ export const savedGrantsApi = {
     return response;
   },
 
-  archive: async (savedGrantId: string | number, token?: string) => {
-    const headers: any = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${API_BASE_URL}/api/v1/saved-grants/${savedGrantId}/archive`, {
-      method: 'POST',
-      headers,
-    });
-    return response;
-  },
 };

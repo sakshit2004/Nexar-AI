@@ -8,12 +8,14 @@ import uuid
 
 
 class SessionStorage:
-    """Simple in-memory storage for saved grants per session"""
+    """Simple in-memory storage for saved grants and discovered grants per session"""
     
     def __init__(self):
         # Store saved grants by session_id (could use request session ID)
         # For simplicity, we'll use a single global session for now
         self._storage: Dict[str, Dict[str, Any]] = {}
+        # Discovered grants from web search (session_id -> grant_id -> grant_dict)
+        self._discovered_grants: Dict[str, Dict[str, Dict[str, Any]]] = {}
         self._global_session_id = "default_session"
     
     def get_session_id(self) -> str:
@@ -66,7 +68,6 @@ class SessionStorage:
             "user_notes": grant_data.get("user_notes") or grant_data.get("notes", ""),
             "user_tags": grant_data.get("user_tags") or [],
             "is_favorite": grant_data.get("is_favorite", False),
-            "is_archived": grant_data.get("is_archived", False),
             "created_at": now,
             "updated_at": now,
         }
@@ -76,7 +77,6 @@ class SessionStorage:
     
     def get_saved_grants(
         self,
-        include_archived: bool = False,
         favorites_only: bool = False,
         limit: int = 50,
         offset: int = 0
@@ -88,10 +88,6 @@ class SessionStorage:
             return []
         
         grants = list(self._storage[session_id].values())
-        
-        # Filter by archived status
-        if not include_archived:
-            grants = [g for g in grants if not g.get("is_archived", False)]
         
         # Filter by favorites
         if favorites_only:
@@ -163,16 +159,6 @@ class SessionStorage:
         grant["updated_at"] = datetime.utcnow().isoformat()
         return grant
     
-    def archive_saved_grant(self, saved_grant_id: int) -> bool:
-        """Archive a saved grant"""
-        grant = self.get_saved_grant_by_id(saved_grant_id)
-        if not grant:
-            return False
-        
-        grant["is_archived"] = True
-        grant["updated_at"] = datetime.utcnow().isoformat()
-        return True
-    
     def delete_saved_grant(self, saved_grant_id: int) -> bool:
         """Permanently delete a saved grant"""
         session_id = self.get_session_id()
@@ -196,11 +182,10 @@ class SessionStorage:
     def search_saved_grants(
         self,
         query: str,
-        include_archived: bool = False,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
         """Search saved grants by query"""
-        grants = self.get_saved_grants(include_archived=include_archived, limit=1000)
+        grants = self.get_saved_grants(limit=1000)
         
         query_lower = query.lower()
         results = []
@@ -217,11 +202,10 @@ class SessionStorage:
     
     def get_stats(self) -> Dict[str, Any]:
         """Get statistics for saved grants"""
-        grants = list(self.get_saved_grants(include_archived=True, limit=1000))
+        grants = list(self.get_saved_grants(limit=1000))
         
         total = len(grants)
         favorites = len([g for g in grants if g.get("is_favorite", False)])
-        archived = len([g for g in grants if g.get("is_archived", False)])
         
         # Count by category
         by_category: Dict[str, int] = {}
@@ -238,10 +222,37 @@ class SessionStorage:
         return {
             "total_saved": total,
             "favorites": favorites,
-            "archived": archived,
             "by_category": by_category,
             "by_agency": by_agency
         }
+
+    # --- Discovered grants (from web search → LLM extraction) ---
+
+    def set_discovered_grants(self, grants: List[Dict[str, Any]]) -> None:
+        """Store discovered grants for the session (merge by id)."""
+        session_id = self.get_session_id()
+        if session_id not in self._discovered_grants:
+            self._discovered_grants[session_id] = {}
+        for g in grants:
+            gid = g.get("id")
+            if gid:
+                self._discovered_grants[session_id][gid] = dict(g)
+
+    def get_discovered_grant(self, grant_id: str) -> Optional[Dict[str, Any]]:
+        """Get a single discovered grant by id."""
+        session_id = self.get_session_id()
+        if session_id not in self._discovered_grants:
+            return None
+        return self._discovered_grants[session_id].get(grant_id)
+
+    def set_discovered_grant(self, grant: Dict[str, Any]) -> None:
+        """Store one discovered grant (e.g. from get-by-id fetch)."""
+        session_id = self.get_session_id()
+        if session_id not in self._discovered_grants:
+            self._discovered_grants[session_id] = {}
+        gid = grant.get("id")
+        if gid:
+            self._discovered_grants[session_id][gid] = dict(grant)
 
 
 # Global singleton instance

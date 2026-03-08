@@ -10,9 +10,8 @@
 *.env
 !*.env.example
 
-# Vercel
+# Vercel (ignore local .vercel folder only; vercel.json is committed for rewrites/serverless)
 .vercel
-.vercel.json
 
 # Python
 __pycache__/

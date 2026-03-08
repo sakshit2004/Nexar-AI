@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,11 +18,20 @@ import {
   DollarSign,
   ArrowRight,
   Loader2,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 
 // Helper function for API calls
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+const RECOMMENDED_LOADING_MESSAGES = [
+  'Finding the best grants for your business...',
+  'Matching grants to your profile...',
+  'Searching federal opportunities...',
+  'Discovering grants that fit your focus areas...',
+  'Scanning open funding opportunities...',
+];
 
 const fetchWithError = async (url: string, options?: RequestInit) => {
   try {
@@ -56,6 +65,10 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated, user, token } = useAuthStore();
   const { profile, updateProfile } = useProfileStore();
+
+  // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
+  const [refreshSeed, setRefreshSeed] = useState(0);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
   // Seed MLH default profile when MLH Fellow has no profile (run after rehydration so persist doesn't overwrite)
   useEffect(() => {
@@ -123,31 +136,44 @@ export default function DashboardPage() {
     return undefined;
   }, [profile]);
 
-  const { data: recommendedResults, isLoading, isError: isRecommendationsError, error: recommendationsError } = useQuery({
-    queryKey: ['recommended-grants', profile?.focus_areas, profile?.organization_type, profile?.keywords, profile?.location_state, profile?.grant_amount_min, profile?.grant_amount_max],
+  const { data: recommendedResults, isLoading, isFetching, isError: isRecommendationsError, error: recommendationsError, refetch: refetchRecommendations } = useQuery({
+    queryKey: ['recommended-grants', profile?.focus_areas, profile?.organization_type, profile?.keywords, profile?.location_state, profile?.grant_amount_min, profile?.grant_amount_max, refreshSeed],
     queryFn: async () => {
       if (!token) throw new Error('No token available');
-      // Build query string with profile data if available
       const query = personalizedQuery || 'federal grants USA';
       const searchParams = new URLSearchParams();
       if (query) searchParams.append('q', query);
       if (profile?.grant_amount_min) searchParams.append('min_amount', profile.grant_amount_min.toString());
       if (profile?.grant_amount_max) searchParams.append('max_amount', profile.grant_amount_max.toString());
+      // seed param makes each refresh a distinct request; backend ignores it but ensures no cache hits
+      if (refreshSeed > 0) searchParams.append('seed', String(refreshSeed));
       
-      console.log('Fetching personalized recommendations with query:', query);
       const url = `${API_BASE_URL}/api/v1/grants/recommended?${searchParams}`;
       const response = await fetchWithError(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Recommendations response:', response);
-      console.log('Grants in response:', response?.grants);
-      console.log('Grants count:', response?.grants?.length);
       return response;
     },
-    enabled: isAuthenticated && !!token && !!profile && (!!profile.focus_areas?.length || !!profile.organization_type || !!profile.keywords?.length), // Only fetch when profile has relevant data
-    refetchOnWindowFocus: true,
-    retry: false, // Avoid repeated "Failed to fetch" when backend is down
-    });
+    enabled:
+      isAuthenticated &&
+      !!token &&
+      !!profile &&
+      (!!profile.focus_areas?.length || !!profile.organization_type || !!profile.keywords?.length),
+    refetchOnMount: true,
+    retry: false,
+  });
+
+  // Cycle through loading messages while recommendations are fetching
+  useEffect(() => {
+    if (!isLoading && !isFetching) {
+      setLoadingMessageIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingMessageIndex((i) => (i + 1) % RECOMMENDED_LOADING_MESSAGES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isLoading, isFetching]);
 
   // Get saved grants statistics
   const { data: savedGrantsStats, isError: isSavedStatsError } = useQuery({
@@ -160,24 +186,11 @@ export default function DashboardPage() {
     retry: false,
   });
 
-  // Refetch recommendations when profile changes
-  useEffect(() => {
-    if (profile && isAuthenticated && token) {
-      // When profile changes, invalidate and refetch recommendations
-      queryClient.invalidateQueries({ queryKey: ['recommended-grants'] });
-    }
-  }, [profile?.focus_areas, profile?.organization_type, profile?.keywords, profile?.location_state, profile?.grant_amount_min, profile?.grant_amount_max, isAuthenticated, token, queryClient]);
-  
   const recommendedGrants = recommendedResults?.grants || [];
   const providersUsed = recommendedResults?.providers_used || [];
   const isPersonalized = recommendedResults?.personalized || false;
   
   // Debug logging
-  console.log('recommendedResults:', recommendedResults);
-  console.log('recommendedGrants:', recommendedGrants);
-  console.log('recommendedGrants.length:', recommendedGrants.length);
-
-
   const apiUnreachable = isRecommendationsError || isSavedStatsError;
 
   return (
@@ -257,62 +270,26 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Saved Grants
-              </CardTitle>
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{savedGrantsStats?.total_saved || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {savedGrantsStats?.total_saved > 0 ? 'Grants saved' : 'Bookmark grants to save'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                AI Matches
-              </CardTitle>
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">-</div>
-              <p className="text-xs text-muted-foreground">
-                AI recommendations available
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Searches
-              </CardTitle>
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">∞</div>
-              <p className="text-xs text-muted-foreground">
-                Unlimited searches
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        {/* Saved Grants + Search Grants in one row */}
+        <div className="grid gap-4 md:grid-cols-2 mb-8">
+          <Link href="/saved">
+            <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Saved Grants
+                </CardTitle>
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{savedGrantsStats?.total_saved || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {savedGrantsStats?.total_saved > 0 ? 'Grants saved' : 'Bookmark grants to save'}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/search">
             <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
               <CardHeader>
@@ -322,34 +299,6 @@ export default function DashboardPage() {
                 <CardTitle>Search Grants</CardTitle>
                 <CardDescription>
                   Find federal grants matching your criteria
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-
-          <Link href="/saved">
-            <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-foreground" />
-                </div>
-                <CardTitle>Saved Grants</CardTitle>
-                <CardDescription>
-                  View and manage your bookmarked grants
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-
-          <Link href="/search">
-            <Card className="hover:border-foreground transition-colors cursor-pointer h-full border-2">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <Sparkles className="h-6 w-6 text-foreground" />
-                </div>
-                <CardTitle>AI Recommendations</CardTitle>
-                <CardDescription>
-                  Get personalized grant recommendations
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -371,12 +320,32 @@ export default function DashboardPage() {
                     : 'Complete your profile to get personalized recommendations'}
                 </CardDescription>
               </div>
-              <Link href="/search">
-                <Button variant="outline" size="sm">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRefreshSeed(s => s + 1)}
+                  disabled={isLoading || isFetching}
+                >
+                  {isFetching ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Refresh grant opportunities
+                    </>
+                  )}
                 </Button>
-              </Link>
+                <Link href="/search">
+                  <Button variant="outline" size="sm">
+                    View All
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -391,9 +360,12 @@ export default function DashboardPage() {
                   <Button>Go to Profile</Button>
                 </Link>
               </div>
-            ) : isLoading ? (
-              <div className="flex items-center justify-center py-8">
+            ) : isLoading || isFetching ? (
+              <div className="flex flex-col items-center justify-center py-8 gap-4">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground text-center animate-in fade-in duration-300">
+                  {RECOMMENDED_LOADING_MESSAGES[loadingMessageIndex]}
+                </p>
               </div>
             ) : isRecommendationsError ? (
               <div className="text-center py-8">
