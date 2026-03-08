@@ -22,7 +22,8 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || `API Error: ${response.status}`);
+      const detail = typeof error?.detail === 'string' ? error.detail : Array.isArray(error?.detail) ? error.detail.map((x: any) => x?.msg ?? x).join(', ') : null;
+      throw new Error(detail || `API Error: ${response.status}`);
     }
 
     return await response.json();
