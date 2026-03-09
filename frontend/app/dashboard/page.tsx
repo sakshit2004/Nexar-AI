@@ -340,8 +340,11 @@ export default function DashboardPage() {
             ) : isRecommendationsError ? (
               <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">
-                  {recommendationsError?.message || 'Could not load recommendations.'}
-                  {recommendationsError?.message?.includes('not configured') || recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST') ? '' : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? ' Check Vercel → Deployments → Functions → Logs for the error.' : ' Make sure the backend is running.'}
+                  {recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST')
+                    ? 'Could not load recommendations. See message above for setup.'
+                    : (recommendationsError?.message || 'Could not load recommendations.')
+                  }
+                  {recommendationsError?.message?.includes('not configured') ? '' : recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST') ? '' : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? ' Check Vercel → Deployments → Functions → Logs for the error.' : ' Make sure the backend is running.'}
                 </p>
               </div>
             ) : recommendedGrants && recommendedGrants.length > 0 ? (
