@@ -6,6 +6,10 @@
     "api/index.py": {
       "includeFiles": "backend/**",
       "maxDuration": 60
+    },
+    "api/backend.py": {
+      "includeFiles": "backend/**",
+      "maxDuration": 60
     }
   }
 }

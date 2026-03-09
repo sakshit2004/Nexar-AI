@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 
 function getBackendUrl(req: NextRequest): string {
   if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/api/index`;
+    return `https://${process.env.VERCEL_URL}/api/backend`;
   }
   const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const path = req.nextUrl?.pathname ?? req.url?.split('?')[0] ?? '/api/v1';
