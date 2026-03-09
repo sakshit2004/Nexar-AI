@@ -87,8 +87,7 @@ export default function GrantDetailsPage() {
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
       const response = await savedGrantsApi.checkSaved(grantId, token);
-      // Handle both response formats
-      return response?.data || response;
+      return response;
     },
     enabled: isAuthenticated && !!grantId && !!token,
   });
@@ -106,8 +105,7 @@ export default function GrantDetailsPage() {
       if (!grant) throw new Error('Grant data required');
       const response = await matchingApi.analyze(grantId, token, grant);
       if (process.env.NODE_ENV === 'development') console.log('Analysis response:', response);
-      // Handle both response formats: response.data or response directly
-      return response?.data || response;
+      return response;
     },
     onSuccess: (data) => {
       if (process.env.NODE_ENV === 'development') console.log('Analysis data:', data);
@@ -129,8 +127,7 @@ export default function GrantDetailsPage() {
       
       // Use grant data to save with all required fields
       const response = await savedGrantsApi.save(token, grant);
-      // Handle both response formats
-      return response?.data || response;
+      return response;
     },
     onSuccess: (data) => {
       setIsSaved(true);
