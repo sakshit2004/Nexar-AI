@@ -1,7 +1,7 @@
 {
+  "buildCommand": "cp -r ../backend . && npm run build",
   "functions": {
     "api/backend.py": {
-      "includeFiles": "../backend/**",
       "maxDuration": 60
     }
   },

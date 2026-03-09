@@ -11,13 +11,12 @@ from urllib.parse import urlparse
 
 _import_error: str | None = None
 
-# At runtime, Vercel places included files relative to the function working directory.
-# CWD is the project root (i.e. frontend/), backend/ is included one level up from api/
-# but Vercel flattens includeFiles into the bundle at their original relative path.
-# So backend/ lands at <bundle_root>/backend/. We add the bundle root to sys.path.
+# Vercel CWD is the rootDirectory (frontend/).
+# buildCommand copies ../backend into frontend/ so backend/ is at frontend/backend/.
+# For local dev, backend/ is two levels up (repo root).
 for _candidate in [
-    Path(__file__).resolve().parent.parent,  # frontend/ (CWD on Vercel)
-    Path(__file__).resolve().parent.parent.parent,  # repo root (local dev)
+    Path(__file__).resolve().parent.parent,         # frontend/ — after buildCommand copy
+    Path(__file__).resolve().parent.parent.parent,  # repo root — local dev
 ]:
     if (_candidate / "backend").is_dir() and str(_candidate) not in sys.path:
         sys.path.insert(0, str(_candidate))
