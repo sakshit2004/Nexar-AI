@@ -267,7 +267,15 @@ export default function SavedGrantsPage() {
 
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
-                      <Link href={`/grants/${grant.grant_id}`}>
+                      <Link
+                        href={`/grants/${grant.grant_id}`}
+                        onClick={() => {
+                          try {
+                            const g = { id: grant.grant_id, title: grant.title, agency: grant.agency, description: grant.description, eligibility: grant.eligibility, award_amount: grant.award_amount, deadline: grant.deadline, category: grant.category, url: grant.url, opportunity_number: grant.opportunity_number };
+                            sessionStorage.setItem(`grant_${grant.grant_id}`, JSON.stringify(g));
+                          } catch {}
+                        }}
+                      >
                         <Button variant="outline" size="sm">
                           View Details
                         </Button>

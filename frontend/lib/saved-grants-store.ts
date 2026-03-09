@@ -37,8 +37,10 @@ function save(grants: SavedGrant[]): void {
 }
 
 export const savedGrantsStore = {
-  list(): SavedGrant[] {
-    return load();
+  list(params?: { favorites_only?: boolean }): SavedGrant[] {
+    let grants = load();
+    if (params?.favorites_only) grants = grants.filter((g) => g.is_favorite);
+    return grants;
   },
 
   isSaved(grantId: string): boolean {
@@ -106,10 +108,12 @@ export const savedGrantsStore = {
     const grants = load();
     const byCategory: Record<string, number> = {};
     const byStatus: Record<string, number> = { saved: 0, applied: 0, awarded: 0 };
+    let favorites = 0;
     for (const g of grants) {
       if (g.grant_category) byCategory[g.grant_category] = (byCategory[g.grant_category] || 0) + 1;
       if (g.status) byStatus[g.status] = (byStatus[g.status] || 0) + 1;
+      if (g.is_favorite) favorites++;
     }
-    return { total_saved: grants.length, by_category: byCategory, by_status: byStatus };
+    return { total_saved: grants.length, favorites, by_category: byCategory, by_status: byStatus };
   },
 };

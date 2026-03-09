@@ -103,8 +103,8 @@ export default function GrantDetailsPage() {
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      if (process.env.NODE_ENV === 'development') console.log('Analyzing grant:', grantId);
-      const response = await matchingApi.analyze(grantId, token);
+      if (!grant) throw new Error('Grant data required');
+      const response = await matchingApi.analyze(grantId, token, grant);
       if (process.env.NODE_ENV === 'development') console.log('Analysis response:', response);
       // Handle both response formats: response.data or response directly
       return response?.data || response;
