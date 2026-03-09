@@ -55,7 +55,12 @@ const fetchWithError = async (urlOrPath: string, options?: RequestInit) => {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      const detail = typeof error?.detail === 'string' ? error.detail : Array.isArray(error?.detail) ? error.detail.map((x: any) => x?.msg ?? x).join(', ') : null;
+      let detail = typeof error?.detail === 'string' ? error.detail : Array.isArray(error?.detail) ? error.detail.map((x: any) => x?.msg ?? x).join(', ') : null;
+      if (detail && (detail.trimStart().startsWith('<') || detail.includes('<!DOCTYPE'))) {
+        detail = response.status === 500
+          ? 'Server error. On Vercel: use a separate API project and set NEXT_PUBLIC_API_URL (see DEPLOYMENT_CHECKLIST.md).'
+          : `API Error: ${response.status}`;
+      }
       throw new Error(detail || `API Error: ${response.status}`);
     }
 
@@ -94,8 +99,18 @@ export const grantsApi = {
     return response;
   },
 
-  getRecommendations: async (token: string) => {
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/grants/recommended`, {
+  getRecommendations: async (
+    token: string,
+    params?: { q?: string; min_amount?: number; max_amount?: number; seed?: number }
+  ) => {
+    const searchParams = new URLSearchParams();
+    if (params?.q) searchParams.append('q', params.q);
+    if (params?.min_amount != null) searchParams.append('min_amount', String(params.min_amount));
+    if (params?.max_amount != null) searchParams.append('max_amount', String(params.max_amount));
+    if (params?.seed != null) searchParams.append('seed', String(params.seed));
+    const qs = searchParams.toString();
+    const path = `/api/v1/grants/recommended${qs ? `?${qs}` : ''}`;
+    const response = await fetchWithError(path, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response;

@@ -10,7 +10,7 @@ import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore } from '../../lib/profile-store';
 import { MLH_DEFAULT_PROFILE, MLH_FELLOWSHIP_URL } from '../../lib/mlh-defaults';
-import { getApiBaseUrl, grantsApi, savedGrantsApi } from '../../lib/api';
+import { grantsApi, savedGrantsApi } from '../../lib/api';
 import { 
   Search, 
   TrendingUp, 
@@ -29,31 +29,6 @@ const RECOMMENDED_LOADING_MESSAGES = [
   'Discovering grants that fit your focus areas...',
   'Scanning open funding opportunities...',
 ];
-
-const fetchWithError = async (url: string, options?: RequestInit) => {
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || `API Error: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
-      throw new Error(`Could not reach the backend. Make sure it's running (e.g. \`python -m backend.main\`) at ${getApiBaseUrl()}`);
-    }
-    console.error('API Error:', error);
-    throw error;
-  }
-};
 
 export default function DashboardPage() {
   // Dashboard page component
@@ -137,16 +112,11 @@ export default function DashboardPage() {
     queryFn: async () => {
       if (!token) throw new Error('No token available');
       const query = personalizedQuery || 'federal grants USA';
-      const searchParams = new URLSearchParams();
-      if (query) searchParams.append('q', query);
-      if (profile?.grant_amount_min) searchParams.append('min_amount', profile.grant_amount_min.toString());
-      if (profile?.grant_amount_max) searchParams.append('max_amount', profile.grant_amount_max.toString());
-      // seed param makes each refresh a distinct request; backend ignores it but ensures no cache hits
-      if (refreshSeed > 0) searchParams.append('seed', String(refreshSeed));
-      
-      const url = `${getApiBaseUrl()}/api/v1/grants/recommended?${searchParams}`;
-      const response = await fetchWithError(url, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await grantsApi.getRecommendations(token, {
+        q: query,
+        min_amount: profile?.grant_amount_min ?? undefined,
+        max_amount: profile?.grant_amount_max ?? undefined,
+        seed: refreshSeed > 0 ? refreshSeed : undefined,
       });
       return response;
     },
@@ -195,7 +165,7 @@ export default function DashboardPage() {
         {apiUnreachable && (
           <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
             {recommendationsError?.message || 'Could not reach the backend.'}
-            {recommendationsError?.message?.includes('not configured') ? null : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? (
+            {recommendationsError?.message?.includes('not configured') || recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST') ? null : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? (
               <> Server error or timeout. Check Vercel → Deployments → your deployment → Functions → Logs for the Python error.</>
             ) : (
               <> Start the server with <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">python -m backend.main</code> and refresh.</>
@@ -371,7 +341,7 @@ export default function DashboardPage() {
               <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">
                   {recommendationsError?.message || 'Could not load recommendations.'}
-                  {recommendationsError?.message?.includes('not configured') ? '' : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? ' Check Vercel → Deployments → Functions → Logs for the error.' : ' Make sure the backend is running.'}
+                  {recommendationsError?.message?.includes('not configured') || recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST') ? '' : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? ' Check Vercel → Deployments → Functions → Logs for the error.' : ' Make sure the backend is running.'}
                 </p>
               </div>
             ) : recommendedGrants && recommendedGrants.length > 0 ? (
