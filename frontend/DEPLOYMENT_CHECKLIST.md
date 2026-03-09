@@ -1,25 +1,36 @@
 # Vercel Deployment Checklist
 
-## All-on-Vercel (one project: Next.js + Python API)
+## Recommended: Two Vercel projects (frontend + API)
 
-To run **everything on Vercel** (no separate backend host):
+With a single Vercel project, the Next.js app receives all traffic and the Python serverless functions at `/api/backend` or `/api/index` are **not** invoked (you get Next.js 500 for those paths). The reliable way to run everything on Vercel is **two projects**:
 
-1. **Root Directory**  
-   In Vercel → Project Settings → General → **Root Directory** must be the **repository root** (leave empty or `.`).  
-   Do **not** set it to `frontend`, or the `api/` and `backend/` folders will not be deployed and `/api/v1/*` will 404.
+### Project 1 – Frontend (this repo, Next.js)
 
-2. **Build**  
-   The root `vercel.json` runs `npm run build` (which builds the Next.js app in `frontend/`) and sets `outputDirectory` to `frontend/.next`. The Python serverless function is at `api/index.py` and handles `/api/v1/*` via rewrites.
+1. **Vercel project** from this repo.
+2. **Root Directory**: repository root (empty or `.`).
+3. **Build**: uses `vercel.json` (`npm run build`, `outputDirectory`: `frontend/.next`).
+4. **Environment variable**: set **`NEXT_PUBLIC_API_URL`** to the **API project URL** (e.g. `https://nexar-api.vercel.app` — no trailing slash). The frontend will call that URL at `/api/index` with `X-Original-URL` for each API request.
 
-3. **Backend env vars (in Vercel)**  
-   Set these in Vercel → Project Settings → Environment Variables (for **Production** and optionally Preview):
-   - `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` (for grant search/recommendations)
-   - Optional: `LLM_PROVIDER` = `openai` or `anthropic`
-   - Optional: `ENVIRONMENT` = `production`  
-   Ensure each variable is enabled for **Runtime** (not only Build), so the serverless function can read it. If you still get 500 with keys set, check **Deployments → [your deployment] → Functions → Logs** for the Python error (timeout, API error, etc.).
+### Project 2 – API (same repo, Python only)
 
-4. **Frontend API URL**  
-   You can leave `NEXT_PUBLIC_API_URL` **unset** in production. The app will use the same origin, and rewrites send `/api/v1/*` to the Python function.
+1. **New Vercel project** from the **same** GitHub repo.
+2. **Root Directory**: repository root (`.`).
+3. **Build Command**: leave empty or set to `echo "API only"`.
+4. **Output Directory**: leave empty.
+5. **Environment variables** (Production): `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY`, and optionally `LLM_PROVIDER`, `ENVIRONMENT=production`.
+6. This project only needs the `api/` and `backend/` folders; Vercel will deploy `api/index.py` (and `api/backend.py`) as serverless functions. The frontend calls `https://<api-project>/api/index` with header `X-Original-URL: https://<api-project>/api/v1/grants/recommended?q=...` etc., and the Python app routes correctly.
+
+After both are deployed, set `NEXT_PUBLIC_API_URL` in the **frontend** project to the API project’s URL and redeploy the frontend.
+
+---
+
+## Single project (Next.js + Python, may not route to Python)
+
+If you use one project only:
+
+1. **Root Directory** must be the **repository root** (not `frontend`).
+2. **Backend env vars**: `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` for Runtime.
+3. **Frontend API URL**: leave **unset** to use same origin; the in-app proxy will try to call `/api/backend`, but on many deployments that request is still handled by Next.js and returns 500. If that happens, use the **two-project** setup above.
 
 ---
 

@@ -2,23 +2,56 @@ const DEBUG = process.env.NEXT_PUBLIC_DEBUG === 'true';
 
 /** In production, use same origin when NEXT_PUBLIC_API_URL is not set so the app works on Vercel without env. */
 export function getApiBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
   if (typeof window !== 'undefined') return window.location.origin;
   return 'http://localhost:8000';
 }
 
-// Utility function for API calls with error handling
-const fetchWithError = async (url: string, options?: RequestInit) => {
+/** When using a separate API project (NEXT_PUBLIC_API_URL set), the API has one entry /api/index; we send path via X-Original-URL. */
+function isExternalApi(): boolean {
+  if (!process.env.NEXT_PUBLIC_API_URL) return false;
+  if (typeof window === 'undefined') return true;
+  try {
+    const apiOrigin = new URL(getApiBaseUrl()).origin;
+    return apiOrigin !== window.location.origin;
+  } catch {
+    return true;
+  }
+}
+
+function apiRequest(pathAndQuery: string, options?: RequestInit): { url: string; options: RequestInit } {
+  const base = getApiBaseUrl();
+  const fullUrl = `${base}${pathAndQuery.startsWith('/') ? '' : '/'}${pathAndQuery}`;
+  if (isExternalApi()) {
+    return {
+      url: `${base}/api/index`,
+      options: {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Original-URL': fullUrl,
+          ...options?.headers,
+        },
+      },
+    };
+  }
+  return {
+    url: fullUrl,
+    options: { ...options, headers: { 'Content-Type': 'application/json', ...options?.headers } },
+  };
+}
+
+const fetchWithError = async (urlOrPath: string, options?: RequestInit) => {
+  const base = getApiBaseUrl();
+  const pathAndQuery = urlOrPath.startsWith('http')
+    ? urlOrPath.replace(base.replace(/\/$/, ''), '').replace(/^\//, '')
+    : urlOrPath.replace(/^\//, '');
+  const pathNorm = `/${pathAndQuery}`;
+  const { url, options: opts } = apiRequest(pathNorm, options);
   try {
     if (DEBUG) console.log('API Call:', url);
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    });
+    const response = await fetch(url, opts);
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
@@ -29,8 +62,7 @@ const fetchWithError = async (url: string, options?: RequestInit) => {
     return await response.json();
   } catch (error) {
     if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
-      const baseUrl = getApiBaseUrl();
-      throw new Error(`Could not reach the backend at ${baseUrl}. Make sure it's running (e.g. \`python -m backend.main\`).`);
+      throw new Error(`Could not reach the backend at ${base}. Make sure it's running (e.g. \`python -m backend.main\`) or set NEXT_PUBLIC_API_URL to your API project URL.`);
     }
     if (DEBUG) console.error('API Error:', error);
     throw error;
