@@ -137,105 +137,58 @@ export const matchingApi = {
   },
 };
 
-// Saved Grants API
+// Saved Grants API — backed by localStorage, no network calls needed
 export const savedGrantsApi = {
-  save: async (grantId: string, token: string, grantData?: any) => {
-    // Build the request body with required fields
-    const body: any = {
-      grant_id: grantId,
-      grant_title: grantData?.title || `Grant ${grantId}`,
-    };
-    
-    // Add optional fields if grant data is provided
-    if (grantData) {
-      if (grantData.agency) body.grant_agency = grantData.agency;
-      if (grantData.description) body.grant_description = grantData.description;
-      if (grantData.eligibility) body.grant_eligibility = grantData.eligibility;
-      if (grantData.category) body.grant_category = grantData.category;
-      if (grantData.award_amount) {
-        body.grant_award_amount = grantData.award_amount;
-        const amountMatch = String(grantData.award_amount).match(/\$?([\d,]+)\s*-\s*\$?([\d,]+)/);
-        if (amountMatch) {
-          body.grant_award_floor = parseInt(amountMatch[1].replace(/,/g, ''), 10);
-          body.grant_award_ceiling = parseInt(amountMatch[2].replace(/,/g, ''), 10);
-        }
-      }
-      if (grantData.deadline) body.grant_close_date = grantData.deadline;
-      if (grantData.url) body.grant_url = grantData.url;
-      if (grantData.opportunity_number) body.grant_cfda_number = grantData.opportunity_number;
-    }
-    
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
+  save: async (_token: string, grantData: any) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    return savedGrantsStore.add({
+      grant_id: grantData?.id || grantData?.grant_id || '',
+      grant_title: grantData?.title || grantData?.grant_title || 'Untitled Grant',
+      grant_agency: grantData?.agency,
+      grant_description: grantData?.description,
+      grant_eligibility: grantData?.eligibility,
+      grant_category: grantData?.category,
+      grant_award_amount: grantData?.award_amount,
+      grant_close_date: grantData?.deadline,
+      grant_url: grantData?.url,
+      grant_cfda_number: grantData?.opportunity_number,
     });
-    return response;
   },
 
-  list: async (token?: string, params?: any) => {
-    const searchParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, value.toString());
-        }
-      });
-    }
-    const headers: any = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants?${searchParams}`, {
-      headers,
-    });
-    return response;
+  list: async (_token?: string, _params?: any) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    return { saved_grants: savedGrantsStore.list(), total: savedGrantsStore.list().length };
   },
 
-  delete: async (savedGrantId: string, token: string) => {
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants/${savedGrantId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response;
+  delete: async (savedGrantId: string, _token: string) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    savedGrantsStore.remove(savedGrantId);
+    return { success: true };
   },
 
-  stats: async (token?: string) => {
-    const headers: any = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants/stats`, {
-      headers,
-    });
-    return response;
+  stats: async (_token?: string) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    return savedGrantsStore.stats();
   },
 
-  checkSaved: async (grantId: string, token?: string) => {
-    const headers: any = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants/check/${grantId}`, {
-      headers,
-    });
-    return response;
+  checkSaved: async (grantId: string, _token?: string) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    const grant = savedGrantsStore.get(grantId);
+    return { is_saved: !!grant, saved_grant_id: grant?.id ?? null };
   },
 
-  search: async (searchQuery: string, token?: string) => {
-    const headers: any = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants/search?q=${encodeURIComponent(searchQuery)}`, {
-      headers,
-    });
-    return response;
+  search: async (searchQuery: string, _token?: string) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    const q = searchQuery.toLowerCase();
+    const results = savedGrantsStore.list().filter(
+      (g) => g.grant_title?.toLowerCase().includes(q) || g.grant_agency?.toLowerCase().includes(q)
+    );
+    return { saved_grants: results, total: results.length };
   },
 
-  toggleFavorite: async (savedGrantId: string | number, token?: string) => {
-    const headers: any = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`${getApiBaseUrl()}/api/v1/saved-grants/${savedGrantId}/toggle-favorite`, {
-      method: 'POST',
-      headers,
-    });
-    return response;
+  toggleFavorite: async (savedGrantId: string | number, _token?: string) => {
+    const { savedGrantsStore } = await import('./saved-grants-store');
+    return savedGrantsStore.toggleFavorite(savedGrantId) ?? { error: 'Not found' };
   },
 
 };

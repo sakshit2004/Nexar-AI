@@ -353,6 +353,7 @@ export default function DashboardPage() {
                   <Link 
                     key={grant.id} 
                     href={`/grants/${grant.id}`}
+                    onClick={() => { try { sessionStorage.setItem(`grant_${grant.id}`, JSON.stringify(grant)); } catch {} }}
                     className="block p-4 rounded-lg border hover:border-primary transition-colors"
                   >
                     <div className="flex items-start justify-between mb-2">

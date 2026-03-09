@@ -59,19 +59,21 @@ export default function GrantDetailsPage() {
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
     queryFn: async () => {
+      // First check sessionStorage — grant data is stored there when navigating from search/dashboard
+      if (typeof window !== 'undefined') {
+        try {
+          const cached = sessionStorage.getItem(`grant_${grantId}`);
+          if (cached) return JSON.parse(cached);
+        } catch { /* ignore */ }
+      }
+      // Fall back to API (works when same serverless instance as search)
       const response = await grantsApi.getById(grantId);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Grant API response:', response);
-        console.log('Grant URL:', response?.url);
-      }
-      // Handle both response formats: response.data or response directly
       const grantData = response?.data || response;
-      if (!grantData) {
-        throw new Error('Grant data not found in response');
-      }
+      if (!grantData) throw new Error('Grant data not found in response');
       return grantData;
     },
     enabled: isAuthenticated && !!grantId,
+    retry: false,
   });
 
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -126,8 +128,7 @@ export default function GrantDetailsPage() {
       if (!token) throw new Error('Not authenticated');
       
       // Use grant data to save with all required fields
-      const grantIdToSave = grant.id || grantId;
-      const response = await savedGrantsApi.save(grantIdToSave, token, grant);
+      const response = await savedGrantsApi.save(token, grant);
       // Handle both response formats
       return response?.data || response;
     },

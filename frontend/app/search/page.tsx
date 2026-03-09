@@ -266,7 +266,7 @@ export default function SearchPage() {
                           Deadline: {grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}
                         </span>
                       </div>
-                      <Link href={`/grants/${grant.id}`}>
+                      <Link href={`/grants/${grant.id}`} onClick={() => { try { sessionStorage.setItem(`grant_${grant.id}`, JSON.stringify(grant)); } catch {} }}>
                         <Button variant="outline" size="sm">
                           View Details
                           <ArrowRight className="ml-2 h-4 w-4" />
