@@ -255,7 +255,7 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{savedGrantsStats?.total_saved || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  {savedGrantsStats?.total_saved > 0 ? 'Grants saved' : 'Bookmark grants to save'}
+                  {(savedGrantsStats?.total_saved ?? 0) > 0 ? 'Grants saved' : 'Bookmark grants to save'}
                 </p>
               </CardContent>
             </Card>
