@@ -1,12 +1,9 @@
 {
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/.next",
+  "installCommand": "cd frontend && npm install",
+  "framework": "nextjs",
   "functions": {
-    "api/index.py": {
-      "includeFiles": "backend/**",
-      "maxDuration": 60
-    },
     "api/backend.py": {
       "includeFiles": "backend/**",
       "maxDuration": 60
@@ -16,4 +13,3 @@
     { "source": "/api/v1/:path*", "destination": "/api/backend" }
   ]
 }
-
