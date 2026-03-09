@@ -1,11 +1,7 @@
 {
-  "buildCommand": "cp -r ../backend . && npm run build",
   "functions": {
-    "api/backend.py": {
+    "app/api/v1/grants/recommended/route.ts": {
       "maxDuration": 60
     }
-  },
-  "rewrites": [
-    { "source": "/api/v1/:path*", "destination": "/api/backend" }
-  ]
+  }
 }
