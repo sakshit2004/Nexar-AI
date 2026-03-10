@@ -49,8 +49,6 @@ Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-Engli
   <img src="https://img.shields.io/badge/Zustand-764ABC?style=for-the-badge&logo=zustand&logoColor=white" alt="Zustand">
   <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=tanstackquery&logoColor=white" alt="TanStack Query">
   <img src="https://img.shields.io/badge/Vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
-  <img src="https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white" alt="Git">
-  <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
 </p>
 
 ### Detailed Breakdown:
@@ -62,9 +60,12 @@ Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-Engli
 - **React 19**: Dynamic and responsive user interface
 - **TypeScript**: Type-safe development
 - **Tailwind CSS v4**: Rapid and customizable styling
-- **Radix UI**: Accessible component primitives
-- **Zustand**: Lightweight state management for auth and profile
+- **Radix UI** (Slot): Accessible component primitives
+- **Zustand**: State management for auth and profile
 - **TanStack React Query**: Server state and data fetching
+- **next-themes**: Light/dark theme support
+- **lucide-react**: Icons
+- **class-variance-authority**, **clsx**, **tailwind-merge**: Styling utilities
 </details>
 
 <details>
@@ -72,7 +73,8 @@ Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-Engli
 
 - **FastAPI**: High-performance Python API framework
 - **Python 3.11+**: Server-side logic and LLM integration
-- **Uvicorn**: ASGI server for production
+- **Uvicorn**: ASGI server
+- **Pydantic**: Data validation and settings
 </details>
 
 <details>
@@ -94,15 +96,7 @@ Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-Engli
 <details>
 <summary><b>Hosting</b></summary>
 
-- **Vercel**: Frontend and optional separate API project deployment
-- **Docker**: PostgreSQL, Redis, and FastAPI for full local stack (optional)
-</details>
-
-<details>
-<summary><b>Development Tools</b></summary>
-
-- **VS Code**: Recommended code editor
-- **Git / GitHub**: Source control and collaboration
+- **Vercel**: Frontend deployment; optional separate Vercel project for Python API
 </details>
 
 ## 🚀 Getting Started
@@ -111,11 +105,12 @@ These instructions will help you set up Nexar-AI on your local machine for devel
 
 ### Prerequisites
 
-- **Python 3.11+**
-- **Node.js** and npm
+- **Node.js** (v18+) and npm
 - **OpenAI API key** or **Anthropic API key** (at least one required)
 
-### Installation
+### Installation (Frontend-only — recommended)
+
+The app runs on Next.js with built-in API routes. No Python backend is required.
 
 1. **Clone the repository:**
    ```bash
@@ -123,21 +118,33 @@ These instructions will help you set up Nexar-AI on your local machine for devel
    cd Nexar-AI
    ```
 
-2. **Create and activate a Python virtual environment:**
+2. **Set up and run the frontend:**
    ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On macOS/Linux:
-   source venv/bin/activate
+   cd frontend
+   npm install
+   cp .env.example .env.local
    ```
 
-3. **Install Python dependencies:**
+3. **Add your LLM API keys** to `frontend/.env.local`:
+   ```
+   OPENAI_API_KEY=your_openai_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   LLM_PROVIDER=openai
+   ```
+   At least one of `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is required.
+
+4. **Start the dev server:**
    ```bash
-   pip install -r requirements.txt
+   npm run dev
    ```
 
-4. **Configure environment variables** — Create a `.env` file in the project root:
+5. **Open your browser** and go to `http://localhost:3000`.
+
+### Installation (With Python backend — optional)
+
+Requires **Python 3.11+**. To run the FastAPI backend instead of Next.js API routes:
+
+1. Follow steps 1–2 above, then create a `.env` file in the **project root**:
    ```
    APP_URL=http://localhost:8000
    ENVIRONMENT=development
@@ -147,22 +154,30 @@ These instructions will help you set up Nexar-AI on your local machine for devel
    ANTHROPIC_API_KEY=your_anthropic_api_key
    ```
 
-5. **Run the backend** (optional — Next.js can run standalone with API routes):
+2. **Create a virtual environment and install Python dependencies:**
+   ```bash
+   python -m venv venv
+   # On Windows: venv\Scripts\activate
+   # On macOS/Linux: source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. **Run the backend** (terminal 1):
    ```bash
    python -m backend.main
    ```
-   The backend runs at `http://localhost:8000`.
+   Backend runs at `http://localhost:8000`.
 
-6. **Set up and run the frontend** (new terminal):
-   ```bash
-   cd frontend
-   npm install
-   cp .env.example .env.local
-   # Edit .env.local if using external backend (NEXT_PUBLIC_API_URL)
-   npm run dev
+4. **Point the frontend to the backend** — In `frontend/.env.local`, set:
+   ```
+   NEXT_PUBLIC_API_URL=http://localhost:8000
    ```
 
-7. **Open your browser** and go to `http://localhost:3000`.
+5. **Run the frontend** (terminal 2):
+   ```bash
+   cd frontend
+   npm run dev
+   ```
 
 ## Usage
 
@@ -176,7 +191,7 @@ Once the project is running:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+We welcome contributions! Feel free to open an issue or submit a pull request.
 
 ## 📄 License
 
