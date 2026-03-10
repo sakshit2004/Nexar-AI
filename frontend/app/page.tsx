@@ -102,30 +102,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="border-y py-12 bg-muted/20">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-sm text-muted-foreground">Organizations</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">$250M+</div>
-              <div className="text-sm text-muted-foreground">Grants discovered</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">15K+</div>
-              <div className="text-sm text-muted-foreground">Active grants</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">0.8s</div>
-              <div className="text-sm text-muted-foreground">Search time</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Demo Section */}
       <section ref={demoRef} className="py-32 px-4">
         <div className="container mx-auto max-w-6xl">
