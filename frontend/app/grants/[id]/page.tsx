@@ -14,7 +14,6 @@ import {
   DollarSign,
   Clock,
   Building,
-  FileText,
   Sparkles,
   Loader2,
   ExternalLink,
@@ -382,11 +381,6 @@ export default function GrantDetailsPage() {
                      View Official Page
                   </Button>
                 </a>
-                
-                <Button className="w-full" variant="outline">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Download Summary
-                </Button>
                 
                 <Button 
                   className="w-full" 
