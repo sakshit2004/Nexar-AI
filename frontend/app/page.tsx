@@ -71,17 +71,20 @@ export default function Home() {
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-8 leading-[1.1]">
+          <Badge variant="outline" className="mb-6 text-xs font-normal">
+            Open source
+          </Badge>
+          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-6 leading-[1.1]">
             Every grant,{' '}
             <span className="block mt-2">
               <span className="opacity-40">found in</span> seconds
             </span>
           </h1>
           
-          <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
+          <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
             Federal, state, foundation, corporate.
             <br />
-            AI discovers all grants that match your mission.
+            Open source AI discovers all grants that match your mission.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -103,9 +106,9 @@ export default function Home() {
       </section>
 
       {/* Demo Section */}
-      <section ref={demoRef} className="py-32 px-4">
+      <section ref={demoRef} className="py-16 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
               <Badge variant="outline" className="mb-4 text-xs">
                 How it works
@@ -151,9 +154,9 @@ export default function Home() {
       </section>
 
       {/* Feature Grid - Minimal */}
-      <section className="py-32 px-4 bg-muted/20">
+      <section className="py-16 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-20">
+          <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
               Everything you need.
               <br />
@@ -161,34 +164,26 @@ export default function Home() {
             </h2>
           </div>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-2 gap-x-16 gap-y-16 max-w-4xl mx-auto">
             {[
               {
                 title: 'AI Matching',
-                description: 'Personalized recommendations based on your profile and past success'
+                description: 'Personalized grant recommendations based on your profile and focus areas'
               },
               {
                 title: 'Smart Search',
-                description: 'Natural language search across all federal grant databases'
+                description: 'Natural language search across federal grants with AI-powered discovery'
               },
               {
                 title: 'Plain English',
-                description: 'Complex grant documents translated into clear summaries'
+                description: 'AI-generated summaries that translate complex grant requirements into clear language'
               },
               {
-                title: 'Eligibility Check',
-                description: 'Know if you qualify before spending time on applications'
-              },
-              {
-                title: 'Deadline Tracking',
-                description: 'Never miss an opportunity with automated reminders'
-              },
-              {
-                title: 'Success Analytics',
-                description: 'Track your pipeline and learn from application patterns'
+                title: 'Eligibility',
+                description: 'Eligibility requirements displayed for each grant so you know before you apply'
               }
             ].map((feature, i) => (
-              <div key={i} className="group">
+              <div key={i} className="group p-6">
                 <div className="text-lg font-semibold mb-3 group-hover:translate-x-1 transition-transform">
                   {feature.title}
                 </div>
@@ -202,16 +197,13 @@ export default function Home() {
       </section>
 
       {/* CTA - Bold & Simple */}
-      <section className="py-32 px-4 bg-foreground text-background">
+      <section className="py-16 px-4 bg-foreground text-background">
         <div className="container mx-auto max-w-3xl text-center">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
             Stop searching.
             <br />
             Start finding.
           </h2>
-          <p className="text-xl opacity-80 mb-12">
-            Join 500+ organizations discovering grants with AI
-          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-medium">
@@ -220,9 +212,6 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          <p className="text-sm opacity-60 mt-8">
-            Session-based • No account required
-          </p>
         </div>
       </section>
     </div>
