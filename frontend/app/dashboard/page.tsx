@@ -32,7 +32,6 @@ const RECOMMENDED_LOADING_MESSAGES = [
 ];
 
 export default function DashboardPage() {
-  // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
   const { status: sessionStatus } = useSession();
@@ -68,24 +67,18 @@ export default function DashboardPage() {
     
     const parts: string[] = [];
     
-    // Add focus areas first (most important for matching)
     if (profile.focus_areas && profile.focus_areas.length > 0) {
-      // Take first 3 focus areas to keep query focused
       parts.push(...profile.focus_areas.slice(0, 3));
     }
     
-    // Add organization type if specified
     if (profile.organization_type) {
       parts.push(profile.organization_type);
     }
     
-    // Add top keywords if available
     if (profile.keywords && profile.keywords.length > 0) {
-      // Take first 2 keywords
       parts.push(...profile.keywords.slice(0, 2));
     }
     
-    // Build query - if we have any profile data, create personalized query
     if (parts.length > 0) {
       return `federal grants for ${parts.join(' ')}`;
     }
@@ -142,7 +135,6 @@ export default function DashboardPage() {
   const providersUsed = recommendedResults?.providers_used || [];
   const isPersonalized = recommendedResults?.personalized || false;
   
-  // Debug logging
   const apiUnreachable = isRecommendationsError || isSavedStatsError;
 
   return (
