@@ -20,8 +20,10 @@ export interface OrganizationProfile {
 
 interface ProfileState {
   profile: OrganizationProfile | null;
-  /** True after the first successful fetch */
+  /** True only after a successful GET /api/v1/profile (server state is confirmed) */
   hydrated: boolean;
+  /** True after the first fetch attempt, regardless of success or failure */
+  fetchAttempted: boolean;
   /** Fetch profile from server and hydrate store */
   fetchProfile: () => Promise<void>;
   /** Save profile fields to server and update local state */
@@ -45,15 +47,16 @@ const defaultProfile: OrganizationProfile = {
 export const useProfileStore = create<ProfileState>()((set, get) => ({
   profile: null,
   hydrated: false,
+  fetchAttempted: false,
 
   fetchProfile: async () => {
     try {
       const res = await fetch('/api/v1/profile');
-      if (!res.ok) { set({ hydrated: true }); return; }
+      if (!res.ok) { set({ fetchAttempted: true }); return; }
       const data = await res.json();
-      set({ profile: data.profile ?? null, hydrated: true });
+      set({ profile: data.profile ?? null, hydrated: true, fetchAttempted: true });
     } catch {
-      set({ hydrated: true });
+      set({ fetchAttempted: true });
     }
   },
 
