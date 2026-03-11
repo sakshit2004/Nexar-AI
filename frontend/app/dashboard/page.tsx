@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/button';
@@ -35,8 +34,7 @@ export default function DashboardPage() {
   // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { status: sessionStatus } = useSession();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, authReady, user, token } = useAuthStore();
   const { profile, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
@@ -53,14 +51,12 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
-  // Redirect to login if not authenticated — wait for session hydration first
-  // to avoid bouncing users to /login while NextAuth resolves the JWT on refresh.
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (sessionStatus === 'loading') return;
-    if (sessionStatus === 'unauthenticated' && !isAuthenticated) {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [sessionStatus, isAuthenticated, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
