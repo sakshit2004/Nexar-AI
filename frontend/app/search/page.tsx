@@ -23,7 +23,7 @@ import {
 function SearchPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, authReady } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -39,12 +39,12 @@ function SearchPageInner() {
     max_amount: '',
   });
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Pre-populate and auto-trigger search from URL ?q= param (homepage search)
   useEffect(() => {

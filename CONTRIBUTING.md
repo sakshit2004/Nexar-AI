@@ -69,4 +69,4 @@ Please keep PRs focused — one feature or bug fix per PR.
 
 ## Environment Variables
 
-See `.env.example` at the repo root for a complete reference of all required and optional environment variables.
+See `frontend/.env.example` for a complete reference of all required and optional environment variables.

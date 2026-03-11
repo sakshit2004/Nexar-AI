@@ -30,14 +30,14 @@ export default function GrantDetailsPage() {
   const params = useParams();
   const queryClient = useQueryClient();
   const grantId = params.id as string;
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, authReady, token } = useAuthStore();
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [authReady, isAuthenticated, router]);
 
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
