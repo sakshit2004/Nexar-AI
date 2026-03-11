@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/button';
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { status: sessionStatus } = useSession();
   const { isAuthenticated, authReady, user, token } = useAuthStore();
   const { profile, updateProfile } = useProfileStore();
 
@@ -53,10 +55,10 @@ export default function DashboardPage() {
 
   // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (authReady && !isAuthenticated) {
+    if (sessionStatus === 'unauthenticated' && authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [authReady, isAuthenticated, router]);
+  }, [sessionStatus, authReady, isAuthenticated, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
@@ -369,4 +371,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
