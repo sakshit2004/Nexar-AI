@@ -91,6 +91,16 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
+            <Link href="/register">
+              <Button size="lg" variant="outline" className="h-12 px-8 text-base font-medium">
+                Sign up
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button size="lg" variant="ghost" className="h-12 px-8 text-base font-medium">
+                Log in
+              </Button>
+            </Link>
             <button 
               onClick={scrollToDemo}
               className="text-base text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"

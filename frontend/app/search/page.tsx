@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAuthStore } from '@/lib/store';
 import { grantsApi } from '@/lib/api';
 import { 
   Search as SearchIcon, 
@@ -22,7 +21,6 @@ import {
 
 export default function SearchPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -38,13 +36,7 @@ export default function SearchPage() {
     max_amount: '',
   });
 
-  // Auto-login with demo user if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
-    }
-  }, [isAuthenticated]);
+
 
   const { data: searchResults, isLoading, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
@@ -57,7 +49,7 @@ export default function SearchPage() {
       // Return full response with metadata
       return response;
     },
-    enabled: isAuthenticated && activeSearchParams.query !== '',
+    enabled: activeSearchParams.query !== '',
     refetchOnWindowFocus: false, // Don't refetch on window focus for search
   });
   
