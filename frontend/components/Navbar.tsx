@@ -74,7 +74,7 @@ export function Navbar() {
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             {isAuthenticated ? (
               <>
@@ -86,9 +86,14 @@ export function Navbar() {
                 </Button>
               </>
             ) : (
-              <Link href="/login">
-                <Button size="sm">Login</Button>
-              </Link>
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">Sign in</Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm">Sign up</Button>
+                </Link>
+              </>
             )}
           </div>
         </div>

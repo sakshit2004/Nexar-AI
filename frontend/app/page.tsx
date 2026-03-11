@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { LandingFooter } from '../components/LandingFooter';
 import { 
   ArrowRight,
   Check,
@@ -225,6 +226,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <LandingFooter />
     </div>
   );
 }
