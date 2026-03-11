@@ -1,37 +1,21 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { 
   ArrowRight,
   Check,
-  ChevronRight,
-  Search
+  ChevronRight
 } from 'lucide-react';
 import { GrantVisualization } from '../components/landing/GrantVisualization';
 
 export default function Home() {
   const demoRef = useRef<HTMLElement>(null);
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
 
   const scrollToDemo = () => {
     demoRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
-  const handleSearchButton = () => {
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
   };
 
   return (
@@ -103,26 +87,13 @@ export default function Home() {
             Open source AI discovers all grants that match your mission.
           </p>
           
-          {/* Search input */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6 max-w-xl mx-auto w-full">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
-                placeholder="Search grants… (press Enter)"
-                className="w-full h-12 pl-10 pr-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
-              />
-            </div>
-            <Button size="lg" className="h-12 px-6 text-base font-medium shrink-0" onClick={handleSearchButton}>
-              Search
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link href="/register">
+              <Button size="lg" className="h-12 px-8 text-base font-medium">
+                Sign up
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
             <Link href="/login">
               <Button variant="outline" size="lg" className="h-12 px-8 text-base font-medium">
                 Sign in
@@ -240,10 +211,15 @@ export default function Home() {
             Start finding.
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
+            <Link href="/register">
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-medium">
-                Sign in
+                Sign up
                 <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button size="lg" variant="outline" className="h-12 px-8 text-base font-medium bg-transparent border-background/40 text-background hover:bg-background/10 hover:text-background">
+                Sign in
               </Button>
             </Link>
           </div>
