@@ -1,6 +1,7 @@
 /**
  * Server-side grant cache backed by Upstash Redis.
- * Grants are stored as JSON strings under the key "grant:{id}" with a 24-hour TTL.
+ * Grants are stored as plain objects under the key "grant:{id}" with a 24-hour TTL.
+ * @upstash/redis automatically serialises objects to JSON on write and deserialises on read.
  * All functions are async — callers must await them.
  */
 
@@ -24,7 +25,7 @@ const TTL_SECONDS = 86400; // 24 hours
 export async function storeGrant(grant: Grant): Promise<void> {
   if (!grant?.id) return;
   try {
-    await kv.set(`grant:${grant.id}`, JSON.stringify(grant), { ex: TTL_SECONDS });
+    await kv.set(`grant:${grant.id}`, grant, { ex: TTL_SECONDS });
   } catch {
     // Redis not configured — silently skip caching in local dev
   }
@@ -37,11 +38,8 @@ export async function storeGrants(grants: Grant[]): Promise<void> {
 
 export async function getGrant(id: string): Promise<Grant | null> {
   try {
-    const raw = await kv.get<string>(`grant:${id}`);
-    if (!raw) return null;
-    // @upstash/redis auto-parses JSON; accept both parsed object and raw string
-    if (typeof raw === 'object') return raw as unknown as Grant;
-    return JSON.parse(raw) as Grant;
+    const grant = await kv.get<Grant>(`grant:${id}`);
+    return grant ?? null;
   } catch {
     return null;
   }
