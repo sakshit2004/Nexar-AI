@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -32,33 +32,34 @@ const RECOMMENDED_LOADING_MESSAGES = [
 ];
 
 export default function DashboardPage() {
-  // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
   const { status: sessionStatus } = useSession();
-  const { isAuthenticated, authReady, user, token } = useAuthStore();
-  const { profile, updateProfile } = useProfileStore();
+  const { isAuthenticated, user, token } = useAuthStore();
+  const { profile, hydrated, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
-  // Seed MLH default profile when MLH Fellow has no profile (run after rehydration so persist doesn't overwrite)
+  // Seed MLH default profile only after the store confirms server state via a successful
+  // fetch — hydrated is true only on a successful GET /api/v1/profile, so a transient
+  // failure won't trigger seeding and risk overwriting a real server-side profile.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
-        updateProfile(MLH_DEFAULT_PROFILE);
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
+    if (!hydrated) return;
+    if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
+      updateProfile(MLH_DEFAULT_PROFILE);
+    }
+  }, [hydrated, user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
-  // Redirect to login if not authenticated (only after auth state is resolved)
+  // Redirect to login if not authenticated — wait for session hydration first
+  // to avoid bouncing users to /login while NextAuth resolves the JWT on refresh.
   useEffect(() => {
-    if (sessionStatus === 'unauthenticated' && authReady && !isAuthenticated) {
+    if (sessionStatus === 'loading') return;
+    if (sessionStatus === 'unauthenticated' && !isAuthenticated) {
       router.push('/login');
     }
-  }, [sessionStatus, authReady, isAuthenticated, router]);
+  }, [sessionStatus, isAuthenticated, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
@@ -66,24 +67,18 @@ export default function DashboardPage() {
     
     const parts: string[] = [];
     
-    // Add focus areas first (most important for matching)
     if (profile.focus_areas && profile.focus_areas.length > 0) {
-      // Take first 3 focus areas to keep query focused
       parts.push(...profile.focus_areas.slice(0, 3));
     }
     
-    // Add organization type if specified
     if (profile.organization_type) {
       parts.push(profile.organization_type);
     }
     
-    // Add top keywords if available
     if (profile.keywords && profile.keywords.length > 0) {
-      // Take first 2 keywords
       parts.push(...profile.keywords.slice(0, 2));
     }
     
-    // Build query - if we have any profile data, create personalized query
     if (parts.length > 0) {
       return `federal grants for ${parts.join(' ')}`;
     }
@@ -140,7 +135,6 @@ export default function DashboardPage() {
   const providersUsed = recommendedResults?.providers_used || [];
   const isPersonalized = recommendedResults?.personalized || false;
   
-  // Debug logging
   const apiUnreachable = isRecommendationsError || isSavedStatsError;
 
   return (
