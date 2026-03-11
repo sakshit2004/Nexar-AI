@@ -21,7 +21,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: frontend
+        # Run from repo root so npm workspaces hoist correctly and
+        # @tailwindcss/oxide native bindings install for the CI platform
 
       - name: Type check
         run: npx tsc --noEmit --skipLibCheck
