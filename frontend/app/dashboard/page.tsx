@@ -57,7 +57,7 @@ export default function DashboardPage() {
   // to avoid bouncing users to /login while NextAuth resolves the JWT on refresh.
   useEffect(() => {
     if (sessionStatus === 'loading') return;
-    if (!isAuthenticated) {
+    if (sessionStatus === 'unauthenticated' && !isAuthenticated) {
       router.push('/login');
     }
   }, [sessionStatus, isAuthenticated, router]);
