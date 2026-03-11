@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,8 @@ import {
 export default function ProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user } = useAuthStore();
+  const { user } = useAuthStore();
+  const { status } = useSession();
   const [formData, setFormData] = useState({
     full_name: '',
     organization_name: '',
@@ -36,12 +38,12 @@ export default function ProfilePage() {
   });
   const [success, setSuccess] = useState(false);
 
-  // Redirect to login if not authenticated
+  // Redirect to login only once the session is resolved (avoids false redirect during hydration)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (status === 'unauthenticated') {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
   const { profile, updateProfile } = useProfileStore();
 

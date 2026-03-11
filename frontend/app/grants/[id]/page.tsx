@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -31,13 +32,14 @@ export default function GrantDetailsPage() {
   const queryClient = useQueryClient();
   const grantId = params.id as string;
   const { isAuthenticated, token } = useAuthStore();
+  const { status } = useSession();
 
-  // Redirect to login if not authenticated
+  // Redirect to login only once the session is resolved (avoids false redirect during hydration)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (status === 'unauthenticated') {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
