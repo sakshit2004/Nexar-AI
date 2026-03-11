@@ -41,8 +41,9 @@ export default function DashboardPage() {
   const [refreshSeed, setRefreshSeed] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
-  // Seed MLH default profile only after the store has been hydrated from the server,
-  // so we don't overwrite an existing profile before fetchProfile() completes.
+  // Seed MLH default profile only after the store confirms server state via a successful
+  // fetch — hydrated is true only on a successful GET /api/v1/profile, so a transient
+  // failure won't trigger seeding and risk overwriting a real server-side profile.
   useEffect(() => {
     if (!hydrated) return;
     if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
