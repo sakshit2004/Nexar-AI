@@ -56,29 +56,28 @@ describe('Login Page', () => {
     expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument()
   })
 
-  it('shows the MLH demo credential info box', () => {
+  it('does not show hardcoded demo credential hints', () => {
     render(<LoginPage />)
-    expect(screen.getByText(/Major League Hacking/i)).toBeInTheDocument()
-    expect(screen.getByText('admin@mlh.com')).toBeInTheDocument()
-    expect(screen.getByText('mlh')).toBeInTheDocument()
+    expect(screen.queryByText('admin@mlh.com')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Major League Hacking/i)).not.toBeInTheDocument()
   })
 
   it('reveals password field after clicking Continue with an email', async () => {
     render(<LoginPage />)
-    await fillEmail('admin@mlh.com')
+    await fillEmail('user@example.com')
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
   })
 
   it('calls signIn with credentials on second step submit', async () => {
     mockSignIn.mockResolvedValue({ ok: true, error: null })
     render(<LoginPage />)
-    await fillEmail('admin@mlh.com')
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'mlh' } })
+    await fillEmail('user@example.com')
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith('credentials', {
-        email: 'admin@mlh.com',
-        password: 'mlh',
+        email: 'user@example.com',
+        password: 'password123',
         redirect: false,
       })
     })
@@ -87,8 +86,8 @@ describe('Login Page', () => {
   it('redirects to /dashboard on successful sign-in', async () => {
     mockSignIn.mockResolvedValue({ ok: true, error: null })
     render(<LoginPage />)
-    await fillEmail('admin@mlh.com')
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'mlh' } })
+    await fillEmail('user@example.com')
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard')
@@ -111,8 +110,8 @@ describe('Login Page', () => {
     // Make signIn hang long enough to observe loading state
     mockSignIn.mockReturnValue(new Promise(() => {}))
     render(<LoginPage />)
-    await fillEmail('admin@mlh.com')
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'mlh' } })
+    await fillEmail('user@example.com')
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     await waitFor(() => {
       expect(screen.getByText(/signing in/i)).toBeInTheDocument()

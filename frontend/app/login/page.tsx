@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { AlertCircle, Info } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,38 +50,6 @@ export default function LoginPage() {
           <div className="text-center mb-10">
             <h1 className="text-3xl sm:text-4xl font-bold mb-3">Sign in</h1>
             <p className="text-muted-foreground">Welcome back to Nexar AI</p>
-
-            {/* Major League Hacking (MLH) Fellowship sign-in hint */}
-            <div className="mt-6 rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-left">
-              <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
-                <div className="space-y-1.5 text-sm">
-                  <p className="font-medium text-foreground">
-                    Major League Hacking (MLH) Fellowship
-                  </p>
-                  <p className="text-muted-foreground">
-                    Use email{' '}
-                    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground text-xs">
-                      admin@mlh.com
-                    </code>{' '}
-                    and password{' '}
-                    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground text-xs">
-                      mlh
-                    </code>
-                  </p>
-                  <p className="text-muted-foreground">
-                    <a
-                      href="https://fellowship.mlh.io"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-foreground"
-                    >
-                      Learn more
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Form */}

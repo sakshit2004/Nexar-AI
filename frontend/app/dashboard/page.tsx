@@ -4,13 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore } from '../../lib/profile-store';
-import { MLH_DEFAULT_PROFILE, MLH_FELLOWSHIP_URL } from '../../lib/mlh-defaults';
 import { grantsApi, savedGrantsApi } from '../../lib/api';
 import { 
   Search, 
@@ -33,24 +32,13 @@ const RECOMMENDED_LOADING_MESSAGES = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { status: sessionStatus } = useSession();
   const { isAuthenticated, user, token } = useAuthStore();
-  const { profile, hydrated, updateProfile } = useProfileStore();
+  const { profile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-
-  // Seed MLH default profile only after the store confirms server state via a successful
-  // fetch — hydrated is true only on a successful GET /api/v1/profile, so a transient
-  // failure won't trigger seeding and risk overwriting a real server-side profile.
-  useEffect(() => {
-    if (!hydrated) return;
-    if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
-      updateProfile(MLH_DEFAULT_PROFILE);
-    }
-  }, [hydrated, user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
   // Redirect to login if not authenticated — wait for session hydration first
   // to avoid bouncing users to /login while NextAuth resolves the JWT on refresh.
@@ -155,14 +143,6 @@ export default function DashboardPage() {
               ? `${profile.organization_name} • Here's your grant discovery overview`
               : "Here's your grant discovery overview"}
           </p>
-          {user?.email === 'admin@mlh.com' && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Configured for{' '}
-              <a href={MLH_FELLOWSHIP_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
-                MLH Fellowship
-              </a>
-            </p>
-          )}
         </div>
 
         {/* Profile Info Card */}
