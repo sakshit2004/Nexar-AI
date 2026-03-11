@@ -32,13 +32,12 @@ export default function GrantDetailsPage() {
   const grantId = params.id as string;
   const { isAuthenticated } = useAuthStore();
 
-  // Auto-login with demo user if not authenticated
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      router.push('/login');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],

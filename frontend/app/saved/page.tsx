@@ -34,13 +34,12 @@ export default function SavedGrantsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites' | 'archived'>('all');
 
-  // Auto-login with demo user if not authenticated
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      const { login } = useAuthStore.getState();
-      login('demo@example.com', 'demo123').catch(() => {});
+      router.push('/login');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({
