@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/button';
@@ -34,29 +35,32 @@ export default function DashboardPage() {
   // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, authReady, user, token } = useAuthStore();
-  const { profile, updateProfile } = useProfileStore();
+  const { status: sessionStatus } = useSession();
+  const { isAuthenticated, user, token } = useAuthStore();
+  const { profile, hydrated, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
-  // Seed MLH default profile when MLH Fellow has no profile (run after rehydration so persist doesn't overwrite)
+  // Seed MLH default profile only after the store confirms server state via a successful
+  // fetch — hydrated is true only on a successful GET /api/v1/profile, so a transient
+  // failure won't trigger seeding and risk overwriting a real server-side profile.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
-        updateProfile(MLH_DEFAULT_PROFILE);
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
+    if (!hydrated) return;
+    if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
+      updateProfile(MLH_DEFAULT_PROFILE);
+    }
+  }, [hydrated, user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
-  // Redirect to login if not authenticated (only after auth state is resolved)
+  // Redirect to login if not authenticated — wait for session hydration first
+  // to avoid bouncing users to /login while NextAuth resolves the JWT on refresh.
   useEffect(() => {
-    if (authReady && !isAuthenticated) {
+    if (sessionStatus === 'loading') return;
+    if (sessionStatus === 'unauthenticated' && !isAuthenticated) {
       router.push('/login');
     }
-  }, [authReady, isAuthenticated, router]);
+  }, [sessionStatus, isAuthenticated, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
@@ -369,4 +373,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
