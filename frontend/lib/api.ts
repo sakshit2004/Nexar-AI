@@ -1,74 +1,30 @@
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG === 'true';
 
-/** In production, use same origin when NEXT_PUBLIC_API_URL is not set so the app works on Vercel without env. */
-export function getApiBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
-  if (typeof window !== 'undefined') return window.location.origin;
-  return 'http://localhost:8000';
-}
-
-/** When using a separate API project (NEXT_PUBLIC_API_URL set), the API has one entry /api/index; we send path via X-Original-URL. */
-function isExternalApi(): boolean {
-  if (!process.env.NEXT_PUBLIC_API_URL) return false;
-  if (typeof window === 'undefined') return true;
-  try {
-    const apiOrigin = new URL(getApiBaseUrl()).origin;
-    return apiOrigin !== window.location.origin;
-  } catch {
-    return true;
-  }
-}
-
-function apiRequest(pathAndQuery: string, options?: RequestInit): { url: string; options: RequestInit } {
-  const base = getApiBaseUrl();
-  const fullUrl = `${base}${pathAndQuery.startsWith('/') ? '' : '/'}${pathAndQuery}`;
-  if (isExternalApi()) {
-    return {
-      url: `${base}/api/index`,
-      options: {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Original-URL': fullUrl,
-          ...options?.headers,
-        },
-      },
-    };
-  }
-  return {
-    url: fullUrl,
-    options: { ...options, headers: { 'Content-Type': 'application/json', ...options?.headers } },
-  };
-}
-
 const fetchWithError = async (urlOrPath: string, options?: RequestInit) => {
-  const base = getApiBaseUrl();
-  const pathAndQuery = urlOrPath.startsWith('http')
-    ? urlOrPath.replace(base.replace(/\/$/, ''), '').replace(/^\//, '')
-    : urlOrPath.replace(/^\//, '');
-  const pathNorm = `/${pathAndQuery}`;
-  const { url, options: opts } = apiRequest(pathNorm, options);
+  const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const url = urlOrPath.startsWith('http') ? urlOrPath : `${base}${urlOrPath.startsWith('/') ? '' : '/'}${urlOrPath}`;
+
   try {
     if (DEBUG) console.log('API Call:', url);
 
-    const response = await fetch(url, opts);
+    const response = await fetch(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+    });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      let detail = typeof error?.detail === 'string' ? error.detail : Array.isArray(error?.detail) ? error.detail.map((x: any) => x?.msg ?? x).join(', ') : null;
-      if (detail && (detail.trimStart().startsWith('<') || detail.includes('<!DOCTYPE'))) {
-        detail = response.status === 500
-          ? 'Server error. On Vercel: use a separate API project and set NEXT_PUBLIC_API_URL (see DEPLOYMENT_CHECKLIST.md).'
+      const detail =
+        typeof error?.detail === 'string'
+          ? error.detail
+          : Array.isArray(error?.detail)
+          ? error.detail.map((x: unknown) => (x as Record<string, string>)?.msg ?? x).join(', ')
           : `API Error: ${response.status}`;
-      }
-      throw new Error(detail || `API Error: ${response.status}`);
+      throw new Error(detail);
     }
 
     return await response.json();
   } catch (error) {
-    if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message.includes('fetch'))) {
-      throw new Error(`Could not reach the backend at ${base}. Make sure it's running (e.g. \`python -m backend.main\`) or set NEXT_PUBLIC_API_URL to your API project URL.`);
-    }
     if (DEBUG) console.error('API Error:', error);
     throw error;
   }
@@ -84,24 +40,18 @@ export const grantsApi = {
   }) => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
-      }
+      if (value !== undefined) searchParams.append(key, value.toString());
     });
-    const response = await fetchWithError(`/api/v1/grants/search?${searchParams}`);
-    return response;
+    return fetchWithError(`/api/v1/grants/search?${searchParams}`);
   },
 
-  getById: async (id: string, token?: string) => {
-    const headers: any = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetchWithError(`/api/v1/grants/${id}`, { headers });
-    return response;
+  getById: async (id: string) => {
+    return fetchWithError(`/api/v1/grants/${id}`);
   },
 
   getRecommendations: async (
-    token: string,
-    params?: { q?: string; min_amount?: number; max_amount?: number; seed?: number }
+    _token: string,
+    params?: { q?: string; min_amount?: number; max_amount?: number; seed?: number },
   ) => {
     const searchParams = new URLSearchParams();
     if (params?.q) searchParams.append('q', params.q);
@@ -109,110 +59,119 @@ export const grantsApi = {
     if (params?.max_amount != null) searchParams.append('max_amount', String(params.max_amount));
     if (params?.seed != null) searchParams.append('seed', String(params.seed));
     const qs = searchParams.toString();
-    const path = `/api/v1/grants/recommended${qs ? `?${qs}` : ''}`;
-    const response = await fetchWithError(path, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response;
+    return fetchWithError(`/api/v1/grants/recommended${qs ? `?${qs}` : ''}`);
   },
 };
 
-// Matching API
+// Matching / Analysis API
 export const matchingApi = {
-  getMatch: async (grantId: string, token: string) => {
-    const response = await fetchWithError(`/api/v1/grants/${grantId}/match`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response;
+  getMatch: async (grantId: string) => {
+    return fetchWithError(`/api/v1/grants/${grantId}/match`);
   },
 
-  analyze: async (grantId: string, token?: string, grantData?: any) => {
-    const headers: any = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
+  analyze: async (grantId: string, _token?: string, grantData?: unknown) => {
     const body = grantData ? JSON.stringify({ grant: grantData }) : undefined;
-    const response = await fetchWithError(`/api/v1/grants/${grantId}/analyze`, {
+    return fetchWithError(`/api/v1/grants/${grantId}/analyze`, {
       method: 'POST',
-      headers,
       body,
     });
-    return response;
   },
 };
 
-// Saved Grants API — backed by localStorage, no network calls needed
+// Saved Grants API — backed by /api/v1/saved (Upstash Redis via server route)
 export const savedGrantsApi = {
-  save: async (_token: string, grantData: any) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
-    return savedGrantsStore.add({
-      grant_id: grantData?.id || grantData?.grant_id || '',
-      grant_title: grantData?.title || grantData?.grant_title || 'Untitled Grant',
-      grant_agency: grantData?.agency,
-      grant_description: grantData?.description,
-      grant_eligibility: grantData?.eligibility,
-      grant_category: grantData?.category,
-      grant_award_amount: grantData?.award_amount,
-      grant_close_date: grantData?.deadline,
-      grant_url: grantData?.url,
-      grant_cfda_number: grantData?.opportunity_number,
+  save: async (_token: string, grantData: Record<string, string>) => {
+    const grantId = grantData?.id || grantData?.grant_id || '';
+    if (!grantId) throw new Error('grantId is required');
+    return fetchWithError('/api/v1/saved', {
+      method: 'POST',
+      body: JSON.stringify({ grantId }),
     });
   },
 
   list: async (_token?: string, params?: { favorites_only?: boolean }) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
-    const grants = savedGrantsStore.list(params);
-    const all = savedGrantsStore.list();
+    const res = await fetchWithError('/api/v1/saved');
+    const grants = res?.saved_grants ?? [];
+    const filtered = params?.favorites_only ? grants.filter((g: { is_favorite: boolean }) => g.is_favorite) : grants;
+    const all: { is_favorite: boolean; category?: string; status?: string }[] = res?.saved_grants ?? [];
     const favoritesCount = all.filter((g) => g.is_favorite).length;
+    const by_category: Record<string, number> = {};
+    for (const g of all) {
+      if (g.category) by_category[g.category] = (by_category[g.category] ?? 0) + 1;
+    }
     return {
-      saved_grants: grants.map((g) => ({
+      saved_grants: filtered.map((g: Record<string, unknown>) => ({
         id: g.id,
-        grant_id: g.grant_id,
-        title: g.grant_title,
-        agency: g.grant_agency,
-        description: g.grant_description,
-        eligibility: g.grant_eligibility,
-        category: g.grant_category,
-        award_amount: g.grant_award_amount,
-        deadline: g.grant_close_date,
-        url: g.grant_url,
-        opportunity_number: g.grant_cfda_number,
-        is_favorite: g.is_favorite,
-        status: g.status,
+        grant_id: g.id,
+        title: g.title,
+        agency: g.agency,
+        description: g.description,
+        eligibility: g.eligibility,
+        category: g.category,
+        award_amount: g.award_amount,
+        deadline: g.deadline,
+        url: g.url,
+        opportunity_number: g.opportunity_number,
+        is_favorite: g.is_favorite ?? false,
+        status: g.status ?? 'saved',
       })),
-      total: grants.length,
-      total_count: grants.length,
+      total: filtered.length,
+      total_count: filtered.length,
+      total_saved: all.length,
       favorites_count: favoritesCount,
+      favorites: favoritesCount,
+      by_category,
+      by_status: {},
     };
   },
 
-  delete: async (savedGrantId: string, _token: string) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
-    savedGrantsStore.remove(savedGrantId);
-    return { success: true };
+  delete: async (grantId: string, _token?: string) => {
+    return fetchWithError('/api/v1/saved', {
+      method: 'DELETE',
+      body: JSON.stringify({ grantId }),
+    });
   },
 
   stats: async (_token?: string) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
-    return savedGrantsStore.stats();
+    const res = await fetchWithError('/api/v1/saved');
+    const grants: { is_favorite: boolean; category?: string; status?: string }[] = res?.saved_grants ?? [];
+    const by_category: Record<string, number> = {};
+    let favorites = 0;
+    for (const g of grants) {
+      if (g.category) by_category[g.category] = (by_category[g.category] ?? 0) + 1;
+      if (g.is_favorite) favorites++;
+    }
+    return {
+      total_saved: grants.length,
+      favorites,
+      by_category,
+      by_status: {},
+    };
   },
 
   checkSaved: async (grantId: string, _token?: string) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
-    const grant = savedGrantsStore.get(grantId);
-    return { is_saved: !!grant, saved_grant_id: grant?.id ?? null };
+    try {
+      const res = await fetchWithError('/api/v1/saved');
+      const grants: { id: string }[] = res?.saved_grants ?? [];
+      const found = grants.find((g) => g.id === grantId);
+      return { is_saved: !!found, saved_grant_id: found?.id ?? null };
+    } catch {
+      return { is_saved: false, saved_grant_id: null };
+    }
   },
 
   search: async (searchQuery: string, _token?: string) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
+    const res = await fetchWithError('/api/v1/saved');
+    const grants: { title?: string; agency?: string }[] = res?.saved_grants ?? [];
     const q = searchQuery.toLowerCase();
-    const results = savedGrantsStore.list().filter(
-      (g) => g.grant_title?.toLowerCase().includes(q) || g.grant_agency?.toLowerCase().includes(q)
+    const results = grants.filter(
+      (g) => g.title?.toLowerCase().includes(q) || g.agency?.toLowerCase().includes(q),
     );
     return { saved_grants: results, total: results.length };
   },
 
-  toggleFavorite: async (savedGrantId: string | number, _token?: string) => {
-    const { savedGrantsStore } = await import('./saved-grants-store');
-    return savedGrantsStore.toggleFavorite(savedGrantId) ?? { error: 'Not found' };
+  toggleFavorite: async (_savedGrantId: string | number, _token?: string) => {
+    // Favorites are not yet stored in KV — return a no-op response
+    return { ok: true };
   },
-
 };

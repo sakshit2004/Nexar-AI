@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -20,9 +20,10 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-export default function SearchPage() {
+function SearchPageInner() {
   const router = useRouter();
-  const { isAuthenticated, setAuth } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -30,7 +31,7 @@ export default function SearchPage() {
     max_amount: '',
   });
   
-  // Separate state for the actual search params (only updated on button click)
+  // Separate state for the actual search params (only updated on button click or auto-trigger)
   const [activeSearchParams, setActiveSearchParams] = useState({
     query: '',
     category: '',
@@ -38,28 +39,22 @@ export default function SearchPage() {
     max_amount: '',
   });
 
-  // Auto-login with hardcoded user if not authenticated (unless just logged out)
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      // Check if user just logged out - don't auto-login in that case
-      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
-      if (justLoggedOut) {
-        // Clear the flag and redirect to home instead of auto-login
-        sessionStorage.removeItem('just-logged-out');
-        router.push('/');
-        return;
-      }
-      
-      const mockUser = {
-        id: '1',
-        email: 'admin@nexar.ai',
-        name: 'Admin User',
-        tier: 'premium' as const,
-      };
-      const mockToken = 'hardcoded-auth-token';
-      setAuth(mockUser, mockToken);
+      router.push('/login');
     }
-  }, [isAuthenticated, setAuth, router]);
+  }, [isAuthenticated, router]);
+
+  // Pre-populate and auto-trigger search from URL ?q= param (homepage search)
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && isAuthenticated) {
+      setSearchQuery(q);
+      setActiveSearchParams({ query: q, category: '', min_amount: '', max_amount: '' });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isAuthenticated]);
 
   const { data: searchResults, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
@@ -303,6 +298,14 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background pt-20 flex items-center justify-center"><span className="text-muted-foreground">Loading...</span></div>}>
+      <SearchPageInner />
+    </Suspense>
   );
 }
 

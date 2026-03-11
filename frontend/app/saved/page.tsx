@@ -27,33 +27,17 @@ import {
 export default function SavedGrantsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, setAuth, token } = useAuthStore();
+  const { isAuthenticated, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [heartRedById, setHeartRedById] = useState<Record<number, boolean>>({});
 
-  // Auto-login with hardcoded user if not authenticated (unless just logged out)
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      // Check if user just logged out - don't auto-login in that case
-      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
-      if (justLoggedOut) {
-        // Clear the flag and redirect to home instead of auto-login
-        sessionStorage.removeItem('just-logged-out');
-        router.push('/');
-        return;
-      }
-      
-      const mockUser = {
-        id: '1',
-        email: 'admin@nexar.ai',
-        name: 'Admin User',
-        tier: 'premium' as const,
-      };
-      const mockToken = 'hardcoded-auth-token';
-      setAuth(mockUser, mockToken);
+      router.push('/login');
     }
-  }, [isAuthenticated, setAuth, router]);
+  }, [isAuthenticated, router]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({

@@ -51,28 +51,10 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
-  // Auto-login with hardcoded user if not authenticated (unless just logged out)
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      // Check if user just logged out - don't auto-login in that case
-      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
-      if (justLoggedOut) {
-        // Clear the flag and redirect to home instead of auto-login
-        sessionStorage.removeItem('just-logged-out');
-        router.push('/');
-        return;
-      }
-      
-      const { setAuth } = useAuthStore.getState();
-      // Create hardcoded user for session-based approach
-      const mockUser = {
-        id: '1',
-        email: 'admin@nexar.ai',
-        name: 'Admin User',
-        tier: 'premium' as const,
-      };
-      const mockToken = 'hardcoded-auth-token';
-      setAuth(mockUser, mockToken);
+      router.push('/login');
     }
   }, [isAuthenticated, router]);
 
@@ -164,12 +146,7 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {apiUnreachable && (
           <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-            {recommendationsError?.message || 'Could not reach the backend.'}
-            {recommendationsError?.message?.includes('not configured') || recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST') ? null : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? (
-              <> Server error or timeout. Check Vercel → Deployments → your deployment → Functions → Logs for the Python error.</>
-            ) : (
-              <> Start the server with <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">python -m backend.main</code> and refresh.</>
-            )}
+            {recommendationsError?.message || 'Could not load recommendations. Check that OPENAI_API_KEY or ANTHROPIC_API_KEY is set.'}
           </div>
         )}
         {/* Header */}
@@ -340,11 +317,7 @@ export default function DashboardPage() {
             ) : isRecommendationsError ? (
               <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">
-                  {recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST')
-                    ? 'Could not load recommendations. See message above for setup.'
-                    : (recommendationsError?.message || 'Could not load recommendations.')
-                  }
-                  {recommendationsError?.message?.includes('not configured') ? '' : recommendationsError?.message?.includes('NEXT_PUBLIC_API_URL') || recommendationsError?.message?.includes('DEPLOYMENT_CHECKLIST') ? '' : recommendationsError?.message?.includes('API Error: 500') || recommendationsError?.message?.includes('API Error: 504') ? ' Check Vercel → Deployments → Functions → Logs for the error.' : ' Make sure the backend is running.'}
+                  {recommendationsError?.message || 'Could not load recommendations. Make sure OPENAI_API_KEY or ANTHROPIC_API_KEY is set.'}
                 </p>
               </div>
             ) : recommendedGrants && recommendedGrants.length > 0 ? (

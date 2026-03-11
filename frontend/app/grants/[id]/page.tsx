@@ -30,30 +30,14 @@ export default function GrantDetailsPage() {
   const params = useParams();
   const queryClient = useQueryClient();
   const grantId = params.id as string;
-  const { isAuthenticated, setAuth, token } = useAuthStore();
+  const { isAuthenticated, token } = useAuthStore();
 
-  // Auto-login with hardcoded user if not authenticated (unless just logged out)
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      // Check if user just logged out - don't auto-login in that case
-      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
-      if (justLoggedOut) {
-        // Clear the flag and redirect to home instead of auto-login
-        sessionStorage.removeItem('just-logged-out');
-        router.push('/');
-        return;
-      }
-      
-      const mockUser = {
-        id: '1',
-        email: 'admin@nexar.ai',
-        name: 'Admin User',
-        tier: 'premium' as const,
-      };
-      const mockToken = 'hardcoded-auth-token';
-      setAuth(mockUser, mockToken);
+      router.push('/login');
     }
-  }, [isAuthenticated, setAuth, router]);
+  }, [isAuthenticated, router]);
 
   const { data: grant, isLoading, error } = useQuery({
     queryKey: ['grant', grantId],
@@ -100,21 +84,14 @@ export default function GrantDetailsPage() {
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
-      if (!token) throw new Error('Not authenticated');
       if (!grant) throw new Error('Grant data required');
-      const response = await matchingApi.analyze(grantId, token, grant);
-      if (process.env.NODE_ENV === 'development') console.log('Analysis response:', response);
-      return response;
+      return matchingApi.analyze(grantId, token ?? undefined, grant);
     },
     onSuccess: (data) => {
-      if (process.env.NODE_ENV === 'development') console.log('Analysis data:', data);
       if (data) {
         setAiSummary(data.ai_summary || data.summary);
         setMatchData(data);
       }
-    },
-    onError: (error) => {
-      console.error('Analysis error:', error);
     },
   });
 
@@ -122,49 +99,25 @@ export default function GrantDetailsPage() {
   const saveGrantMutation = useMutation({
     mutationFn: async () => {
       if (!grant) throw new Error('Grant data not available');
-      if (!token) throw new Error('Not authenticated');
-      
-      // Use grant data to save with all required fields
-      const response = await savedGrantsApi.save(token, grant);
-      return response;
+      return savedGrantsApi.save(token ?? '', grant as Record<string, string>);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       setIsSaved(true);
-      setSavedGrantId(data?.id ?? null);
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
-      queryClient.refetchQueries({ queryKey: ['saved-grants'] });
-      queryClient.refetchQueries({ queryKey: ['saved-grants-stats'] });
-    },
-    onError: (error) => {
-      console.error('Save grant error:', error);
     },
   });
 
   // Unsave grant mutation
   const unsaveGrantMutation = useMutation({
     mutationFn: async () => {
-      if (!token) throw new Error('Not authenticated');
-      
-      if (!savedGrantId) {
-        const response = await savedGrantsApi.list(token);
-        const list = response?.saved_grants ?? [];
-        const savedGrant = list.find((sg: any) => sg.grant_id === grantId);
-        if (savedGrant) {
-          await savedGrantsApi.delete(String(savedGrant.id), token);
-        }
-      } else {
-        await savedGrantsApi.delete(String(savedGrantId), token);
-      }
+      await savedGrantsApi.delete(grantId, token ?? undefined);
     },
     onSuccess: () => {
       setIsSaved(false);
       setSavedGrantId(null);
       queryClient.invalidateQueries({ queryKey: ['saved-grants'] });
       queryClient.invalidateQueries({ queryKey: ['saved-grants-stats'] });
-    },
-    onError: (error) => {
-      console.error('Unsave grant error:', error);
     },
   });
 
@@ -313,6 +266,71 @@ export default function GrantDetailsPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Eligibility Scoring (shown after AI analysis) */}
+            {matchData?.eligibility && (() => {
+              const elig = matchData.eligibility as {
+                status: 'eligible' | 'likely_eligible' | 'check_required' | 'ineligible';
+                confidence: number;
+                reasons: string[];
+                missing_info: string[];
+              };
+              const badgeStyles: Record<string, string> = {
+                eligible: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+                likely_eligible: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+                check_required: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+                ineligible: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+              };
+              const statusLabels: Record<string, string> = {
+                eligible: 'Eligible',
+                likely_eligible: 'Likely Eligible',
+                check_required: 'Check Required',
+                ineligible: 'Not Eligible',
+              };
+              return (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Eligibility Assessment
+                      </CardTitle>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${badgeStyles[elig.status] ?? badgeStyles.check_required}`}>
+                        {statusLabels[elig.status] ?? elig.status} · {elig.confidence}%
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {elig.reasons.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Key factors:</p>
+                        <ul className="space-y-1">
+                          {elig.reasons.map((r, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm">
+                              <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                              <span>{r}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {elig.missing_info.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Information needed to confirm:</p>
+                        <ul className="space-y-1">
+                          {elig.missing_info.map((m, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <XCircle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
+                              <span>{m}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Eligibility */}
             <Card>

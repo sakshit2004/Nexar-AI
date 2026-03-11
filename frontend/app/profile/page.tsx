@@ -22,7 +22,7 @@ import {
 export default function ProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user, setAuth } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [formData, setFormData] = useState({
     full_name: '',
     organization_name: '',
@@ -36,28 +36,12 @@ export default function ProfilePage() {
   });
   const [success, setSuccess] = useState(false);
 
-  // Auto-login with hardcoded user if not authenticated (unless just logged out)
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      // Check if user just logged out - don't auto-login in that case
-      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
-      if (justLoggedOut) {
-        // Clear the flag and redirect to home instead of auto-login
-        sessionStorage.removeItem('just-logged-out');
-        router.push('/');
-        return;
-      }
-      
-      const mockUser = {
-        id: '1',
-        email: 'admin@nexar.ai',
-        name: 'Admin User',
-        tier: 'premium' as const,
-      };
-      const mockToken = 'hardcoded-auth-token';
-      setAuth(mockUser, mockToken);
+      router.push('/login');
     }
-  }, [isAuthenticated, setAuth, router]);
+  }, [isAuthenticated, router]);
 
   const { profile, updateProfile } = useProfileStore();
 
@@ -79,42 +63,26 @@ export default function ProfilePage() {
   }, [profile]);
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      try {
-        if (process.env.NODE_ENV === 'development') console.log('Processing profile data:', data);
-        // Update profile store directly
-        // Convert strings to arrays and parse numbers
-        const profileData: Partial<OrganizationProfile> = {
-          full_name: data.full_name || '',
-          organization_name: data.organization_name || '',
-          organization_type: data.organization_type || '',
-          focus_areas: typeof data.focus_areas === 'string' && data.focus_areas.trim()
-            ? data.focus_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
-            : (Array.isArray(data.focus_areas) ? data.focus_areas : []),
-          location_state: data.location_state || '',
-          location_county: data.location_county || '',
-          grant_amount_min: data.grant_amount_min && data.grant_amount_min.toString().trim()
-            ? (typeof data.grant_amount_min === 'string' ? parseInt(data.grant_amount_min, 10) : data.grant_amount_min)
-            : null,
-          grant_amount_max: data.grant_amount_max && data.grant_amount_max.toString().trim()
-            ? (typeof data.grant_amount_max === 'string' ? parseInt(data.grant_amount_max, 10) : data.grant_amount_max)
-            : null,
-          keywords: typeof data.keywords === 'string' && data.keywords.trim()
-            ? data.keywords.split(',').map((s: string) => s.trim()).filter(Boolean)
-            : (Array.isArray(data.keywords) ? data.keywords : []),
-        };
-        if (process.env.NODE_ENV === 'development') console.log('Processed profile data:', profileData);
-        updateProfile(profileData);
-        const savedProfile = useProfileStore.getState().profile;
-        if (process.env.NODE_ENV === 'development') console.log('Profile saved to store:', savedProfile);
-        return { data: profileData };
-      } catch (error) {
-        console.error('Error in mutationFn:', error);
-        throw error;
-      }
+    mutationFn: async (data: Record<string, string>) => {
+      const profileData: Partial<OrganizationProfile> = {
+        full_name: data.full_name || '',
+        organization_name: data.organization_name || '',
+        organization_type: data.organization_type || '',
+        focus_areas: data.focus_areas?.trim()
+          ? data.focus_areas.split(',').map((s) => s.trim()).filter(Boolean)
+          : [],
+        location_state: data.location_state || '',
+        location_county: data.location_county || '',
+        grant_amount_min: data.grant_amount_min?.trim() ? parseInt(data.grant_amount_min, 10) : null,
+        grant_amount_max: data.grant_amount_max?.trim() ? parseInt(data.grant_amount_max, 10) : null,
+        keywords: data.keywords?.trim()
+          ? data.keywords.split(',').map((s) => s.trim()).filter(Boolean)
+          : [],
+      };
+      await updateProfile(profileData);
+      return { data: profileData };
     },
     onSuccess: () => {
-      console.log('Mutation successful, showing success message');
       setSuccess(true);
       // Invalidate all queries so recommendations/search refresh with new profile
       queryClient.invalidateQueries({ queryKey: ['recommended-grants'] });
@@ -125,15 +93,10 @@ export default function ProfilePage() {
       queryClient.refetchQueries({ queryKey: ['recommended-grants'] });
       setTimeout(() => setSuccess(false), 3000);
     },
-    onError: (error) => {
-      console.error('Profile update error:', error);
-    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (process.env.NODE_ENV === 'development') console.log('Submitting form data:', formData);
-    // Pass formData as-is (strings), mutationFn will handle conversion
     updateMutation.mutate(formData);
   };
 

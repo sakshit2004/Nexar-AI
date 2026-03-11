@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
   }
 
   const normalized = grants.map(normalizeGrant).slice(0, limit);
-  storeGrants(normalized);
+  await storeGrants(normalized);
 
   return NextResponse.json({
     grants: normalized,

@@ -29,7 +29,7 @@ dev:
 	uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
 test:
-	pytest tests/ -v --cov=backend
+	pytest tests/backend/ -v --cov=backend
 
 lint:
 	flake8 backend/
@@ -37,7 +37,7 @@ lint:
 
 format:
 	black backend/
-	black tests/
+	black tests/backend/
 
 docker-build:
 	docker-compose build

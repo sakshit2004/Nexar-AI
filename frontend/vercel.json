@@ -1,7 +1,13 @@
 {
   "functions": {
-    "app/api/v1/grants/recommended/route.ts": { "maxDuration": 60 },
     "app/api/v1/grants/search/route.ts": { "maxDuration": 60 },
-    "app/api/v1/grants/[id]/analyze/route.ts": { "maxDuration": 30 }
-  }
+    "app/api/v1/grants/recommended/route.ts": { "maxDuration": 60 },
+    "app/api/v1/grants/[id]/analyze/route.ts": { "maxDuration": 60 }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/deadline-check",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

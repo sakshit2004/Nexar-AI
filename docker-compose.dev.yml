@@ -1,0 +1,42 @@
+# LOCAL DEV ONLY — not used in production.
+# Production runs entirely on Vercel (Next.js serverless + Vercel KV).
+# This file is kept only for developers who want to run a local Postgres + Redis
+# environment for experimentation. The Next.js frontend does NOT depend on these services.
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  db:
+    image: postgres:15-alpine
+    container_name: grantmatch-db
+    environment:
+      POSTGRES_DB: grantmatch
+      POSTGRES_USER: grantmatch
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grantmatch"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: grantmatch-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:

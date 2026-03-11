@@ -1,32 +1,48 @@
 /**
- * Server-side in-memory grant cache shared between Next.js API routes.
- * Stores grants discovered by /api/v1/grants/recommended and /api/v1/grants/search
- * so that /api/v1/grants/[id] can look them up.
- *
- * This module is only imported by server-side API routes (never client-side).
- * The cache lives for the lifetime of the serverless function instance.
+ * Server-side grant cache backed by Upstash Redis.
+ * Grants are stored as JSON strings under the key "grant:{id}" with a 24-hour TTL.
+ * All functions are async — callers must await them.
  */
 
-const cache = new Map<string, any>();
-const MAX_CACHE_SIZE = 500;
+import { kv } from '@/lib/kv';
 
-export function storeGrants(grants: any[]): void {
-  for (const g of grants) {
-    if (g?.id) {
-      cache.set(String(g.id), g);
-      if (cache.size > MAX_CACHE_SIZE) {
-        // Evict oldest entry
-        const firstKey = cache.keys().next().value;
-        if (firstKey !== undefined) cache.delete(firstKey);
-      }
-    }
+export interface Grant {
+  id: string;
+  title: string;
+  agency: string;
+  description: string;
+  eligibility: string;
+  award_amount: string;
+  deadline: string;
+  category: string;
+  url: string;
+  opportunity_number: string;
+}
+
+const TTL_SECONDS = 86400; // 24 hours
+
+export async function storeGrant(grant: Grant): Promise<void> {
+  if (!grant?.id) return;
+  try {
+    await kv.set(`grant:${grant.id}`, JSON.stringify(grant), { ex: TTL_SECONDS });
+  } catch {
+    // Redis not configured — silently skip caching in local dev
   }
 }
 
-export function getGrant(id: string): any | undefined {
-  return cache.get(id);
+export async function storeGrants(grants: Grant[]): Promise<void> {
+  if (!grants.length) return;
+  await Promise.all(grants.map(storeGrant));
 }
 
-export function getCacheSize(): number {
-  return cache.size;
+export async function getGrant(id: string): Promise<Grant | null> {
+  try {
+    const raw = await kv.get<string>(`grant:${id}`);
+    if (!raw) return null;
+    // @upstash/redis auto-parses JSON; accept both parsed object and raw string
+    if (typeof raw === 'object') return raw as unknown as Grant;
+    return JSON.parse(raw) as Grant;
+  } catch {
+    return null;
+  }
 }
