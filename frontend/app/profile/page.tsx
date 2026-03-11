@@ -22,7 +22,7 @@ import {
 export default function ProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, authReady, user } = useAuthStore();
   const [formData, setFormData] = useState({
     full_name: '',
     organization_name: '',
@@ -36,12 +36,12 @@ export default function ProfilePage() {
   });
   const [success, setSuccess] = useState(false);
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [authReady, isAuthenticated, router]);
 
   const { profile, updateProfile } = useProfileStore();
 

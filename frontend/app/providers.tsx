@@ -13,10 +13,12 @@ import { useProfileStore } from '@/lib/profile-store';
  */
 function SessionSync() {
   const { data: session, status } = useSession();
-  const { setAuth, clearAuth } = useAuthStore();
+  const { setAuth, clearAuth, setAuthReady } = useAuthStore();
   const { fetchProfile, clearProfile } = useProfileStore();
 
   useEffect(() => {
+    if (status === 'loading') return;
+
     if (status === 'authenticated' && session?.user?.email) {
       setAuth(
         {
@@ -33,7 +35,10 @@ function SessionSync() {
       clearAuth();
       clearProfile();
     }
-  }, [status, session, setAuth, clearAuth, fetchProfile, clearProfile]);
+
+    // Signal that auth state is now resolved so pages can safely redirect
+    setAuthReady();
+  }, [status, session, setAuth, clearAuth, setAuthReady, fetchProfile, clearProfile]);
 
   return null;
 }

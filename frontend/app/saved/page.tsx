@@ -27,17 +27,17 @@ import {
 export default function SavedGrantsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, authReady, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [heartRedById, setHeartRedById] = useState<Record<number, boolean>>({});
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({

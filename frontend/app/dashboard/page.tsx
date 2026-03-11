@@ -34,7 +34,7 @@ export default function DashboardPage() {
   // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, authReady, user, token } = useAuthStore();
   const { profile, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
@@ -51,12 +51,12 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
