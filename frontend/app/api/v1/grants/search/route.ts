@@ -3,7 +3,7 @@
  * Implements grant search directly in Next.js using OpenAI or Anthropic web search.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { storeGrants } from '@/lib/grant-cache';
+import { storeGrants, hasFutureDeadline } from '@/lib/grant-cache';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const normalized = grants.map(normalizeGrant).slice(0, limit);
+  const normalized = grants.map(normalizeGrant).filter(hasFutureDeadline).slice(0, limit);
   await storeGrants(normalized);
 
   return NextResponse.json({

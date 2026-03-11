@@ -44,3 +44,18 @@ export async function getGrant(id: string): Promise<Grant | null> {
     return null;
   }
 }
+
+/**
+ * Returns true if the grant deadline is in the future or unknown.
+ * Grants with missing or unparseable deadlines are kept to avoid filtering valid opportunities.
+ */
+export function hasFutureDeadline(grant: Pick<Grant, 'deadline'>): boolean {
+  if (!grant.deadline) return true;
+  try {
+    const deadline = new Date(grant.deadline);
+    if (isNaN(deadline.getTime())) return true;
+    return deadline > new Date();
+  } catch {
+    return true;
+  }
+}

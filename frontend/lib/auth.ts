@@ -40,20 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return { id: storedUser.id, email: storedUser.email, name: storedUser.name };
         }
 
-        // In production, fail closed when KV is unavailable or user not found.
-        if (process.env.NODE_ENV === 'production') {
-          return null;
-        }
-
-        // Hardcoded demo fallback — development only, never active in production.
-        // Remove this block once KV is provisioned and seed-demo-user.ts has been run.
-        const DEMO_USERS = [
-          { email: 'admin@mlh.com', password: 'mlh', id: 'user-mlh', name: 'MLH Fellow' },
-          { email: 'admin@nexar.ai', password: 'admin123', id: 'user-nexar', name: 'Admin User' },
-        ];
-        const demo = DEMO_USERS.find((u) => u.email === email && u.password === password);
-        if (demo) return { id: demo.id, email: demo.email, name: demo.name };
-
+        // Fail closed when KV is unavailable or user not found.
         return null;
       },
     }),
