@@ -35,21 +35,20 @@ export default function DashboardPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAuthenticated, user, token } = useAuthStore();
-  const { profile, updateProfile } = useProfileStore();
+  const { profile, hydrated, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
-  // Seed MLH default profile when MLH Fellow has no profile (run after rehydration so persist doesn't overwrite)
+  // Seed MLH default profile only after the store has been hydrated from the server,
+  // so we don't overwrite an existing profile before fetchProfile() completes.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
-        updateProfile(MLH_DEFAULT_PROFILE);
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
+    if (!hydrated) return;
+    if (user?.email === 'admin@mlh.com' && (!profile?.organization_name && !profile?.focus_areas?.length)) {
+      updateProfile(MLH_DEFAULT_PROFILE);
+    }
+  }, [hydrated, user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
