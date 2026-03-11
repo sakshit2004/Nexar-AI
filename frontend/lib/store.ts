@@ -22,9 +22,17 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  /**
+   * Becomes `true` once SessionSync has observed the first non-loading NextAuth
+   * status. Pages should wait for this before redirecting to /login so that
+   * already-signed-in users are not bounced on full page load.
+   */
+  authReady: boolean;
   /** Called by SessionSync whenever the NextAuth session changes. */
   setAuth: (user: User, token: string) => void;
   clearAuth: () => void;
+  /** Marks auth state as resolved (called by SessionSync after first status). */
+  setAuthReady: () => void;
   logout: () => void;
 }
 
@@ -32,6 +40,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
   user: null,
   token: null,
   isAuthenticated: false,
+  authReady: false,
 
   setAuth: (user, token) => {
     if (user && token) {
@@ -40,7 +49,11 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 
   clearAuth: () => {
-    set({ user: null, token: null, isAuthenticated: false });
+    set({ user: null, token: null, isAuthenticated: false, authReady: false });
+  },
+
+  setAuthReady: () => {
+    set((state) => (state.authReady ? state : { authReady: true }));
   },
 
   logout: () => {

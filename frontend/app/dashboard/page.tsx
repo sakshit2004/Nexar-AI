@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../components/ui/button';
@@ -35,9 +34,8 @@ export default function DashboardPage() {
   // Dashboard page component
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, authReady, user, token } = useAuthStore();
   const { profile, updateProfile } = useProfileStore();
-  const { status } = useSession();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
@@ -53,12 +51,12 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [user?.email, profile?.organization_name, profile?.focus_areas?.length, updateProfile]);
 
-  // Redirect to login only once the session is resolved (avoids false redirect during hydration)
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [status, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {

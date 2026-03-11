@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,18 +27,17 @@ import {
 export default function SavedGrantsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, token } = useAuthStore();
-  const { status } = useSession();
+  const { isAuthenticated, authReady, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [heartRedById, setHeartRedById] = useState<Record<number, boolean>>({});
 
-  // Redirect to login only once the session is resolved (avoids false redirect during hydration)
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (authReady && !isAuthenticated) {
       router.push('/login');
     }
-  }, [status, router]);
+  }, [authReady, isAuthenticated, router]);
 
   // Get saved grants
   const { data: savedGrantsData, isLoading } = useQuery({
