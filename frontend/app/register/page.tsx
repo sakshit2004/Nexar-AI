@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowRight, Zap, Check } from 'lucide-react';
+
+const BENEFITS = [
+  'AI-powered matching across federal, state & foundation grants',
+  'Plain-English summaries of complex requirements',
+  'Know your eligibility before you apply',
+  'Free to get started — no credit card required',
+];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -55,16 +62,60 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col pt-16">
-      <div className="flex-1 flex items-center justify-center px-4 pb-16">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-3">Create an account</h1>
-            <p className="text-muted-foreground">Join Nexar AI to discover grants</p>
+    <div className="min-h-screen flex pt-16">
+      {/* Left decorative panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-foreground text-background flex-col justify-between p-12 relative overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+          <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/4 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+        </div>
+
+        <div className="relative z-10">
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+            <Zap className="h-5 w-5" />
+            Nexar AI
+          </Link>
+        </div>
+
+        <div className="relative z-10 space-y-6">
+          <h2 className="text-3xl font-bold leading-snug">
+            Stop missing grants.<br />Start winning them.
+          </h2>
+          <ul className="space-y-3">
+            {BENEFITS.map((benefit, i) => (
+              <li key={i} className="flex items-start gap-3 text-background/80">
+                <div className="mt-0.5 rounded-full bg-background/20 p-0.5 flex-shrink-0">
+                  <Check className="h-3 w-3" />
+                </div>
+                <span className="text-sm">{benefit}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-6 text-background/60 text-sm">
+          <span>Trusted by 500+ nonprofits</span>
+          <span>·</span>
+          <span>Open source</span>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl mb-10 lg:hidden">
+            <Zap className="h-5 w-5" />
+            Nexar AI
+          </Link>
+
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Create your account</h1>
+            <p className="text-muted-foreground">Start discovering grants for free today</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
@@ -73,7 +124,6 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Name */}
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium block">
                 Full name
@@ -81,7 +131,7 @@ export default function RegisterPage() {
               <Input
                 id="name"
                 type="text"
-                placeholder="Enter your full name..."
+                placeholder="Jane Smith"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="h-11"
@@ -91,15 +141,14 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium block">
-                Email
+                Email address
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email address..."
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11"
@@ -108,7 +157,6 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Password */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium block">
                 Password
@@ -116,7 +164,7 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Create a password (min. 6 characters)..."
+                placeholder="Min. 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-11"
@@ -131,16 +179,23 @@ export default function RegisterPage() {
               className="w-full h-11 text-base font-medium"
               disabled={loading}
             >
-              {loading ? 'Creating account...' : 'Sign up'}
+              {loading ? 'Creating account...' : (
+                <>
+                  Create account
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            Already have an account?{' '}
-            <Link href="/login" className="underline hover:text-foreground">
-              Sign in
-            </Link>
-          </p>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link href="/login" className="font-medium text-foreground underline underline-offset-4 hover:opacity-70 transition-opacity">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

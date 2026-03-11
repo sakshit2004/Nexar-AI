@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowRight, Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,16 +43,54 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col pt-16">
-      <div className="flex-1 flex items-center justify-center px-4 pb-16">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-3">Sign in</h1>
-            <p className="text-muted-foreground">Welcome back to Nexar AI</p>
+    <div className="min-h-screen flex pt-16">
+      {/* Left decorative panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-foreground text-background flex-col justify-between p-12 relative overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+        </div>
+
+        <div className="relative z-10">
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+            <Zap className="h-5 w-5" />
+            Nexar AI
+          </Link>
+        </div>
+
+        <div className="relative z-10">
+          <blockquote className="text-2xl font-semibold leading-snug mb-6">
+            &ldquo;We found three federal grants in the first week. Nexar AI paid for itself immediately.&rdquo;
+          </blockquote>
+          <div>
+            <p className="font-medium">Sarah Chen</p>
+            <p className="text-background/60 text-sm">Executive Director, Community Health Initiative</p>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-6 text-background/60 text-sm">
+          <span>Trusted by 500+ nonprofits</span>
+          <span>·</span>
+          <span>$2M+ in grants found</span>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl mb-10 lg:hidden">
+            <Zap className="h-5 w-5" />
+            Nexar AI
+          </Link>
+
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back</h1>
+            <p className="text-muted-foreground">Sign in to your Nexar AI account</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleContinue} className="space-y-4">
             {error && (
               <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
@@ -61,15 +99,14 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium block">
-                Email
+                Email address
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email address..."
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11"
@@ -79,7 +116,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password (shown after email step) */}
             {showPassword && (
               <div className="space-y-2 animate-fade-in">
                 <label htmlFor="password" className="text-sm font-medium block">
@@ -88,7 +124,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password..."
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-11"
@@ -104,16 +140,23 @@ export default function LoginPage() {
               className="w-full h-11 text-base font-medium"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Continue'}
+              {loading ? 'Signing in...' : (
+                <>
+                  Continue
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="underline hover:text-foreground">
-              Sign up
-            </Link>
-          </p>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="font-medium text-foreground underline underline-offset-4 hover:opacity-70 transition-opacity">
+                Sign up free
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
