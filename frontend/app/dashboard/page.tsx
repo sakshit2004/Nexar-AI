@@ -11,6 +11,7 @@ import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore, type OrganizationProfile } from '../../lib/profile-store';
 import { grantsApi, savedGrantsApi } from '../../lib/api';
+import { OnboardingAssistant } from '../../components/OnboardingAssistant';
 import { 
   Search, 
   TrendingUp, 
@@ -71,7 +72,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
   const { isAuthenticated, user, token } = useAuthStore();
-  const { profile } = useProfileStore();
+  const { profile, hydrated: profileHydrated, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
@@ -85,6 +86,25 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, [sessionStatus, isAuthenticated, router]);
+
+  // Show the interactive onboarding assistant for new users who haven't completed onboarding
+  const showOnboardingAssistant = profileHydrated && profile && !profile.onboarding_completed;
+
+  const handleAdvanceStep = async (step: number) => {
+    try {
+      await updateProfile({ onboarding_step: step });
+    } catch {
+      // Best-effort persist — will sync on next mount
+    }
+  };
+
+  const handleCompleteOnboarding = async () => {
+    try {
+      await updateProfile({ onboarding_completed: true });
+    } catch {
+      // Best-effort — will sync on next mount
+    }
+  };
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
@@ -178,7 +198,7 @@ export default function DashboardPage() {
         <div className="mb-8 animate-stagger-in">
           <p className="text-sm text-muted-foreground mb-1">{getGreeting()}</p>
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {displayName} 👋
+            {showOnboardingAssistant ? `Welcome, ${displayName} 👋` : `Welcome back, ${displayName} 👋`}
           </h1>
           <p className="text-muted-foreground">
             {profile?.organization_name 
@@ -186,6 +206,18 @@ export default function DashboardPage() {
               : "Here's your grant discovery overview"}
           </p>
         </div>
+
+        {/* Interactive AI onboarding assistant for new users */}
+        {showOnboardingAssistant && (
+          <OnboardingAssistant
+            displayName={displayName}
+            currentStep={profile.onboarding_step ?? 0}
+            profileCompletion={profileCompletion.percentage}
+            hasProfileData={!!(profile.organization_name || profile.focus_areas?.length)}
+            onAdvanceStep={handleAdvanceStep}
+            onComplete={handleCompleteOnboarding}
+          />
+        )}
 
         {/* Profile completion bar — shows when profile is incomplete */}
         {profile && profileCompletion.percentage < 100 && (
