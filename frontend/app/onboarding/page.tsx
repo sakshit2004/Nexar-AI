@@ -172,8 +172,8 @@ export default function OnboardingPage() {
         focus_areas: focusAreas,
         location_state: locationState,
         location_county: locationCounty,
-        grant_amount_min: grantAmountMin ? parseInt(grantAmountMin, 10) : null,
-        grant_amount_max: grantAmountMax ? parseInt(grantAmountMax, 10) : null,
+        grant_amount_min: grantAmountMin && !isNaN(parseInt(grantAmountMin, 10)) ? parseInt(grantAmountMin, 10) : null,
+        grant_amount_max: grantAmountMax && !isNaN(parseInt(grantAmountMax, 10)) ? parseInt(grantAmountMax, 10) : null,
         keywords: keywords.split(',').map(k => k.trim()).filter(Boolean),
         onboarding_completed: true,
       });
@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                 <Zap className="h-8 w-8" />
               </div>
               <h1 className="text-4xl font-bold tracking-tight mb-3">
-                Welcome to Nexar AI{fullName ? `, ${fullName.split(' ')[0]}` : ''}!
+                Welcome to Nexar AI{fullName ? `, ${fullName.trim().split(/\s+/)[0]}` : ''}!
               </h1>
               <p className="text-lg text-muted-foreground mb-8 max-w-md">
                 Let&apos;s set up your profile so we can find the best grants for you.

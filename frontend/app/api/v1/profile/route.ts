@@ -98,7 +98,7 @@ export async function PUT(request: NextRequest) {
   if (body.location_county !== undefined) toStore.location_county = body.location_county;
   if (body.grant_amount_min !== undefined) toStore.grant_amount_min = body.grant_amount_min != null ? String(body.grant_amount_min) : '';
   if (body.grant_amount_max !== undefined) toStore.grant_amount_max = body.grant_amount_max != null ? String(body.grant_amount_max) : '';
-  if (body.onboarding_completed !== undefined) toStore.onboarding_completed = String(body.onboarding_completed);
+  if (body.onboarding_completed !== undefined) toStore.onboarding_completed = body.onboarding_completed ? 'true' : 'false';
   if (body.focus_areas !== undefined) {
     toStore.focus_areas = Array.isArray(body.focus_areas) ? JSON.stringify(body.focus_areas) : body.focus_areas;
   }
