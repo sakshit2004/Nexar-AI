@@ -21,7 +21,8 @@ import {
   DollarSign,
   Building,
   Tag,
-  Plus
+  Plus,
+  ArrowRight
 } from 'lucide-react';
 
 export default function SavedGrantsPage() {
@@ -109,7 +110,7 @@ export default function SavedGrantsPage() {
     <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 animate-stagger-in">
           <h1 className="text-3xl font-bold mb-2">Saved Grants</h1>
           <p className="text-muted-foreground">
             Manage your bookmarked grants and track your progress
@@ -119,42 +120,57 @@ export default function SavedGrantsPage() {
         {/* Stats */}
         {stats && (
           <div className="grid gap-4 md:grid-cols-3 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
-                <Bookmark className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.total_saved}</div>
-              </CardContent>
-            </Card>
+            <div className="animate-stagger-in" style={{ animationDelay: '0.1s' }}>
+              <Card className="interactive-card">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+                    <Bookmark className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold stat-number">{stats.total_saved}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Grants bookmarked</p>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Favorites</CardTitle>
-                <Heart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.favorites}</div>
-              </CardContent>
-            </Card>
+            <div className="animate-stagger-in" style={{ animationDelay: '0.15s' }}>
+              <Card className="interactive-card">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Favorites</CardTitle>
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+                    <Heart className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold stat-number">{stats.favorites}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Top picks</p>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Categories</CardTitle>
-                <Tag className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {Object.keys(stats.by_category || {}).length}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="animate-stagger-in" style={{ animationDelay: '0.2s' }}>
+              <Card className="interactive-card">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Categories</CardTitle>
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold stat-number">
+                    {Object.keys(stats.by_category || {}).length}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Unique categories</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-stagger-in" style={{ animationDelay: '0.25s' }}>
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -169,18 +185,16 @@ export default function SavedGrantsPage() {
           
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant={filter === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('all')}
-              className={filter === 'all' ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
             >
               All
             </Button>
             <Button
-              variant="outline"
+              variant={filter === 'favorites' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('favorites')}
-              className={filter === 'favorites' ? 'ring-2 ring-primary ring-offset-2 border-primary' : ''}
             >
               <Heart className="mr-2 h-4 w-4" />
               Favorites
@@ -190,131 +204,141 @@ export default function SavedGrantsPage() {
 
         {/* Saved Grants List */}
         {isLoading || isSearching ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="relative mb-4">
+              <div className="w-12 h-12 rounded-full border-2 border-muted" />
+              <Loader2 className="h-12 w-12 animate-spin text-foreground absolute inset-0" />
+            </div>
+            <p className="text-sm text-muted-foreground">Loading your saved grants...</p>
           </div>
         ) : savedGrants.length > 0 ? (
           <div className="space-y-4">
-            {savedGrants.map((grant: any) => (
-              <Card key={grant.id} className="hover:border-primary transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="secondary">{grant.category || 'General'}</Badge>
-                        {grant.is_favorite && (
-                          <Badge variant="default" className="bg-yellow-500">
-                            <Star className="mr-1 h-3 w-3" />
-                            Favorite
-                          </Badge>
+            {savedGrants.map((grant: any, index: number) => (
+              <div key={grant.id} className="animate-stagger-in" style={{ animationDelay: `${0.05 * index}s` }}>
+                <Card className="interactive-card group">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="secondary">{grant.category || 'General'}</Badge>
+                          {grant.is_favorite && (
+                            <Badge variant="default" className="bg-yellow-500">
+                              <Star className="mr-1 h-3 w-3" />
+                              Favorite
+                            </Badge>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-semibold mb-2 group-hover:text-foreground transition-colors">{grant.title}</h3>
+                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                          {grant.description}
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1.5">
+                            <Building className="h-4 w-4" />
+                            {grant.agency || 'Federal Agency'}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <DollarSign className="h-4 w-4" />
+                            {grant.award_amount || (grant.award_ceiling ? `Up to $${Number(grant.award_ceiling).toLocaleString()}` : 'Amount varies')}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-4 w-4" />
+                            {(grant.deadline || grant.close_date) ? new Date(grant.deadline || grant.close_date).toLocaleDateString() : 'Rolling'}
+                          </span>
+                        </div>
+
+                        {grant.user_notes && (
+                          <div className="bg-muted p-3 rounded-md mb-3">
+                            <p className="text-sm">
+                              <strong>Your notes:</strong> {grant.user_notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {grant.user_tags && grant.user_tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {grant.user_tags.map((tag: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold mb-2">{grant.title}</h3>
-                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                        {grant.description}
-                      </p>
-                      
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <Building className="h-4 w-4" />
-                          {grant.agency || 'Federal Agency'}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="h-4 w-4" />
-                          {grant.award_amount || (grant.award_ceiling ? `Up to $${Number(grant.award_ceiling).toLocaleString()}` : 'Amount varies')}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {(grant.deadline || grant.close_date) ? new Date(grant.deadline || grant.close_date).toLocaleDateString() : 'Rolling'}
-                        </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/grants/${grant.grant_id}`}
+                          onClick={() => {
+                            try {
+                              const g = { id: grant.grant_id, title: grant.title, agency: grant.agency, description: grant.description, eligibility: grant.eligibility, award_amount: grant.award_amount, deadline: grant.deadline, category: grant.category, url: grant.url, opportunity_number: grant.opportunity_number };
+                              sessionStorage.setItem(`grant_${grant.grant_id}`, JSON.stringify(g));
+                            } catch {}
+                          }}
+                        >
+                          <Button variant="outline" size="sm">
+                            View Details
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                        {grant.url && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={grant.url} target="_blank" rel="noopener noreferrer">
+                              Official Page
+                            </a>
+                          </Button>
+                        )}
                       </div>
 
-                      {grant.user_notes && (
-                        <div className="bg-muted p-3 rounded-md mb-3">
-                          <p className="text-sm">
-                            <strong>Your notes:</strong> {grant.user_notes}
-                          </p>
-                        </div>
-                      )}
-
-                      {grant.user_tags && grant.user_tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {grant.user_tags.map((tag: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/grants/${grant.grant_id}`}
-                        onClick={() => {
-                          try {
-                            const g = { id: grant.grant_id, title: grant.title, agency: grant.agency, description: grant.description, eligibility: grant.eligibility, award_amount: grant.award_amount, deadline: grant.deadline, category: grant.category, url: grant.url, opportunity_number: grant.opportunity_number };
-                            sessionStorage.setItem(`grant_${grant.grant_id}`, JSON.stringify(g));
-                          } catch {}
-                        }}
-                      >
-                        <Button variant="outline" size="sm">
-                          View Details
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const showRed = heartRedById[grant.id] ?? grant.is_favorite;
+                            setHeartRedById((prev) => ({ ...prev, [grant.id]: !showRed }));
+                            toggleFavoriteMutation.mutate(grant.id);
+                          }}
+                          disabled={toggleFavoriteMutation.isPending}
+                          className="hover:bg-red-50 dark:hover:bg-red-950/20"
+                        >
+                          <Heart
+                            className={`h-4 w-4 transition-colors ${
+                              heartRedById[grant.id] ?? grant.is_favorite
+                                ? 'fill-red-500 text-red-500'
+                                : ''
+                            }`}
+                          />
                         </Button>
-                      </Link>
-                      {grant.url && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={grant.url} target="_blank" rel="noopener noreferrer">
-                            Official Page
-                          </a>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(grant.id)}
+                          disabled={deleteMutation.isPending}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
+                      </div>
                     </div>
-
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const showRed = heartRedById[grant.id] ?? grant.is_favorite;
-                          setHeartRedById((prev) => ({ ...prev, [grant.id]: !showRed }));
-                          toggleFavoriteMutation.mutate(grant.id);
-                        }}
-                        disabled={toggleFavoriteMutation.isPending}
-                      >
-                        <Heart
-                          className={`h-4 w-4 transition-colors ${
-                            heartRedById[grant.id] ?? grant.is_favorite
-                              ? 'fill-red-500 text-red-500'
-                              : ''
-                          }`}
-                        />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(grant.id)}
-                        disabled={deleteMutation.isPending}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Bookmark className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <Bookmark className="h-8 w-8 text-muted-foreground" />
+            </div>
             <h3 className="text-lg font-semibold mb-2">
               {searchQuery ? 'No grants found' : 'No saved grants yet'}
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               {searchQuery 
                 ? 'Try adjusting your search terms'
                 : 'Start saving grants you\'re interested in to keep track of them'

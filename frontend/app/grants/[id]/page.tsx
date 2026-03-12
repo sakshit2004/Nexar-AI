@@ -169,27 +169,42 @@ export default function GrantDetailsPage() {
         </Link>
 
         {/* Grant Header */}
-        <div className="mb-8">
+        <div className="mb-8 animate-stagger-in">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex-1">
-              <Badge variant="secondary" className="mb-2">{grant.category || 'General'}</Badge>
-              <h1 className="text-3xl font-bold mb-2">{grant.title}</h1>
-              <p className="text-muted-foreground">{grant.agency || 'Federal Agency'}</p>
+              <Badge variant="secondary" className="mb-3">{grant.category || 'General'}</Badge>
+              <h1 className="text-3xl font-bold mb-3">{grant.title}</h1>
+              <p className="text-muted-foreground text-lg">{grant.agency || 'Federal Agency'}</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex flex-wrap gap-6 text-sm mt-4 p-4 rounded-lg bg-muted/50">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{grant.award_amount || 'Amount varies'}</span>
+              <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Award Amount</p>
+                <p className="font-medium">{grant.award_amount || 'Varies'}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>Deadline: {grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}</span>
+              <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Deadline</p>
+                <p className="font-medium">{grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
-              <span>{grant.opportunity_number || grant.id || 'N/A'}</span>
+              <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Opportunity #</p>
+                <p className="font-medium">{grant.opportunity_number || grant.id || 'N/A'}</p>
+              </div>
             </div>
           </div>
         </div>
