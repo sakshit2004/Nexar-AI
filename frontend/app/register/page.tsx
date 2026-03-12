@@ -12,7 +12,7 @@ const BENEFITS = [
   'AI-powered matching across federal, state & foundation grants',
   'Plain-English summaries of complex requirements',
   'Know your eligibility before you apply',
-  'Free to get started — no credit card required',
+  'Fully open source — free to use, fork, and contribute',
 ];
 
 export default function RegisterPage() {
