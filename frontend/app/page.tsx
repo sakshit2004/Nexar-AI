@@ -95,12 +95,6 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/login">
-              <Button variant="outline" size="lg" className="h-12 px-8 text-base font-medium">
-                Sign in
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
             <button 
               onClick={scrollToDemo}
               className="text-base text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
@@ -216,11 +210,6 @@ export default function Home() {
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-medium">
                 Sign up
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base font-medium bg-transparent border-background/40 text-background hover:bg-background/10 hover:text-background">
-                Sign in
               </Button>
             </Link>
           </div>

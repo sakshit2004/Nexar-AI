@@ -86,14 +86,9 @@ export function Navbar() {
                 </Button>
               </>
             ) : (
-              <>
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">Sign in</Button>
-                </Link>
-                <Link href="/register">
-                  <Button size="sm">Sign up</Button>
-                </Link>
-              </>
+              <Link href="/login">
+                <Button variant="ghost" size="sm">Sign in</Button>
+              </Link>
             )}
           </div>
         </div>
