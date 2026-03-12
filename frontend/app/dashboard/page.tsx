@@ -71,7 +71,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
   const { isAuthenticated, user, token } = useAuthStore();
-  const { profile } = useProfileStore();
+  const { profile, hydrated: profileHydrated } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
@@ -85,6 +85,13 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, [sessionStatus, isAuthenticated, router]);
+
+  // Redirect to onboarding if user hasn't completed it yet
+  useEffect(() => {
+    if (profileHydrated && profile && !profile.onboarding_completed) {
+      router.push('/onboarding');
+    }
+  }, [profileHydrated, profile, router]);
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {

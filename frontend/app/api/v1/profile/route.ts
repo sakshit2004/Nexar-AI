@@ -37,6 +37,7 @@ function parseProfile(raw: Record<string, string> | null) {
     location_county: raw.location_county ?? '',
     grant_amount_min: raw.grant_amount_min ? Number(raw.grant_amount_min) : null,
     grant_amount_max: raw.grant_amount_max ? Number(raw.grant_amount_max) : null,
+    onboarding_completed: raw.onboarding_completed === 'true',
   };
 }
 
@@ -80,6 +81,7 @@ export async function PUT(request: NextRequest) {
     location_county: string;
     grant_amount_min: number | null;
     grant_amount_max: number | null;
+    onboarding_completed: boolean;
   }>;
 
   try {
@@ -96,6 +98,7 @@ export async function PUT(request: NextRequest) {
   if (body.location_county !== undefined) toStore.location_county = body.location_county;
   if (body.grant_amount_min !== undefined) toStore.grant_amount_min = body.grant_amount_min != null ? String(body.grant_amount_min) : '';
   if (body.grant_amount_max !== undefined) toStore.grant_amount_max = body.grant_amount_max != null ? String(body.grant_amount_max) : '';
+  if (body.onboarding_completed !== undefined) toStore.onboarding_completed = String(body.onboarding_completed);
   if (body.focus_areas !== undefined) {
     toStore.focus_areas = Array.isArray(body.focus_areas) ? JSON.stringify(body.focus_areas) : body.focus_areas;
   }

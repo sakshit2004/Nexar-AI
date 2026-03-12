@@ -16,6 +16,8 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const isOnboarding = pathname === '/onboarding';
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -50,7 +52,7 @@ export function Navbar() {
               Nexar AI
             </Link>
             
-            {isAuthenticated && (
+            {isAuthenticated && !isOnboarding && (
               <div className="hidden md:flex items-center gap-1">
                 {navLinks.map((link) => (
                   <Link
@@ -97,7 +99,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile navigation */}
-        {isAuthenticated && mobileMenuOpen && (
+        {isAuthenticated && !isOnboarding && mobileMenuOpen && (
           <div className="md:hidden border-t pb-4 pt-2 animate-fade-in">
             <div className="flex flex-col gap-1">
               {navLinks.map((link) => (

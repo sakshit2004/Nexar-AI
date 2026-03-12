@@ -16,6 +16,7 @@ export interface OrganizationProfile {
   grant_amount_min: number | null;
   grant_amount_max: number | null;
   keywords: string[];
+  onboarding_completed: boolean;
 }
 
 interface ProfileState {
@@ -42,6 +43,7 @@ const defaultProfile: OrganizationProfile = {
   grant_amount_min: null,
   grant_amount_max: null,
   keywords: [],
+  onboarding_completed: false,
 };
 
 export const useProfileStore = create<ProfileState>()((set, get) => ({
