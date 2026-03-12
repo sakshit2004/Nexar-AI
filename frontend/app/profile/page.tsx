@@ -23,6 +23,7 @@ import {
   Tag
 } from 'lucide-react';
 
+/** Calculates profile completion percentage based on filled form fields. */
 function getProfileCompletion(formData: Record<string, string>): { percentage: number; filled: number; total: number } {
   const fields = ['full_name', 'organization_name', 'organization_type', 'focus_areas', 'location_state', 'keywords'];
   let filled = 0;

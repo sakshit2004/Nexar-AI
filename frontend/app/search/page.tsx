@@ -21,7 +21,7 @@ import {
   Building
 } from 'lucide-react';
 
-const QUICK_SEARCHES = [
+const SEARCH_CATEGORY_CHIPS = [
   { label: '🏥 Health', query: 'health' },
   { label: '📚 Education', query: 'education' },
   { label: '🌱 Environment', query: 'environment' },
@@ -150,7 +150,7 @@ function SearchPageInner() {
               {activeSearchParams.query === '' && (
                 <div className="flex flex-wrap gap-2">
                   <span className="text-xs text-muted-foreground self-center mr-1">Quick:</span>
-                  {QUICK_SEARCHES.map((chip) => (
+                  {SEARCH_CATEGORY_CHIPS.map((chip) => (
                     <button
                       key={chip.query}
                       type="button"

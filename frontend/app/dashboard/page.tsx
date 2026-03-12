@@ -9,7 +9,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
-import { useProfileStore } from '../../lib/profile-store';
+import { useProfileStore, type OrganizationProfile } from '../../lib/profile-store';
 import { grantsApi, savedGrantsApi } from '../../lib/api';
 import { 
   Search, 
@@ -35,6 +35,7 @@ const RECOMMENDED_LOADING_MESSAGES = [
   'Scanning open funding opportunities...',
 ];
 
+/** Returns a time-of-day appropriate greeting string. */
 function getGreeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good morning';
@@ -42,7 +43,8 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-function getProfileCompletion(profile: any): { percentage: number; missing: string[] } {
+/** Calculates profile completion percentage and lists missing fields. */
+function getProfileCompletion(profile: OrganizationProfile | null): { percentage: number; missing: string[] } {
   if (!profile) return { percentage: 0, missing: ['Complete your profile to get started'] };
   const fields = [
     { key: 'full_name', label: 'Full name' },
@@ -55,8 +57,8 @@ function getProfileCompletion(profile: any): { percentage: number; missing: stri
   const missing: string[] = [];
   let filled = 0;
   for (const f of fields) {
-    const val = profile[f.key];
-    if (f.isArray ? val && val.length > 0 : val) {
+    const val = profile[f.key as keyof OrganizationProfile];
+    if (f.isArray ? val && Array.isArray(val) && val.length > 0 : val) {
       filled++;
     } else {
       missing.push(f.label);
