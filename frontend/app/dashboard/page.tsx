@@ -11,7 +11,7 @@ import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore, type OrganizationProfile } from '../../lib/profile-store';
 import { grantsApi, savedGrantsApi } from '../../lib/api';
-import { WelcomeGuide } from '../../components/WelcomeGuide';
+import { OnboardingAssistant } from '../../components/OnboardingAssistant';
 import { 
   Search, 
   TrendingUp, 
@@ -87,18 +87,22 @@ export default function DashboardPage() {
     }
   }, [sessionStatus, isAuthenticated, router]);
 
-  // Track whether the welcome guide has been dismissed this session
-  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  // Show the interactive onboarding assistant for new users who haven't completed onboarding
+  const showOnboardingAssistant = profileHydrated && profile && !profile.onboarding_completed;
 
-  // Show the interactive welcome guide for new users who haven't completed onboarding
-  const showWelcomeGuide = profileHydrated && profile && !profile.onboarding_completed && !welcomeDismissed;
+  const handleAdvanceStep = async (step: number) => {
+    try {
+      await updateProfile({ onboarding_step: step });
+    } catch {
+      // Best-effort persist — will sync on next mount
+    }
+  };
 
-  const dismissWelcomeGuide = async () => {
-    setWelcomeDismissed(true);
+  const handleCompleteOnboarding = async () => {
     try {
       await updateProfile({ onboarding_completed: true });
     } catch {
-      // Optimistic dismiss — will sync on next mount
+      // Best-effort — will sync on next mount
     }
   };
 
@@ -194,7 +198,7 @@ export default function DashboardPage() {
         <div className="mb-8 animate-stagger-in">
           <p className="text-sm text-muted-foreground mb-1">{getGreeting()}</p>
           <h1 className="text-3xl font-bold mb-2">
-            {showWelcomeGuide ? `Welcome, ${displayName} 👋` : `Welcome back, ${displayName} 👋`}
+            {showOnboardingAssistant ? `Welcome, ${displayName} 👋` : `Welcome back, ${displayName} 👋`}
           </h1>
           <p className="text-muted-foreground">
             {profile?.organization_name 
@@ -203,9 +207,16 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Interactive welcome guide for new users */}
-        {showWelcomeGuide && (
-          <WelcomeGuide displayName={displayName} onDismiss={dismissWelcomeGuide} />
+        {/* Interactive AI onboarding assistant for new users */}
+        {showOnboardingAssistant && (
+          <OnboardingAssistant
+            displayName={displayName}
+            currentStep={profile.onboarding_step ?? 0}
+            profileCompletion={profileCompletion.percentage}
+            hasProfileData={!!(profile.organization_name || profile.focus_areas?.length)}
+            onAdvanceStep={handleAdvanceStep}
+            onComplete={handleCompleteOnboarding}
+          />
         )}
 
         {/* Profile completion bar — shows when profile is incomplete */}

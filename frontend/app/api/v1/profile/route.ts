@@ -38,6 +38,7 @@ function parseProfile(raw: Record<string, string> | null) {
     grant_amount_min: raw.grant_amount_min ? Number(raw.grant_amount_min) : null,
     grant_amount_max: raw.grant_amount_max ? Number(raw.grant_amount_max) : null,
     onboarding_completed: raw.onboarding_completed === 'true',
+    onboarding_step: raw.onboarding_step ? Number(raw.onboarding_step) : 0,
   };
 }
 
@@ -82,6 +83,7 @@ export async function PUT(request: NextRequest) {
     grant_amount_min: number | null;
     grant_amount_max: number | null;
     onboarding_completed: boolean;
+    onboarding_step: number;
   }>;
 
   try {
@@ -99,6 +101,7 @@ export async function PUT(request: NextRequest) {
   if (body.grant_amount_min !== undefined) toStore.grant_amount_min = body.grant_amount_min != null ? String(body.grant_amount_min) : '';
   if (body.grant_amount_max !== undefined) toStore.grant_amount_max = body.grant_amount_max != null ? String(body.grant_amount_max) : '';
   if (body.onboarding_completed !== undefined) toStore.onboarding_completed = body.onboarding_completed ? 'true' : 'false';
+  if (body.onboarding_step !== undefined) toStore.onboarding_step = String(body.onboarding_step);
   if (body.focus_areas !== undefined) {
     toStore.focus_areas = Array.isArray(body.focus_areas) ? JSON.stringify(body.focus_areas) : body.focus_areas;
   }
