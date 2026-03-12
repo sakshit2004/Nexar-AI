@@ -4,7 +4,7 @@
  * Runs on Vercel as a Node.js serverless function — no Python backend needed.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { storeGrants } from '@/lib/grant-cache';
+import { storeGrants, hasFutureDeadline } from '@/lib/grant-cache';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -193,8 +193,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const normalized = grants.map(normalizeGrant).slice(0, limit);
-  storeGrants(normalized);
+  const normalized = grants.map(normalizeGrant).filter(hasFutureDeadline).slice(0, limit);
+  await storeGrants(normalized);
   const isPersonalized = q !== 'federal grants USA' && q !== 'federal grants usa';
 
   return NextResponse.json({

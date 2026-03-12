@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -17,20 +17,32 @@ import {
   Clock,
   Loader2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Building
 } from 'lucide-react';
 
-export default function SearchPage() {
+const SEARCH_CATEGORY_CHIPS = [
+  { label: '🏥 Health', query: 'health' },
+  { label: '📚 Education', query: 'education' },
+  { label: '🌱 Environment', query: 'environment' },
+  { label: '💻 Technology', query: 'technology' },
+  { label: '🎨 Arts & Culture', query: 'arts culture' },
+  { label: '🔬 Research', query: 'research' },
+];
+
+function SearchPageInner() {
   const router = useRouter();
-  const { isAuthenticated, setAuth } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, authReady } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
     min_amount: '',
     max_amount: '',
   });
+  const [showFilters, setShowFilters] = useState(false);
   
-  // Separate state for the actual search params (only updated on button click)
+  // Separate state for the actual search params (only updated on button click or auto-trigger)
   const [activeSearchParams, setActiveSearchParams] = useState({
     query: '',
     category: '',
@@ -38,28 +50,22 @@ export default function SearchPage() {
     max_amount: '',
   });
 
-  // Auto-login with hardcoded user if not authenticated (unless just logged out)
+  // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
-    if (!isAuthenticated) {
-      // Check if user just logged out - don't auto-login in that case
-      const justLoggedOut = typeof window !== 'undefined' && sessionStorage.getItem('just-logged-out');
-      if (justLoggedOut) {
-        // Clear the flag and redirect to home instead of auto-login
-        sessionStorage.removeItem('just-logged-out');
-        router.push('/');
-        return;
-      }
-      
-      const mockUser = {
-        id: '1',
-        email: 'admin@nexar.ai',
-        name: 'Admin User',
-        tier: 'premium' as const,
-      };
-      const mockToken = 'hardcoded-auth-token';
-      setAuth(mockUser, mockToken);
+    if (authReady && !isAuthenticated) {
+      router.push('/login');
     }
-  }, [isAuthenticated, setAuth, router]);
+  }, [authReady, isAuthenticated, router]);
+
+  // Pre-populate and auto-trigger search from URL ?q= param (homepage search)
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && isAuthenticated) {
+      setSearchQuery(q);
+      setActiveSearchParams({ query: q, category: '', min_amount: '', max_amount: '' });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isAuthenticated]);
 
   const { data: searchResults, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['grants', activeSearchParams],
@@ -96,12 +102,17 @@ export default function SearchPage() {
     });
   };
 
+  const handleQuickSearch = (query: string) => {
+    setSearchQuery(query);
+    setActiveSearchParams({ query, category: '', min_amount: '', max_amount: '' });
+  };
+
 
   return (
     <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 animate-stagger-in">
           <h1 className="text-3xl font-bold mb-2">Search Grants</h1>
           <p className="text-muted-foreground">
             Find grant opportunities matching your criteria
@@ -109,7 +120,7 @@ export default function SearchPage() {
         </div>
 
         {/* Search Bar */}
-        <Card className="mb-8">
+        <Card className="mb-6 animate-stagger-in" style={{ animationDelay: '0.1s' }}>
           <CardContent className="pt-6">
             <form onSubmit={handleSearch} className="space-y-4">
               <div className="flex gap-2">
@@ -126,57 +137,97 @@ export default function SearchPage() {
                         setActiveSearchParams({ query: searchQuery, ...filters });
                       }
                     }}
-                    className="pl-10"
+                    className="pl-10 h-11"
                   />
                 </div>
-                <Button type="submit">
+                <Button type="submit" size="lg">
                   <SearchIcon className="mr-2 h-4 w-4" />
                   Search
                 </Button>
               </div>
 
-              {/* Filters */}
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Category</label>
-                  <select
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>option]:bg-background [&>option]:text-foreground"
-                    value={filters.category}
-                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+              {/* Quick search chips */}
+              {activeSearchParams.query === '' && (
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs text-muted-foreground self-center mr-1">Quick:</span>
+                  {SEARCH_CATEGORY_CHIPS.map((chip) => (
+                    <button
+                      key={chip.query}
+                      type="button"
+                      onClick={() => handleQuickSearch(chip.query)}
+                      className="search-chip px-3 py-1.5 rounded-full border text-xs font-medium hover:bg-muted transition-colors"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Filter toggle */}
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  {showFilters ? 'Hide filters' : 'Show filters'}
+                </button>
+                {(filters.category || filters.min_amount || filters.max_amount) && (
+                  <button
+                    type="button"
+                    onClick={() => setFilters({ category: '', min_amount: '', max_amount: '' })}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <option value="">All Categories</option>
-                    <option value="health">Health</option>
-                    <option value="education">Education</option>
-                    <option value="environment">Environment</option>
-                    <option value="technology">Technology</option>
-                    <option value="arts">Arts & Culture</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Min Amount</label>
-                  <Input
-                    type="number"
-                    placeholder="$0"
-                    value={filters.min_amount}
-                    onChange={(e) => setFilters({ ...filters, min_amount: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Max Amount</label>
-                  <Input
-                    type="number"
-                    placeholder="No limit"
-                    value={filters.max_amount}
-                    onChange={(e) => setFilters({ ...filters, max_amount: e.target.value })}
-                  />
-                </div>
+                    Clear filters
+                  </button>
+                )}
               </div>
+
+              {/* Filters */}
+              {showFilters && (
+                <div className="grid gap-4 md:grid-cols-3 animate-fade-in">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Category</label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>option]:bg-background [&>option]:text-foreground"
+                      value={filters.category}
+                      onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                    >
+                      <option value="">All Categories</option>
+                      <option value="health">Health</option>
+                      <option value="education">Education</option>
+                      <option value="environment">Environment</option>
+                      <option value="technology">Technology</option>
+                      <option value="arts">Arts & Culture</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Min Amount</label>
+                    <Input
+                      type="number"
+                      placeholder="$0"
+                      value={filters.min_amount}
+                      onChange={(e) => setFilters({ ...filters, min_amount: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Max Amount</label>
+                    <Input
+                      type="number"
+                      placeholder="No limit"
+                      value={filters.max_amount}
+                      onChange={(e) => setFilters({ ...filters, max_amount: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
             </form>
           </CardContent>
         </Card>
 
         {/* Results */}
-        <div>
+        <div className="animate-stagger-in" style={{ animationDelay: '0.2s' }}>
           {isError ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -189,8 +240,11 @@ export default function SearchPage() {
             </Card>
           ) : isLoading ? (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="relative mb-4">
+                  <div className="w-14 h-14 rounded-full border-2 border-muted" />
+                  <Loader2 className="h-14 w-14 animate-spin text-foreground absolute inset-0" />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">Searching for Grants...</h3>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
@@ -200,8 +254,10 @@ export default function SearchPage() {
             </Card>
           ) : activeSearchParams.query === '' ? (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <SearchIcon className="h-8 w-8 text-muted-foreground" />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">
                   {searchQuery.trim() ? 'Run your search' : 'Start Your Grant Search'}
                 </h3>
@@ -214,57 +270,55 @@ export default function SearchPage() {
             </Card>
           ) : grants && grants.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    Found {grants.length} grants
+                  <p className="text-sm font-medium">
+                    {grants.length} grant{grants.length !== 1 ? 's' : ''} found
                   </p>
                   {providersUsed.length > 0 && (
                     <div className="flex items-center gap-1">
-                      <Sparkles className="h-3 w-3 text-primary" />
+                      <Sparkles className="h-3 w-3 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">
-                        Advanced search technology
+                        AI-powered
+                        {responseTime && ` · ${(responseTime / 1000).toFixed(1)}s`}
                       </span>
-                      {responseTime && (
-                        <span className="text-xs text-muted-foreground">
-                          ({(responseTime / 1000).toFixed(1)}s)
-                        </span>
-                      )}
                     </div>
                   )}
                 </div>
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 h-4 w-4" />
-                  More Filters
-                </Button>
               </div>
               
-              {grants.map((grant: any) => (
-                <Card key={grant.id} className="hover:border-foreground transition-colors border-2">
-                  <CardHeader>
+              {grants.map((grant: any, index: number) => (
+                <Card key={grant.id} className="interactive-card group">
+                  <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CardTitle className="text-lg">{grant.title}</CardTitle>
+                        <div className="flex items-center gap-2 mb-1">
+                          <CardTitle className="text-lg group-hover:text-foreground transition-colors">{grant.title}</CardTitle>
                         </div>
                         <CardDescription className="line-clamp-2">
                           {grant.description}
                         </CardDescription>
                       </div>
-                      <Badge variant="secondary">{grant.category || 'General'}</Badge>
+                      <Badge variant="secondary" className="shrink-0">{grant.category || 'General'}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           <DollarSign className="h-4 w-4" />
                           {grant.award_amount || 'Amount varies'}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           <Clock className="h-4 w-4" />
-                          Deadline: {grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}
+                          {grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}
                         </span>
+                        {grant.agency && (
+                          <span className="hidden sm:flex items-center gap-1.5">
+                            <Building className="h-4 w-4" />
+                            {grant.agency}
+                          </span>
+                        )}
                       </div>
                       <Link href={`/grants/${grant.id}`} onClick={() => { try { sessionStorage.setItem(`grant_${grant.id}`, JSON.stringify(grant)); } catch {} }}>
                         <Button variant="outline" size="sm">
@@ -278,10 +332,12 @@ export default function SearchPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <div className="text-center py-16">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <SearchIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
               <h4 className="font-semibold mb-2">No grants found</h4>
-              <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+              <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
                 The search completed but no federal grants matched &quot;{activeSearchParams.query}&quot;.{' '}
                 {(() => {
                   const suggestions = ['Education', 'Health', 'Technology', 'Environment', 'federal grants'];
@@ -303,6 +359,14 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background pt-20 flex items-center justify-center"><span className="text-muted-foreground">Loading...</span></div>}>
+      <SearchPageInner />
+    </Suspense>
   );
 }
 

@@ -1,58 +1,32 @@
-# GrantMatch Advisor - Makefile
+# Nexar AI - Makefile
 # Quick commands for development and deployment
 
-.PHONY: help install dev test lint format docker-build docker-up docker-down deploy
+.PHONY: help install dev build test lint
 
 help:
-	@echo "GrantMatch Advisor - Make Commands"
+	@echo "Nexar AI - Make Commands"
 	@echo ""
 	@echo "Development:"
-	@echo "  make install       Install dependencies"
+	@echo "  make install       Install frontend dependencies"
 	@echo "  make dev           Run development server"
+	@echo "  make build         Build for production"
 	@echo "  make test          Run tests"
 	@echo "  make lint          Run linters"
-	@echo "  make format        Format code"
-	@echo ""
-	@echo "Docker:"
-	@echo "  make docker-build  Build Docker images"
-	@echo "  make docker-up     Start Docker containers"
-	@echo "  make docker-down   Stop Docker containers"
-	@echo ""
-	@echo "Database:"
-	@echo "  make init-db       Initialize database"
-	@echo "  make sync-grants   Sync grants from API"
 
 install:
-	pip install -r requirements.txt
+	npm install
 
 dev:
-	uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+	npm run dev
+
+build:
+	npm run build
 
 test:
-	pytest tests/ -v --cov=backend
+	npm run test
 
 lint:
-	flake8 backend/
-	mypy backend/
-
-format:
-	black backend/
-	black tests/
-
-docker-build:
-	docker-compose build
-
-docker-up:
-	docker-compose up -d
-
-docker-down:
-	docker-compose down
-
-init-db:
-	python scripts/init_db.py
-
-sync-grants:
-	python scripts/sync_grants.py
+	npm run lint
 
 # Vercel deployment
 vercel-deploy:
@@ -64,14 +38,20 @@ vercel-dev:
 vercel-env:
 	@echo "Set these in Vercel Dashboard → Settings → Environment Variables:"
 	@echo ""
-	@echo "Required:"
+	@echo "Required (LLM):"
 	@echo "  OPENAI_API_KEY"
-	@echo "  SECRET_KEY"
-	@echo "  JWT_SECRET"
-	@echo "  DATABASE_URL (PostgreSQL)"
+	@echo "  ANTHROPIC_API_KEY"
+	@echo "  LLM_PROVIDER          (openai or anthropic)"
+	@echo ""
+	@echo "Required (Redis/KV):"
+	@echo "  KV_REST_API_URL"
+	@echo "  KV_REST_API_TOKEN"
+	@echo "  UPSTASH_REDIS_REST_URL"
+	@echo "  UPSTASH_REDIS_REST_TOKEN"
 	@echo ""
 	@echo "Optional:"
-	@echo "  SENDGRID_API_KEY"
-	@echo "  STRIPE_SECRET_KEY"
-	@echo "  SIMPLER_GRANTS_API_KEY"
+	@echo "  RESEND_API_KEY"
+	@echo "  CRON_SECRET"
+	@echo "  NEXT_PUBLIC_API_URL"
+	@echo "  NEXT_PUBLIC_DEBUG"
 

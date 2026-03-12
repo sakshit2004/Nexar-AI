@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { LandingFooter } from '../components/LandingFooter';
 import { 
   ArrowRight,
   Check,
@@ -13,7 +14,7 @@ import { GrantVisualization } from '../components/landing/GrantVisualization';
 
 export default function Home() {
   const demoRef = useRef<HTMLElement>(null);
-  
+
   const scrollToDemo = () => {
     demoRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -88,9 +89,9 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/login">
+            <Link href="/register">
               <Button size="lg" className="h-12 px-8 text-base font-medium">
-                Sign in
+                Sign up
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -205,15 +206,17 @@ export default function Home() {
             Start finding.
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
+            <Link href="/register">
               <Button size="lg" variant="secondary" className="h-12 px-8 text-base font-medium">
-                Sign in
+                Sign up
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
         </div>
       </section>
+
+      <LandingFooter />
     </div>
   );
 }

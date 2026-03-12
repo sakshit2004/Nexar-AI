@@ -7,12 +7,14 @@ import { Button } from './ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuthStore } from '../lib/store';
 import { useProfileStore } from '../lib/profile-store';
+import { Menu, X } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuthStore();
   const { profile } = useProfileStore();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +24,18 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  const navLinks = [
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/search', label: 'Search' },
+    { href: '/saved', label: 'Saved' },
+    { href: '/profile', label: 'Profile' },
+  ];
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -37,44 +51,25 @@ export function Navbar() {
             </Link>
             
             {isAuthenticated && (
-              <div className="hidden md:flex items-center gap-6">
-                <Link
-                  href="/dashboard"
-                  className={`text-sm transition-colors ${
-                    pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/search"
-                  className={`text-sm transition-colors ${
-                    pathname === '/search' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Search
-                </Link>
-                <Link
-                  href="/saved"
-                  className={`text-sm transition-colors ${
-                    pathname === '/saved' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Saved
-                </Link>
-                <Link
-                  href="/profile"
-                  className={`text-sm transition-colors ${
-                    pathname === '/profile' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Profile
-                </Link>
+              <div className="hidden md:flex items-center gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`nav-indicator px-3 py-1.5 rounded-md text-sm transition-colors ${
+                      pathname === link.href 
+                        ? 'active text-foreground font-medium bg-muted' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             {isAuthenticated ? (
               <>
@@ -84,14 +79,43 @@ export function Navbar() {
                 <Button variant="ghost" size="sm" onClick={() => logout()}>
                   Sign out
                 </Button>
+                {/* Mobile menu toggle */}
+                <button
+                  className="md:hidden p-1.5 rounded-md hover:bg-muted transition-colors"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  aria-label="Toggle menu"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
               </>
             ) : (
               <Link href="/login">
-                <Button size="sm">Login</Button>
+                <Button variant="ghost" size="sm">Sign in</Button>
               </Link>
             )}
           </div>
         </div>
+
+        {/* Mobile navigation */}
+        {isAuthenticated && mobileMenuOpen && (
+          <div className="md:hidden border-t pb-4 pt-2 animate-fade-in">
+            <div className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
+                    pathname === link.href 
+                      ? 'text-foreground font-medium bg-muted' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
