@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { AlertCircle, ArrowRight, Zap } from 'lucide-react';
+import { AlertCircle, ArrowRight, Zap, Check } from 'lucide-react';
+
+const FEATURES = [
+  'AI-powered matching across federal, state & foundation grants',
+  'Plain-English summaries of complex requirements',
+  'Know your eligibility before you apply',
+  'Free to get started — no credit card required',
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,20 +67,24 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="relative z-10">
-          <blockquote className="text-2xl font-semibold leading-snug mb-6">
-            &ldquo;We found three federal grants in the first week. Nexar AI paid for itself immediately.&rdquo;
-          </blockquote>
-          <div>
-            <p className="font-medium">Sarah Chen</p>
-            <p className="text-background/60 text-sm">Executive Director, Community Health Initiative</p>
-          </div>
+        <div className="relative z-10 space-y-6">
+          <h2 className="text-3xl font-bold leading-snug">
+            Every grant,<br />found in seconds.
+          </h2>
+          <ul className="space-y-3">
+            {FEATURES.map((feature, i) => (
+              <li key={i} className="flex items-start gap-3 text-background/80">
+                <div className="mt-0.5 rounded-full bg-background/20 p-0.5 flex-shrink-0">
+                  <Check className="h-3 w-3" />
+                </div>
+                <span className="text-sm">{feature}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="relative z-10 flex items-center gap-6 text-background/60 text-sm">
-          <span>Trusted by 500+ nonprofits</span>
-          <span>·</span>
-          <span>$2M+ in grants found</span>
+          <span>Open source</span>
         </div>
       </div>
 
