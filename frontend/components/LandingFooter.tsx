@@ -27,11 +27,6 @@ export function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-foreground transition-colors">
-                  Sign in
-                </Link>
-              </li>
-              <li>
                 <Link href="/search" className="hover:text-foreground transition-colors">
                   Search grants
                 </Link>
