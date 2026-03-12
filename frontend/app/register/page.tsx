@@ -96,8 +96,6 @@ export default function RegisterPage() {
         </div>
 
         <div className="relative z-10 flex items-center gap-6 text-background/60 text-sm">
-          <span>Trusted by 500+ nonprofits</span>
-          <span>·</span>
           <span>Open source</span>
         </div>
       </div>
