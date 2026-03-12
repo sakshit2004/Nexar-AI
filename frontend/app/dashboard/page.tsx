@@ -11,6 +11,7 @@ import { Badge } from '../../components/ui/badge';
 import { useAuthStore } from '../../lib/store';
 import { useProfileStore, type OrganizationProfile } from '../../lib/profile-store';
 import { grantsApi, savedGrantsApi } from '../../lib/api';
+import { WelcomeGuide } from '../../components/WelcomeGuide';
 import { 
   Search, 
   TrendingUp, 
@@ -71,7 +72,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
   const { isAuthenticated, user, token } = useAuthStore();
-  const { profile, hydrated: profileHydrated } = useProfileStore();
+  const { profile, hydrated: profileHydrated, updateProfile } = useProfileStore();
 
   // refreshSeed changes each manual refresh so the query key is unique → fresh backend call
   const [refreshSeed, setRefreshSeed] = useState(0);
@@ -86,12 +87,20 @@ export default function DashboardPage() {
     }
   }, [sessionStatus, isAuthenticated, router]);
 
-  // Redirect to onboarding if user hasn't completed it yet
-  useEffect(() => {
-    if (profileHydrated && profile && !profile.onboarding_completed) {
-      router.push('/onboarding');
+  // Track whether the welcome guide has been dismissed this session
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+
+  // Show the interactive welcome guide for new users who haven't completed onboarding
+  const showWelcomeGuide = profileHydrated && profile && !profile.onboarding_completed && !welcomeDismissed;
+
+  const dismissWelcomeGuide = async () => {
+    setWelcomeDismissed(true);
+    try {
+      await updateProfile({ onboarding_completed: true });
+    } catch {
+      // Optimistic dismiss — will sync on next mount
     }
-  }, [profileHydrated, profile, router]);
+  };
 
   // Build personalized query based on profile
   const personalizedQuery = useMemo(() => {
@@ -185,7 +194,7 @@ export default function DashboardPage() {
         <div className="mb-8 animate-stagger-in">
           <p className="text-sm text-muted-foreground mb-1">{getGreeting()}</p>
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {displayName} 👋
+            {showWelcomeGuide ? `Welcome, ${displayName} 👋` : `Welcome back, ${displayName} 👋`}
           </h1>
           <p className="text-muted-foreground">
             {profile?.organization_name 
@@ -193,6 +202,11 @@ export default function DashboardPage() {
               : "Here's your grant discovery overview"}
           </p>
         </div>
+
+        {/* Interactive welcome guide for new users */}
+        {showWelcomeGuide && (
+          <WelcomeGuide displayName={displayName} onDismiss={dismissWelcomeGuide} />
+        )}
 
         {/* Profile completion bar — shows when profile is incomplete */}
         {profile && profileCompletion.percentage < 100 && (
