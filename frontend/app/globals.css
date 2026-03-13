@@ -215,6 +215,25 @@ body {
   animation: bounce 2s ease-in-out infinite;
 }
 
+/* Onboarding completion checkmark pop */
+@keyframes tour-check-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-tour-check-pop {
+  animation: tour-check-pop 0.4s ease-out;
+}
+
 .animate-scan-down {
   animation: scan-down 2s ease-in-out infinite;
 }
