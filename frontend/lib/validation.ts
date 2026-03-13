@@ -16,7 +16,7 @@ export type PasswordStrength = 'weak' | 'fair' | 'good' | 'strong';
 
 export interface PasswordStrengthResult {
   strength: PasswordStrength;
-  score: number; // 0–4
+  score: number; // 0–5
   label: string;
   criteria: {
     length: boolean;

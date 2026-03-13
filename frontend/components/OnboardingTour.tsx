@@ -106,14 +106,14 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
       setTooltipPosition(null);
       return;
     }
-    const s = currentStep.target || (currentStep as TourStep & { targetFallback?: string }).targetFallback;
-    if (!s) {
+    const fallback = (currentStep as TourStep & { targetFallback?: string }).targetFallback;
+    const selector = currentStep.target || fallback;
+    if (!selector) {
       setTargetRect(null);
       setTooltipPosition(null);
       return;
     }
-    const fallback = (currentStep as TourStep & { targetFallback?: string }).targetFallback;
-    const el = (currentStep.target ? document.querySelector(currentStep.target) : null) || (fallback ? document.querySelector(fallback) : null);
+    const el = document.querySelector(selector);
     if (!el) {
       setTargetRect(null);
       setTooltipPosition(null);
