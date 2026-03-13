@@ -289,7 +289,6 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
   if (!visible) return null;
 
   const currentStep = STEPS[step];
-  const isLastStep = step === STEPS.length - 1;
   const isCompleteStep = currentStep.id === 'complete';
   const isWelcomeStep = currentStep.id === 'welcome';
   const hasTarget =
@@ -437,7 +436,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
           {/* Footer with progress + buttons */}
           <div className="px-6 pb-5 pt-2">
             {/* Progress dots */}
-            <div className="flex gap-1.5 mb-4" role="progressbar" aria-valuenow={step + 1} aria-valuemin={1} aria-valuemax={STEPS.length}>
+            <div className="flex gap-1.5 mb-4" role="progressbar" aria-valuenow={Math.round(((step + 1) / STEPS.length) * 100)} aria-valuemin={0} aria-valuemax={100} aria-valuetext={`Step ${step + 1} of ${STEPS.length}`}>
               {STEPS.map((s, i) => (
                 <div
                   key={s.id}
@@ -515,8 +514,8 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
             </div>
 
             {/* Keyboard hint (desktop only) */}
-            <p className="hidden sm:block text-[11px] text-muted-foreground/60 text-center mt-3">
-              Use ← → arrow keys to navigate · Esc to skip
+            <p className="hidden sm:block text-[11px] text-muted-foreground/60 text-center mt-3" aria-hidden="true">
+              Use left/right arrow keys to navigate · Esc to skip
             </p>
           </div>
         </div>
