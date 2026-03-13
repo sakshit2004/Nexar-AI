@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -27,7 +27,6 @@ import {
   Target,
   Building
 } from 'lucide-react';
-import { OnboardingTour } from '../../components/OnboardingTour';
 
 const RECOMMENDED_LOADING_MESSAGES = [
   'Finding the best grants for your business...',
@@ -188,9 +187,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background pt-20">
-      <Suspense fallback={null}>
-        <OnboardingTour />
-      </Suspense>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {apiUnreachable && (
           <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
