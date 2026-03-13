@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +21,8 @@ import {
   MapPin,
   Target,
   DollarSign,
-  Tag
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 
 /** Calculates profile completion percentage based on filled form fields. */
@@ -49,6 +51,8 @@ export default function ProfilePage() {
     keywords: '',
   });
   const [success, setSuccess] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteEmailConfirm, setDeleteEmailConfirm] = useState('');
 
   // Redirect to login if not authenticated (only after auth state is resolved)
   useEffect(() => {
@@ -106,6 +110,25 @@ export default function ProfilePage() {
       // Force refetch all queries
       queryClient.refetchQueries({ queryKey: ['recommended-grants'] });
       setTimeout(() => setSuccess(false), 3000);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await fetch('/api/auth/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to delete account');
+      return data;
+    },
+    onSuccess: async () => {
+      setDeleteModalOpen(false);
+      setDeleteEmailConfirm('');
+      await signOut({ callbackUrl: '/' });
+      router.push('/');
     },
   });
 
@@ -408,8 +431,95 @@ export default function ProfilePage() {
               </Card>
             </div>
 
+            {/* Danger zone - Delete account */}
+            <div className="animate-stagger-in" style={{ animationDelay: '0.25s' }}>
+              <Card className="border-destructive/50">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setDeleteModalOpen(true)}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete account
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
       </div>
+
+      {/* Delete account confirmation modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <Card className="w-full max-w-md border-destructive/50">
+            <CardHeader className="flex flex-row items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+              <div>
+                <CardTitle className="text-destructive">Delete account</CardTitle>
+                <CardDescription>
+                  This will permanently delete your account and all saved data. Enter your full email to confirm.
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label htmlFor="delete-email" className="text-sm font-medium block mb-2">
+                  Enter your email
+                </label>
+                <Input
+                  id="delete-email"
+                  type="email"
+                  placeholder={user?.email ?? 'your@email.com'}
+                  value={deleteEmailConfirm}
+                  onChange={(e) => setDeleteEmailConfirm(e.target.value)}
+                  className="border-destructive/50 focus-visible:ring-destructive"
+                  autoComplete="email"
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setDeleteEmailConfirm('');
+                  }}
+                  disabled={deleteMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
+                  disabled={
+                    deleteMutation.isPending ||
+                    deleteEmailConfirm.toLowerCase().trim() !== (user?.email ?? '').toLowerCase().trim()
+                  }
+                  onClick={() => deleteMutation.mutate(deleteEmailConfirm)}
+                >
+                  {deleteMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete my account'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
