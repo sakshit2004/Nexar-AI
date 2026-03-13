@@ -90,7 +90,7 @@ const STEPS: TourStep[] = [
     message:
       'Search thousands of federal grants by keyword, category, or amount. Our AI reads the fine print so you don\'t have to — get plain-English summaries instantly.',
     emoji: '🔍',
-    actionHint: 'Click Search to try it, or press Next to continue',
+    actionHint: 'Click Search to explore grants, or press Next to continue',
     waitForClick: true,
     icon: Search,
   },
@@ -102,6 +102,8 @@ const STEPS: TourStep[] = [
     message:
       'Found something promising? Bookmark it! Keep all your opportunities organized in one place and never miss a deadline.',
     emoji: '📌',
+    actionHint: 'Click Saved to see your bookmarks, or press Next to continue',
+    waitForClick: true,
     icon: Bookmark,
   },
   {
@@ -112,7 +114,8 @@ const STEPS: TourStep[] = [
     message:
       'Tell us about your organization, focus areas, and goals. This is the key to unlocking personalized recommendations that actually match what you need.',
     emoji: '🏢',
-    actionHint: "Let's set up your profile — it only takes a minute",
+    actionHint: "Click Profile to set it up — it only takes a minute!",
+    waitForClick: true,
     icon: User,
   },
   {
@@ -308,11 +311,11 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
       {hasTarget && targetRect && (
         <>
           <div
-            className="absolute left-0 right-0 bg-black/60 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/30 transition-all duration-500 ease-out"
             style={{ top: 0, height: Math.max(0, targetRect.top - 8) }}
           />
           <div
-            className="absolute bg-black/60 transition-all duration-500 ease-out"
+            className="absolute bg-black/30 transition-all duration-500 ease-out"
             style={{
               top: targetRect.top - 8,
               left: 0,
@@ -321,7 +324,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
             }}
           />
           <div
-            className="absolute bg-black/60 transition-all duration-500 ease-out"
+            className="absolute bg-black/30 transition-all duration-500 ease-out"
             style={{
               top: targetRect.top - 8,
               left: targetRect.right + 8,
@@ -331,7 +334,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
             }}
           />
           <div
-            className="absolute left-0 right-0 bg-black/60 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/30 transition-all duration-500 ease-out"
             style={{
               top: targetRect.bottom + 8,
               height: `calc(100vh - ${targetRect.bottom + 8}px)`,
@@ -352,7 +355,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
 
       {/* Full overlay for centered steps (welcome + complete) */}
       {!hasTarget && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
       )}
 
       {/* Tooltip card */}
@@ -376,7 +379,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
               }
         }
       >
-        <div className="bg-background border-2 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-background/90 backdrop-blur-xl border-2 rounded-2xl shadow-2xl overflow-hidden">
           {/* Colored header strip */}
           <div className="relative px-6 pt-5 pb-4">
             {/* Close button */}
