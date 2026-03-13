@@ -244,12 +244,14 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
     router.push('/profile');
   }, [onComplete, router]);
 
-  const handleSkip = useCallback(() => {
+  // Closing the tour (X button or Esc) marks it as done so it never shows again.
+  const handleClose = useCallback(() => {
     completeOnboarding();
     setVisible(false);
     onComplete?.();
-    router.replace('/dashboard', { scroll: false });
-  }, [onComplete, router]);
+  }, [onComplete]);
+
+  const handleSkip = handleClose;
 
   const handleNext = useCallback(() => {
     if (step < STEPS.length - 1) {
@@ -270,7 +272,7 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
     if (!visible) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleSkip();
+        handleClose();
       } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
         handleNext();
       } else if (e.key === 'ArrowLeft') {
@@ -279,7 +281,7 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [visible, handleSkip, handleNext, handleBack]);
+  }, [visible, handleClose, handleNext, handleBack]);
 
   // Listen for clicks on target when waitForClick
   useEffect(() => {
@@ -318,11 +320,11 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
       {hasTarget && targetRect && (
         <>
           <div
-            className="absolute left-0 right-0 bg-black/20 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/50 transition-all duration-500 ease-out"
             style={{ top: 0, height: Math.max(0, targetRect.top - 8) }}
           />
           <div
-            className="absolute bg-black/20 transition-all duration-500 ease-out"
+            className="absolute bg-black/50 transition-all duration-500 ease-out"
             style={{
               top: targetRect.top - 8,
               left: 0,
@@ -331,7 +333,7 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
             }}
           />
           <div
-            className="absolute bg-black/20 transition-all duration-500 ease-out"
+            className="absolute bg-black/50 transition-all duration-500 ease-out"
             style={{
               top: targetRect.top - 8,
               left: targetRect.right + 8,
@@ -341,20 +343,22 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
             }}
           />
           <div
-            className="absolute left-0 right-0 bg-black/20 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/50 transition-all duration-500 ease-out"
             style={{
               top: targetRect.bottom + 8,
               height: `calc(100vh - ${targetRect.bottom + 8}px)`,
             }}
           />
-          {/* Animated highlight ring */}
+          {/* Highlight glow behind the target */}
           <div
-            className="absolute rounded-lg border-2 border-foreground/90 shadow-[0_0_0_4px_rgba(0,0,0,0.3)] pointer-events-none animate-pulse-border transition-all duration-500 ease-out"
+            className="absolute pointer-events-none transition-all duration-500 ease-out rounded-xl"
             style={{
-              top: targetRect.top - 8,
-              left: targetRect.left - 8,
-              width: targetRect.width + 16,
-              height: targetRect.height + 16,
+              top: targetRect.top - 12,
+              left: targetRect.left - 12,
+              width: targetRect.width + 24,
+              height: targetRect.height + 24,
+              boxShadow: '0 0 0 3px hsl(var(--foreground) / 0.9), 0 0 24px 6px hsl(var(--foreground) / 0.25)',
+              animation: 'pulse-border 2s ease-in-out infinite',
             }}
           />
         </>
@@ -362,7 +366,7 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
 
       {/* Full overlay for centered steps (welcome + complete) */}
       {!hasTarget && (
-        <div className="absolute inset-0 bg-black/15" />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       )}
 
       {/* Tooltip card */}
@@ -393,9 +397,9 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleSkip}
+              onClick={handleClose}
               className="absolute top-3 right-3 rounded-full shrink-0 h-8 w-8 hover:bg-muted"
-              aria-label="Skip tour (Esc)"
+              aria-label="Close tour (Esc)"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -464,22 +468,13 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
             {/* Buttons */}
             <div className="flex gap-2">
               {isCompleteStep ? (
-                <>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={handleSkip}
-                  >
-                    Explore Dashboard
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={handleGoToProfile}
-                  >
-                    Set Up Profile
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </>
+                <Button
+                  className="w-full"
+                  onClick={handleGoToProfile}
+                >
+                  Set Up Profile
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               ) : (
                 <>
                   {step > 0 ? (
@@ -525,7 +520,7 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
 
             {/* Keyboard hint (desktop only) */}
             <p className="hidden sm:block text-[11px] text-muted-foreground/60 text-center mt-3" aria-hidden="true">
-              Use left/right arrow keys to navigate · Esc to skip
+              Use left/right arrow keys to navigate · Esc to close
             </p>
           </div>
         </div>
