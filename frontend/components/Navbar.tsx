@@ -56,6 +56,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
+                    data-tour={link.href === '/search' ? 'onboarding-search' : link.href === '/saved' ? 'onboarding-saved' : link.href === '/profile' ? 'onboarding-profile' : undefined}
                     className={`nav-indicator px-3 py-1.5 rounded-md text-sm transition-colors ${
                       pathname === link.href 
                         ? 'active text-foreground font-medium bg-muted' 
@@ -98,12 +99,13 @@ export function Navbar() {
 
         {/* Mobile navigation */}
         {isAuthenticated && mobileMenuOpen && (
-          <div className="md:hidden border-t pb-4 pt-2 animate-fade-in">
+            <div className="md:hidden border-t pb-4 pt-2 animate-fade-in">
             <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
+                  data-tour={link.href === '/search' ? 'onboarding-search' : link.href === '/saved' ? 'onboarding-saved' : link.href === '/profile' ? 'onboarding-profile' : undefined}
                   className={`px-3 py-2 rounded-md text-sm transition-colors ${
                     pathname === link.href 
                       ? 'text-foreground font-medium bg-muted' 

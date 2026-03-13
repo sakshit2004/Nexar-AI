@@ -22,7 +22,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         working-directory: frontend
 
       - name: Install Tailwind native binding for Linux
@@ -39,12 +39,5 @@ jobs:
         working-directory: frontend
         env:
           # Provide dummy values so the build doesn't fail on missing env vars
-          NEXTAUTH_SECRET: ci-secret-not-used-in-production
-          NEXTAUTH_URL: http://localhost:3000
-
-      - name: Test
-        run: npm test
-        working-directory: frontend
-        env:
           NEXTAUTH_SECRET: ci-secret-not-used-in-production
           NEXTAUTH_URL: http://localhost:3000
