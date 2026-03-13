@@ -86,10 +86,18 @@ export default function DashboardPage() {
     }
   }, [sessionStatus, isAuthenticated, router]);
 
-  // Show the interactive onboarding tour for new users who haven't completed onboarding
-  const showOnboardingTour = profileHydrated && profile && !profile.onboarding_completed;
+  // Show the interactive onboarding tour for new users who haven't completed onboarding.
+  // Also gate on localStorage so that navigating away and back doesn't re-show the tour
+  // while the async profile update is still in-flight.
+  const [localOnboardingDone, setLocalOnboardingDone] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem('nexar_onboarding_complete');
+  });
+  const showOnboardingTour = profileHydrated && profile && !profile.onboarding_completed && !localOnboardingDone;
 
   const handleCompleteOnboarding = async () => {
+    // Mark locally first so remounts don't re-show the tour before Redis responds.
+    setLocalOnboardingDone(true);
     try {
       await updateProfile({ onboarding_completed: true });
     } catch {
