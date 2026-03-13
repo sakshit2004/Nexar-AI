@@ -144,6 +144,9 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  // Once the user dismisses the tour, prevent the forceShow prop from re-opening it
+  // before the async onComplete() (profile update) finishes writing to the store.
+  const dismissed = useRef(false);
 
   const findTargetElement = useCallback((tourStep: TourStep): Element | null => {
     if (typeof document === 'undefined') return null;
@@ -190,7 +193,7 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || dismissed.current) return;
     // If parent explicitly forces visibility (new user, not yet onboarded), show immediately.
     if (forceShow) {
       setVisible(true);
@@ -238,14 +241,16 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
   );
 
   const handleGoToProfile = useCallback(() => {
+    dismissed.current = true;
     completeOnboarding();
     setVisible(false);
     onComplete?.();
     router.push('/profile');
   }, [onComplete, router]);
 
-  // Closing the tour (X button or Esc) marks it as done so it never shows again.
+  // Closing the tour (X button, Esc, or Skip) marks it as done so it never shows again.
   const handleClose = useCallback(() => {
+    dismissed.current = true;
     completeOnboarding();
     setVisible(false);
     onComplete?.();
@@ -349,16 +354,16 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
               height: `calc(100vh - ${targetRect.bottom + 8}px)`,
             }}
           />
-          {/* Highlight glow behind the target */}
+          {/* White border ring around the active target */}
           <div
-            className="absolute pointer-events-none transition-all duration-500 ease-out rounded-xl"
+            className="absolute pointer-events-none rounded-xl transition-all duration-500 ease-out"
             style={{
-              top: targetRect.top - 12,
-              left: targetRect.left - 12,
-              width: targetRect.width + 24,
-              height: targetRect.height + 24,
-              boxShadow: '0 0 0 3px hsl(var(--foreground) / 0.9), 0 0 24px 6px hsl(var(--foreground) / 0.25)',
-              animation: 'pulse-border 2s ease-in-out infinite',
+              top: targetRect.top - 10,
+              left: targetRect.left - 10,
+              width: targetRect.width + 20,
+              height: targetRect.height + 20,
+              border: '2px solid white',
+              boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.15)',
             }}
           />
         </>
