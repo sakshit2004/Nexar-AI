@@ -177,7 +177,7 @@ export function OnboardingAssistant({
             </div>
 
             {/* Progress bar */}
-            <div className="px-4 py-2 border-b border-border/50 bg-muted/30">
+            <div className="px-4 py-2 border-b border-border/50 bg-muted/50">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-muted-foreground">Getting started</span>
                 <span className="text-xs font-medium">{Math.min(visibleCount, TOTAL_STEPS)}/{TOTAL_STEPS}</span>
@@ -203,7 +203,7 @@ export function OnboardingAssistant({
                       <Bot className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="rounded-2xl rounded-tl-sm bg-muted/60 px-3.5 py-2.5 text-sm leading-relaxed">
+                      <div className="rounded-2xl rounded-tl-sm bg-muted px-3.5 py-2.5 text-sm leading-relaxed">
                         {msg.text}
                       </div>
                       {/* Action button */}
@@ -236,7 +236,7 @@ export function OnboardingAssistant({
                   <div className="h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Bot className="h-3.5 w-3.5" />
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3">
+                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
                     <div className="flex gap-1">
                       <span className="typing-dot h-2 w-2 rounded-full bg-muted-foreground" />
                       <span className="typing-dot h-2 w-2 rounded-full bg-muted-foreground" style={{ animationDelay: '0.15s' }} />
@@ -250,7 +250,7 @@ export function OnboardingAssistant({
             </div>
 
             {/* Footer actions */}
-            <div className="px-4 py-3 border-t border-border/50 bg-muted/20">
+            <div className="px-4 py-3 border-t border-border/50 bg-muted/50">
               {isLastStep ? (
                 <div className="flex items-center gap-2">
                   <Button
