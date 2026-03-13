@@ -12,7 +12,6 @@ import {
   getPasswordStrength,
   validatePassword,
 } from '../../lib/validation';
-import { setOnboardingTrigger } from '../../components/OnboardingTour';
 
 const BENEFITS = [
   'AI-powered matching across federal, state & foundation grants',
@@ -88,8 +87,7 @@ export default function RegisterPage() {
         setError('Account created, but sign-in failed. Please sign in manually.');
         router.push('/login');
       } else {
-        setOnboardingTrigger();
-        router.push('/dashboard?onboarding=1');
+        router.push('/dashboard');
       }
     } catch {
       setError('Something went wrong. Please try again.');
