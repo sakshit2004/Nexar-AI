@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -26,6 +26,7 @@ import {
   Target,
   Building
 } from 'lucide-react';
+import { OnboardingTour } from '../../components/OnboardingTour';
 
 const RECOMMENDED_LOADING_MESSAGES = [
   'Finding the best grants for your business...',
@@ -167,6 +168,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background pt-20">
+      <Suspense fallback={null}>
+        <OnboardingTour />
+      </Suspense>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {apiUnreachable && (
           <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
@@ -223,7 +227,7 @@ export default function DashboardPage() {
 
         {/* Stats row */}
         <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <Link href="/saved" className="animate-stagger-in" style={{ animationDelay: '0.15s' }}>
+          <Link href="/saved" className="animate-stagger-in" style={{ animationDelay: '0.15s' }} data-tour="onboarding-saved-card">
             <Card className="interactive-card cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -242,7 +246,7 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/search" className="animate-stagger-in" style={{ animationDelay: '0.2s' }}>
+          <Link href="/search" className="animate-stagger-in" style={{ animationDelay: '0.2s' }} data-tour="onboarding-search-card">
             <Card className="interactive-card cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -263,7 +267,7 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/profile" className="animate-stagger-in" style={{ animationDelay: '0.25s' }}>
+          <Link href="/profile" className="animate-stagger-in" style={{ animationDelay: '0.25s' }} data-tour="onboarding-profile-card">
             <Card className="interactive-card cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -329,7 +333,7 @@ export default function DashboardPage() {
         )}
 
         {/* Recommended Grants */}
-        <div className="animate-stagger-in" style={{ animationDelay: '0.35s' }}>
+        <div className="animate-stagger-in" style={{ animationDelay: '0.35s' }} data-tour="onboarding-recommended">
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

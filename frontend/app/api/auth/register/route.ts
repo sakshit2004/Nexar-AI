@@ -11,8 +11,27 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = String(email).toLowerCase().trim();
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 });
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
+    }
+    if (!/[A-Z]/.test(password)) {
+      return NextResponse.json({ error: 'Password must include at least one uppercase letter.' }, { status: 400 });
+    }
+    if (!/[a-z]/.test(password)) {
+      return NextResponse.json({ error: 'Password must include at least one lowercase letter.' }, { status: 400 });
+    }
+    if (!/\d/.test(password)) {
+      return NextResponse.json({ error: 'Password must include at least one number.' }, { status: 400 });
+    }
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) {
+      return NextResponse.json({ error: 'Password must include at least one special character (!@#$%^&* etc.).' }, { status: 400 });
     }
 
     let kv: Awaited<ReturnType<typeof import('@/lib/kv')['getRedis']>>;
@@ -34,14 +53,29 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
     const userId = `user-${crypto.randomUUID()}`;
 
+    const trimmedName = String(name).trim();
+
     await kv.hset(`user:${normalizedEmail}`, {
       id: userId,
       email: normalizedEmail,
-      name: String(name).trim(),
+      name: trimmedName,
       password: hashedPassword,
     });
 
     await kv.sadd('all-users', normalizedEmail);
+
+    // Create initial profile with signup data so profile page is pre-filled
+    await kv.hset(`profile:${normalizedEmail}`, {
+      full_name: trimmedName,
+      organization_name: '',
+      organization_type: '',
+      focus_areas: '[]',
+      keywords: '[]',
+      location_state: '',
+      location_county: '',
+      grant_amount_min: '',
+      grant_amount_max: '',
+    });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
