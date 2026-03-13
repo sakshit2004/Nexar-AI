@@ -69,16 +69,16 @@ const STEPS: TourStep[] = [
     id: 'welcome',
     title: 'Welcome to Nexar AI! 🎉',
     message:
-      "We're excited to have you here! Let's take a quick tour so you can start discovering grants that are a perfect match for your organization.",
+      "Hi! I'm your Nexar AI guide. In just a minute I'll show you everything on this dashboard — from your personalized grant feed to search, bookmarks, and profile setup. Let's go!",
     emoji: '👋',
     icon: Rocket,
   },
   {
     id: 'recommended',
     target: '[data-tour="onboarding-recommended"]',
-    title: 'Your Personalized Recommendations',
+    title: 'Recommended for You ✨',
     message:
-      'This is where the magic happens — AI-powered grant recommendations tailored just for you. The more you fill out your profile, the smarter these get.',
+      'This is your personalized grant feed. Our AI scans thousands of federal opportunities and surfaces the ones that best match your organization. The more complete your profile, the smarter these picks become!',
     emoji: '✨',
     icon: Sparkles,
   },
@@ -86,11 +86,11 @@ const STEPS: TourStep[] = [
     id: 'search',
     target: '[data-tour="onboarding-search"]',
     targetFallback: '[data-tour="onboarding-search-card"]',
-    title: 'Powerful Grant Search',
+    title: 'Search Any Grant 🔍',
     message:
-      'Search thousands of federal grants by keyword, category, or amount. Our AI reads the fine print so you don\'t have to — get plain-English summaries instantly.',
+      'Need something specific? Search thousands of federal grants by keyword, category, or funding amount. Our AI reads the fine print and gives you plain-English summaries so you can decide in seconds.',
     emoji: '🔍',
-    actionHint: 'Click Search to explore grants, or press Next to continue',
+    actionHint: 'Click Search in the nav to explore, or press Next to continue',
     waitForClick: true,
     icon: Search,
   },
@@ -98,11 +98,11 @@ const STEPS: TourStep[] = [
     id: 'saved',
     target: '[data-tour="onboarding-saved"]',
     targetFallback: '[data-tour="onboarding-saved-card"]',
-    title: 'Your Saved Grants',
+    title: 'Save & Track Grants 📌',
     message:
-      'Found something promising? Bookmark it! Keep all your opportunities organized in one place and never miss a deadline.',
+      'Spotted something promising? Tap the bookmark icon on any grant to save it here. Track deadlines and keep your shortlist organized — no spreadsheets needed!',
     emoji: '📌',
-    actionHint: 'Click Saved to see your bookmarks, or press Next to continue',
+    actionHint: 'Click Saved in the nav to view your bookmarks, or press Next',
     waitForClick: true,
     icon: Bookmark,
   },
@@ -110,11 +110,11 @@ const STEPS: TourStep[] = [
     id: 'profile',
     target: '[data-tour="onboarding-profile"]',
     targetFallback: '[data-tour="onboarding-profile-card"]',
-    title: 'Complete Your Profile',
+    title: 'Set Up Your Profile 🏢',
     message:
-      'Tell us about your organization, focus areas, and goals. This is the key to unlocking personalized recommendations that actually match what you need.',
+      "Last step — tell us about your organization: its name, type, focus areas, location, and keywords. This is how we personalize your entire experience. It takes under a minute and unlocks AI-matched recommendations just for you.",
     emoji: '🏢',
-    actionHint: "Click Profile to set it up — it only takes a minute!",
+    actionHint: 'Click Profile to set it up now, or press Finish to do it later',
     waitForClick: true,
     icon: User,
   },
@@ -122,7 +122,7 @@ const STEPS: TourStep[] = [
     id: 'complete',
     title: "You're All Set! 🚀",
     message:
-      "That's it! You're ready to start discovering grants. Head to your profile to unlock personalized recommendations, or dive right into the dashboard.",
+      "Tour complete! Head to your profile to unlock personalized grant recommendations, or start exploring the dashboard right now. Your next big funding opportunity is waiting.",
     emoji: '🎯',
     icon: CheckCircle2,
   },
@@ -130,9 +130,11 @@ const STEPS: TourStep[] = [
 
 interface OnboardingTourProps {
   onComplete?: () => void;
+  /** When true, show the tour immediately regardless of localStorage (e.g. for new users). */
+  forceShow?: boolean;
 }
 
-export function OnboardingTour({ onComplete }: OnboardingTourProps) {
+export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
@@ -189,9 +191,14 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
 
   useEffect(() => {
     if (!mounted) return;
+    // If parent explicitly forces visibility (new user, not yet onboarded), show immediately.
+    if (forceShow) {
+      setVisible(true);
+      return;
+    }
     const shouldShow = getShouldShowOnboarding(searchParams);
     setVisible(shouldShow);
-  }, [mounted, searchParams]);
+  }, [mounted, searchParams, forceShow]);
 
   useEffect(() => {
     if (!visible) return;
@@ -311,11 +318,11 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
       {hasTarget && targetRect && (
         <>
           <div
-            className="absolute left-0 right-0 bg-black/30 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/20 transition-all duration-500 ease-out"
             style={{ top: 0, height: Math.max(0, targetRect.top - 8) }}
           />
           <div
-            className="absolute bg-black/30 transition-all duration-500 ease-out"
+            className="absolute bg-black/20 transition-all duration-500 ease-out"
             style={{
               top: targetRect.top - 8,
               left: 0,
@@ -324,7 +331,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
             }}
           />
           <div
-            className="absolute bg-black/30 transition-all duration-500 ease-out"
+            className="absolute bg-black/20 transition-all duration-500 ease-out"
             style={{
               top: targetRect.top - 8,
               left: targetRect.right + 8,
@@ -334,7 +341,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
             }}
           />
           <div
-            className="absolute left-0 right-0 bg-black/30 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/20 transition-all duration-500 ease-out"
             style={{
               top: targetRect.bottom + 8,
               height: `calc(100vh - ${targetRect.bottom + 8}px)`,
@@ -355,7 +362,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
 
       {/* Full overlay for centered steps (welcome + complete) */}
       {!hasTarget && (
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-black/15" />
       )}
 
       {/* Tooltip card */}
@@ -379,7 +386,7 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
               }
         }
       >
-        <div className="bg-background/90 backdrop-blur-xl border-2 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
           {/* Colored header strip */}
           <div className="relative px-6 pt-5 pb-4">
             {/* Close button */}
