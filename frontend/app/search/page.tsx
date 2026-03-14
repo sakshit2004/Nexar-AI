@@ -320,7 +320,7 @@ function SearchPageInner() {
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Clock className="h-4 w-4" />
-                          {grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}
+                          {(() => { const d = new Date(grant.deadline); return grant.deadline && !isNaN(d.getTime()) ? d.toLocaleDateString() : 'Rolling'; })()}
                         </span>
                         {grant.agency && (
                           <span className="hidden sm:flex items-center gap-1.5">
