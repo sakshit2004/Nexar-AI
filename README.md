@@ -13,7 +13,6 @@
 </p>
 
 <p align="center">
-  <a href="#-mlh-fellowship">MLH Fellowship</a> •
   <a href="#-about-nexar-ai">About</a> •
   <a href="#-key-features">Features</a> •
   <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
@@ -24,24 +23,6 @@
   <a href="#-license">License</a> •
   <a href="#-acknowledgements">Acknowledgements</a>
 </p>
-
----
-
-## 🎓 MLH Fellowship
-
-> **This project is built as part of the [MLH Fellowship](https://fellowship.mlh.io/) — a 12-week, fully remote internship alternative where participants contribute to real open-source projects alongside engineers from top companies.**
-
-The MLH Fellowship Open Source Track is designed for aspiring software engineers who want real-world experience. Fellows work in small pods of ~10 people, collaborate via GitHub Issues and Pull Requests, go through code reviews with professional mentors, and contribute to projects that people actually depend on — not just side projects.
-
-Nexar-AI is one such project: an open-source, AI-powered federal grant discovery platform for nonprofits and small businesses. It uses modern web technologies (Next.js 15, OpenAI, Anthropic) and gives MLH Fellows hands-on experience with:
-
-- **Full-stack development** with Next.js App Router and serverless API routes
-- **AI/LLM integration** with OpenAI and Anthropic APIs including native web search
-- **Authentication & persistent storage** with NextAuth.js v5 and Upstash Redis
-- **Production deployment** on Vercel with cron jobs and transactional email
-- **Open-source collaboration** via Issues, feature branches, and Pull Requests
-
-**Apply to the MLH Fellowship:** [fellowship.mlh.io](https://fellowship.mlh.io/)
 
 ---
 
@@ -56,18 +37,9 @@ Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonp
 - **AI Grant Discovery**: Real-time federal grant search using OpenAI (`gpt-4o-search-preview`) and Anthropic (`claude-3-5-haiku`) LLMs with built-in web search — no third-party search providers needed.
 - **Personalized Recommendations**: Get grant suggestions tailored to your organization's profile, focus areas, and keywords via your dashboard.
 - **Plain-English Summaries**: Two-stage AI analysis translates complex grant requirements into clear, actionable language with confidence scoring.
-- **Smart Search**: Natural language search with category and dollar-amount filters across federal grant opportunities.
+- **Smart Search**: Natural language search with category filters across federal grant opportunities.
 - **Save & Track Grants**: Bookmark grants and manage your list — stored in Upstash Redis per user account.
 - **Deadline Email Alerts**: Daily cron job sends Resend email notifications when saved grants are due in 7 days or 1 day.
-
-## 🎯 Live Demo
-
-| Credential | Value |
-|---|---|
-| Email | `admin@mlh.com` |
-| Password | `mlh` |
-
-> **Note:** The demo account uses hardcoded fallback credentials. If Upstash Redis is not configured, this account still works for testing LLM search and grant analysis.
 
 ## 🛠️ Tech Stack
 
@@ -99,7 +71,7 @@ Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonp
 - **TypeScript**: Type-safe development across the entire codebase
 - **Tailwind CSS v4**: Rapid and customizable styling with dark mode support
 - **shadcn/ui** (Radix UI Slot + CVA): Accessible, composable UI component primitives
-- **next-themes**: Light/dark theme switching with system preference detection
+- **next-themes**: Light/dark theme switching; defaults to dark mode (system preference detection is disabled)
 - **lucide-react**: Consistent icon set
 - **class-variance-authority**, **clsx**, **tailwind-merge**: Styling utilities
 </details>
@@ -154,6 +126,7 @@ Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonp
 <summary><b>Hosting & DevOps</b></summary>
 
 - **Vercel**: Serverless deployment; AI routes have `maxDuration: 60` for LLM latency
+- **`vercel.json`**: Located at the **repo root** (not inside `frontend/`) — configures function timeouts and the daily cron job
 - **Git**: Source code management with feature branch workflow
 - **GitHub**: Collaborative development, Issues, and Pull Requests (MLH Fellowship workflow)
 </details>
@@ -165,22 +138,32 @@ Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonp
 ```mermaid
 flowchart TD
     Browser["Browser (React 19 + Next.js App Router)"]
+    SessionStorage["sessionStorage (grant cache)"]
     NextAPI["Next.js API Routes (Serverless)"]
-    Auth["NextAuth.js v5 (JWT)"]
-    Redis["Upstash Redis (KV Store)"]
-    OpenAI["OpenAI gpt-4o-search-preview"]
-    Anthropic["Anthropic Claude 3.5 Haiku"]
+    Auth["NextAuth.js v5\nCredentials-only, JWT cookies"]
+    Redis["Upstash Redis (KV Store)\nuser / profile / saved / grant cache"]
+    OpenAI["OpenAI\ngpt-4o-search-preview + gpt-4o-mini"]
+    Anthropic["Anthropic\nclaude-3-5-haiku + web_search tool"]
     Resend["Resend (Email)"]
     Cron["Vercel Cron (Daily 9 AM UTC)"]
 
     Browser -->|"API calls via TanStack Query"| NextAPI
+    Browser -->|"save grant on card click"| SessionStorage
+    SessionStorage -->|"grant detail page reads first"| Browser
+
+    NextAPI -->|"login: bcrypt check user:{email}"| Redis
+    NextAPI -->|"profile / saved / grant cache"| Redis
+    Auth -->|"JWT session cookie"| Browser
     NextAPI --> Auth
-    NextAPI -->|"user/profile/saved/grants"| Redis
-    NextAPI -->|"LLM_PROVIDER=openai"| OpenAI
+
+    NextAPI -->|"LLM_PROVIDER=openai (default)"| OpenAI
     NextAPI -->|"LLM_PROVIDER=anthropic (fallback)"| Anthropic
-    Cron -->|"deadline-check"| NextAPI
-    NextAPI -->|"deadline alerts"| Resend
-    Auth -->|"session JWT"| Browser
+
+    NextAPI -->|"analyze: grant from request body\nRedis as fallback"| Redis
+
+    Cron -->|"deadline-check route"| NextAPI
+    NextAPI -->|"read all-users + saved:{email}"| Redis
+    NextAPI -->|"deadline alert emails"| Resend
 ```
 
 ---
@@ -277,7 +260,7 @@ These instructions will help you set up Nexar-AI on your local machine for devel
    ```bash
    npx tsx scripts/seed-demo-user.ts
    ```
-   > Skip this step if you don't have Redis configured — the app falls back to hardcoded demo credentials.
+   > This creates a demo account (`admin@mlh.com`) in Redis for quick testing. Requires Redis env vars to be set. Skip if you plan to register your own account.
 
 6. **Start the development server:**
    ```bash
@@ -288,7 +271,11 @@ These instructions will help you set up Nexar-AI on your local machine for devel
 
 ### Running Without Redis
 
-If you don't have Upstash Redis configured, the app still runs. It falls back to hardcoded demo credentials for login (`admin@mlh.com` / `mlh`). Grant search and AI analysis will work as long as you have at least one LLM API key. Grant caching, saved grants, and profiles won't persist across sessions.
+**Login and registration both require Redis.** The authentication system (`lib/auth.ts`) calls `user:{email}` on every sign-in attempt and returns `null` (fails closed) if Redis is unavailable — there are no hardcoded fallback credentials. Without Redis, you will not be able to log in or create an account.
+
+The public landing page (`/`) and the unauthenticated grant search API (`GET /api/v1/grants/search`) work without Redis, but every authenticated feature — dashboard, saved grants, profile, and grant detail — requires a valid session, which requires Redis.
+
+**To run the full app locally, Upstash Redis is required.** The free tier at [upstash.com](https://upstash.com) is sufficient.
 
 ---
 
@@ -314,9 +301,9 @@ See [`frontend/.env.example`](frontend/.env.example) for the full reference with
 
 Once the project is running:
 
-1. **Sign in** — Use the demo account (`admin@mlh.com` / `mlh`) or register a new account.
-2. **Set your profile** — Go to Profile and add your organization name, type, focus areas (e.g. education, healthcare), and grant preferences to unlock personalized recommendations.
-3. **Discover grants** — Use the Dashboard for AI-powered personalized recommendations, or the Search page for keyword and category-filtered grant search.
+1. **Sign in** — Register a new account or use an existing one.
+2. **Complete onboarding** — First-time users are guided through a 7-step onboarding wizard (`/onboarding`) covering your name, organization details, focus areas, location, and grant preferences. Returning users can edit these at any time from the Profile page.
+3. **Discover grants** — Use the Dashboard for AI-powered personalized recommendations (built from your focus areas, org type, and keywords), or the Search page for keyword and category-filtered grant search.
 4. **View grant details** — Click any grant to see the full description, eligibility requirements, deadline, and AI-generated plain-English summary with eligibility confidence score.
 5. **Save & track** — Bookmark grants you're interested in. With Resend configured, you'll receive email alerts when saved grants are due in 7 days or 1 day.
 
@@ -357,7 +344,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 🙏 Acknowledgements
 
-- **[MLH Fellowship](https://fellowship.mlh.io/)** — for creating a program that gives developers real-world, open-source experience
 - **[OpenAI](https://openai.com)** — for `gpt-4o-search-preview` and `gpt-4o-mini` with native web search capabilities
 - **[Anthropic](https://anthropic.com)** — for Claude 3.5 Haiku with the `web_search_20250305` tool
 - **[Vercel](https://vercel.com)** — for the modern Next.js deployment and hosting experience
@@ -365,6 +351,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - **[Resend](https://resend.com)** — for transactional email with a developer-friendly API
 - **[Grants.gov](https://www.grants.gov)** and federal agencies — for making grant information publicly accessible
 - All open-source libraries and tools that made this project possible
+- **[MLH Fellowship](https://fellowship.mlh.io/)** — for creating a program that gives developers real-world, open-source experience
 
 ---
 
