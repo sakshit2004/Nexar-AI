@@ -226,7 +226,7 @@ These instructions will help you set up Nexar-AI on your local machine for devel
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/Nexar-AI.git
+   git clone https://github.com/sakshit2004/Nexar-AI.git
    cd Nexar-AI/frontend
    ```
 
@@ -359,6 +359,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 [![Built with love](https://forthebadge.com/images/badges/built-by-developers.svg)](https://github.com/sakshit2004)
 
-**[⭐ Star this repo](https://github.com/yourusername/Nexar-AI) · [🐛 Report a Bug](https://github.com/yourusername/Nexar-AI/issues) · [💡 Request a Feature](https://github.com/yourusername/Nexar-AI/issues) · [🎓 MLH Fellowship](https://fellowship.mlh.io/)**
+**[⭐ Star this repo](https://github.com/sakshit2004/Nexar-AI) · [🐛 Report a Bug](https://github.com/sakshit2004/Nexar-AI/issues/new?template=bug_report.md) · [💡 Request a Feature](https://github.com/sakshit2004/Nexar-AI/issues/new?template=feature_request.md) · [🎓 MLH Fellowship](https://fellowship.mlh.io/)**
 
 </div>
