@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Check,
   ChevronRight,
+  Github,
   GitBranch,
 } from 'lucide-react';
 import { GrantVisualization } from '../components/landing/GrantVisualization';
@@ -119,8 +120,8 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="h-12 px-5 text-base text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 rounded-lg border border-border hover:border-foreground/30"
               >
+                <Github className="h-4 w-4" />
                 GitHub
-                <ChevronRight className="h-4 w-4" />
               </a>
             </div>
           </div>
