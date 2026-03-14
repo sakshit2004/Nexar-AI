@@ -317,7 +317,7 @@ We welcome contributions from the community and MLH Fellows! Please read [CONTRI
 
 1. **Fork** the repository and create a feature branch:
    ```bash
-   git checkout -b feat/your-feature-name
+   git checkout -b feature/your-feature-name
    ```
 2. **Make your changes** — ensure `npm run build` passes with zero errors.
 3. **Run tests:**
@@ -327,7 +327,7 @@ We welcome contributions from the community and MLH Fellows! Please read [CONTRI
 4. **Open a Pull Request** against `main` with a clear description of what you changed and why.
 
 **Branch naming conventions:**
-- `feat/` — new features
+- `feature/` — new features
 - `fix/` — bug fixes
 - `docs/` — documentation updates
 - `refactor/` — code refactoring
