@@ -472,7 +472,7 @@ export default function DashboardPage() {
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5" />
-                              Due {new Date(grant.deadline).toLocaleDateString()}
+                              {(() => { const d = new Date(grant.deadline); return isNaN(d.getTime()) ? 'Rolling' : `Due ${d.toLocaleDateString()}`; })()}
                             </span>
                           </div>
                           <span className="text-xs font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

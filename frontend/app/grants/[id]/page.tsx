@@ -194,7 +194,7 @@ export default function GrantDetailsPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Deadline</p>
-                <p className="font-medium">{grant.deadline ? new Date(grant.deadline).toLocaleDateString() : 'Rolling'}</p>
+                <p className="font-medium">{(() => { const d = new Date(grant.deadline); return grant.deadline && !isNaN(d.getTime()) ? d.toLocaleDateString() : 'Rolling'; })()}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -470,12 +470,7 @@ export default function GrantDetailsPage() {
                 <div>
                   <div className="font-medium mb-1">Application Deadline</div>
                   <div className="text-muted-foreground">
-                    {grant.deadline ? new Date(grant.deadline).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    }) : 'Rolling basis'}
+                    {(() => { const d = new Date(grant.deadline); return grant.deadline && !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Rolling basis'; })()}
                   </div>
                 </div>
                 {grant.posted_date && (

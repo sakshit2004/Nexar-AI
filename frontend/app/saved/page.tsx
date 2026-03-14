@@ -244,7 +244,7 @@ export default function SavedGrantsPage() {
                           </span>
                           <span className="flex items-center gap-1.5">
                             <Clock className="h-4 w-4" />
-                            {(grant.deadline || grant.close_date) ? new Date(grant.deadline || grant.close_date).toLocaleDateString() : 'Rolling'}
+                            {(() => { const raw = grant.deadline || grant.close_date; const d = new Date(raw); return raw && !isNaN(d.getTime()) ? d.toLocaleDateString() : 'Rolling'; })()}
                           </span>
                         </div>
 
