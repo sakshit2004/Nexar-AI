@@ -433,25 +433,26 @@ export default function ProfilePage() {
 
             {/* Danger zone - Delete account */}
             <div className="animate-stagger-in" style={{ animationDelay: '0.25s' }}>
-              <Card className="border-destructive/50">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-destructive" />
-                    <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <Card className="border-destructive/30">
+                <CardContent className="py-3 px-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-destructive leading-tight">Danger Zone</p>
+                        <p className="text-xs text-muted-foreground leading-tight truncate">Permanently delete your account and all data. Cannot be undone.</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeleteModalOpen(true)}
+                      className="bg-red-600 hover:bg-red-700 shrink-0 text-xs h-7 px-3"
+                    >
+                      <Trash2 className="mr-1.5 h-3 w-3" />
+                      Delete account
+                    </Button>
                   </div>
-                  <CardDescription>
-                    Permanently delete your account and all associated data. This action cannot be undone.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setDeleteModalOpen(true)}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete account
-                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -460,8 +461,8 @@ export default function ProfilePage() {
 
       {/* Delete account confirmation modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-          <Card className="w-full max-w-md border-destructive/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <Card className="w-full max-w-md border-destructive/50 bg-background/80 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
               <div>

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store';
+import { useProfileStore } from '@/lib/profile-store';
 import { grantsApi } from '@/lib/api';
 import { 
   Search as SearchIcon, 
@@ -21,19 +22,11 @@ import {
   Building
 } from 'lucide-react';
 
-const SEARCH_CATEGORY_CHIPS = [
-  { label: '🏥 Health', query: 'health' },
-  { label: '📚 Education', query: 'education' },
-  { label: '🌱 Environment', query: 'environment' },
-  { label: '💻 Technology', query: 'technology' },
-  { label: '🎨 Arts & Culture', query: 'arts culture' },
-  { label: '🔬 Research', query: 'research' },
-];
-
 function SearchPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, authReady } = useAuthStore();
+  const { profile } = useProfileStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -146,22 +139,38 @@ function SearchPageInner() {
                 </Button>
               </div>
 
-              {/* Quick search chips */}
-              {activeSearchParams.query === '' && (
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-xs text-muted-foreground self-center mr-1">Quick:</span>
-                  {SEARCH_CATEGORY_CHIPS.map((chip) => (
-                    <button
-                      key={chip.query}
-                      type="button"
-                      onClick={() => handleQuickSearch(chip.query)}
-                      className="search-chip px-3 py-1.5 rounded-full border text-xs font-medium hover:bg-muted transition-colors"
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* Quick search chips — derived from the user's focus areas + keywords */}
+              {activeSearchParams.query === '' && (() => {
+                const focusAreas = profile?.focus_areas ?? [];
+                const keywords = profile?.keywords ?? [];
+                // Merge focus areas first, then keywords, deduplicate, cap at 8
+                const seen = new Set<string>();
+                const chips: string[] = [];
+                for (const item of [...focusAreas, ...keywords]) {
+                  const norm = item.trim();
+                  if (norm && !seen.has(norm.toLowerCase())) {
+                    seen.add(norm.toLowerCase());
+                    chips.push(norm);
+                    if (chips.length >= 8) break;
+                  }
+                }
+                if (chips.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs text-muted-foreground self-center mr-1">Quick:</span>
+                    {chips.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => handleQuickSearch(chip)}
+                        className="search-chip px-3 py-1.5 rounded-full border text-xs font-medium hover:bg-muted transition-colors"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Filter toggle */}
               <div className="flex items-center justify-between">

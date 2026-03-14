@@ -19,11 +19,20 @@ import {
 const ONBOARDING_STORAGE_KEY = 'nexar_onboarding_complete';
 const ONBOARDING_TRIGGER_KEY = 'nexar_show_onboarding';
 
+// Scope storage keys to the logged-in user so multiple users on the same
+// browser device each get their own independent onboarding state.
+function storageKey(base: string, userEmail?: string): string {
+  return userEmail ? `${base}:${userEmail.toLowerCase().trim()}` : base;
+}
+
 // ============ DETECTION & CONTROL FUNCTIONS ============
 
-export function getShouldShowOnboarding(searchParams?: URLSearchParams | null): boolean {
+export function getShouldShowOnboarding(
+  searchParams?: URLSearchParams | null,
+  userEmail?: string,
+): boolean {
   if (typeof window === 'undefined') return false;
-  const completed = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+  const completed = localStorage.getItem(storageKey(ONBOARDING_STORAGE_KEY, userEmail));
   if (completed) return false;
   // URL param ?onboarding=1 - check both searchParams and window.location (in case of timing)
   if (searchParams?.get('onboarding') === '1') return true;
@@ -34,19 +43,19 @@ export function getShouldShowOnboarding(searchParams?: URLSearchParams | null): 
     // ignore
   }
   // Fallback: sessionStorage (set by register flow before redirect)
-  return !!sessionStorage.getItem(ONBOARDING_TRIGGER_KEY);
+  return !!sessionStorage.getItem(storageKey(ONBOARDING_TRIGGER_KEY, userEmail));
 }
 
-export function setOnboardingTrigger(): void {
+export function setOnboardingTrigger(userEmail?: string): void {
   if (typeof window !== 'undefined') {
-    sessionStorage.setItem(ONBOARDING_TRIGGER_KEY, '1');
+    sessionStorage.setItem(storageKey(ONBOARDING_TRIGGER_KEY, userEmail), '1');
   }
 }
 
-export function completeOnboarding(): void {
+export function completeOnboarding(userEmail?: string): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
-    sessionStorage.removeItem(ONBOARDING_TRIGGER_KEY);
+    localStorage.setItem(storageKey(ONBOARDING_STORAGE_KEY, userEmail), '1');
+    sessionStorage.removeItem(storageKey(ONBOARDING_TRIGGER_KEY, userEmail));
   }
 }
 
@@ -132,9 +141,11 @@ interface OnboardingTourProps {
   onComplete?: () => void;
   /** When true, show the tour immediately regardless of localStorage (e.g. for new users). */
   forceShow?: boolean;
+  /** Logged-in user's email — scopes localStorage keys so multiple users on the same device are independent. */
+  userEmail?: string;
 }
 
-export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
+export function OnboardingTour({ onComplete, forceShow, userEmail }: OnboardingTourProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
@@ -199,9 +210,9 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
       setVisible(true);
       return;
     }
-    const shouldShow = getShouldShowOnboarding(searchParams);
+    const shouldShow = getShouldShowOnboarding(searchParams, userEmail);
     setVisible(shouldShow);
-  }, [mounted, searchParams, forceShow]);
+  }, [mounted, searchParams, forceShow, userEmail]);
 
   useEffect(() => {
     if (!visible) return;
@@ -242,19 +253,19 @@ export function OnboardingTour({ onComplete, forceShow }: OnboardingTourProps) {
 
   const handleGoToProfile = useCallback(() => {
     dismissed.current = true;
-    completeOnboarding();
+    completeOnboarding(userEmail);
     setVisible(false);
     onComplete?.();
     router.push('/profile');
-  }, [onComplete, router]);
+  }, [onComplete, router, userEmail]);
 
   // Closing the tour (X button, Esc, or Skip) marks it as done so it never shows again.
   const handleClose = useCallback(() => {
     dismissed.current = true;
-    completeOnboarding();
+    completeOnboarding(userEmail);
     setVisible(false);
     onComplete?.();
-  }, [onComplete]);
+  }, [onComplete, userEmail]);
 
   const handleSkip = handleClose;
 
