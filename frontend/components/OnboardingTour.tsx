@@ -332,37 +332,41 @@ export function OnboardingTour({ onComplete, forceShow, userEmail }: OnboardingT
       aria-label="Onboarding tour"
       aria-modal="true"
     >
-      {/* Spotlight overlay — four rects forming a cutout around the target */}
-      {hasTarget && targetRect && (
+      {/* Blurred + darkened overlay — masks out the spotlight target so only that area stays crisp */}
+      {hasTarget && targetRect ? (
         <>
+          {/* Four blurred+dark panels around the target cutout */}
+          {/* Top */}
           <div
-            className="absolute left-0 right-0 bg-black/50 transition-all duration-500 ease-out"
-            style={{ top: 0, height: Math.max(0, targetRect.top - 8) }}
+            className="absolute left-0 right-0 bg-black/50 backdrop-blur-sm transition-all duration-500 ease-out pointer-events-none"
+            style={{ top: 0, height: Math.max(0, targetRect.top - 10) }}
           />
+          {/* Left */}
           <div
-            className="absolute bg-black/50 transition-all duration-500 ease-out"
+            className="absolute bg-black/50 backdrop-blur-sm transition-all duration-500 ease-out pointer-events-none"
             style={{
-              top: targetRect.top - 8,
+              top: targetRect.top - 10,
               left: 0,
-              width: Math.max(0, targetRect.left - 8),
-              height: targetRect.height + 16,
+              width: Math.max(0, targetRect.left - 10),
+              height: targetRect.height + 20,
             }}
           />
+          {/* Right */}
           <div
-            className="absolute bg-black/50 transition-all duration-500 ease-out"
+            className="absolute bg-black/50 backdrop-blur-sm transition-all duration-500 ease-out pointer-events-none"
             style={{
-              top: targetRect.top - 8,
-              left: targetRect.right + 8,
+              top: targetRect.top - 10,
+              left: targetRect.right + 10,
               right: 0,
-              width: `calc(100vw - ${targetRect.right + 8}px)`,
-              height: targetRect.height + 16,
+              height: targetRect.height + 20,
             }}
           />
+          {/* Bottom */}
           <div
-            className="absolute left-0 right-0 bg-black/50 transition-all duration-500 ease-out"
+            className="absolute left-0 right-0 bg-black/50 backdrop-blur-sm transition-all duration-500 ease-out pointer-events-none"
             style={{
-              top: targetRect.bottom + 8,
-              height: `calc(100vh - ${targetRect.bottom + 8}px)`,
+              top: targetRect.bottom + 10,
+              bottom: 0,
             }}
           />
           {/* White border ring around the active target */}
@@ -378,11 +382,9 @@ export function OnboardingTour({ onComplete, forceShow, userEmail }: OnboardingT
             }}
           />
         </>
-      )}
-
-      {/* Full overlay for centered steps (welcome + complete) */}
-      {!hasTarget && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      ) : (
+        /* Full overlay for centered steps (welcome + complete) */
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       )}
 
       {/* Tooltip card */}
