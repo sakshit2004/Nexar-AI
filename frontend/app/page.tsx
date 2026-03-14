@@ -109,16 +109,19 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-3 items-start">
               <Link href="/register">
                 <Button size="lg" className="h-12 px-7 text-base font-semibold shadow-lg shadow-foreground/10 hover:shadow-foreground/20 transition-shadow">
-                  Get started free
+                  Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/search">
-                <button className="h-12 px-5 text-base text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 rounded-lg border border-border hover:border-foreground/30">
-                  Search grants
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </Link>
+              <a
+                href="https://github.com/sakshit2004/Nexar-AI"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-12 px-5 text-base text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 rounded-lg border border-border hover:border-foreground/30"
+              >
+                GitHub
+                <ChevronRight className="h-4 w-4" />
+              </a>
             </div>
           </div>
 
