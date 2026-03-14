@@ -36,9 +36,9 @@ async function fillEmail(email: string) {
 }
 
 describe('Login Page', () => {
-  it('renders the page heading "Sign in"', () => {
+  it('renders the page heading "Welcome back"', () => {
     render(<LoginPage />)
-    expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument()
   })
 
   it('renders email field on initial load', () => {
@@ -118,9 +118,9 @@ describe('Login Page', () => {
     })
   })
 
-  it('renders "Sign up" link to /register', () => {
+  it('renders "Sign up free" link to /register', () => {
     render(<LoginPage />)
-    const signUpLink = screen.getByRole('link', { name: /sign up/i })
+    const signUpLink = screen.getByRole('link', { name: /sign up free/i })
     expect(signUpLink).toHaveAttribute('href', '/register')
   })
 })
