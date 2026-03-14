@@ -87,12 +87,26 @@ export default function DashboardPage() {
   }, [sessionStatus, isAuthenticated, router]);
 
   // Show the interactive onboarding tour for new users who haven't completed onboarding.
-  // Also gate on localStorage so that navigating away and back doesn't re-show the tour
-  // while the async profile update is still in-flight.
+  // Gate on a per-user localStorage key so multiple users on the same browser are independent,
+  // and so navigating away and back doesn't re-show the tour while the async profile update
+  // is still in-flight.
+  const userEmail = user?.email ?? undefined;
+  const onboardingLocalKey = userEmail
+    ? `nexar_onboarding_complete:${userEmail.toLowerCase().trim()}`
+    : 'nexar_onboarding_complete';
+
   const [localOnboardingDone, setLocalOnboardingDone] = useState(() => {
     if (typeof window === 'undefined') return false;
+    // At first render the email may not be known yet; the effect below re-checks.
     return !!localStorage.getItem('nexar_onboarding_complete');
   });
+
+  // Re-evaluate once the user email is known so the correct per-user key is checked.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setLocalOnboardingDone(!!localStorage.getItem(onboardingLocalKey));
+  }, [onboardingLocalKey]);
+
   const showOnboardingTour = profileHydrated && profile && !profile.onboarding_completed && !localOnboardingDone;
 
   const handleCompleteOnboarding = async () => {
@@ -190,6 +204,7 @@ export default function DashboardPage() {
         <OnboardingTour
           forceShow={showOnboardingTour ?? false}
           onComplete={handleCompleteOnboarding}
+          userEmail={userEmail}
         />
       </Suspense>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
