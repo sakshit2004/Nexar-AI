@@ -4,18 +4,20 @@
 
 <div align="center">
 
-![Badge](https://img.shields.io/badge/Tech_Stack-Next.js_+_Python-yellow) ![Badge](https://img.shields.io/badge/Version-0.1.0-green) ![Badge](https://img.shields.io/badge/License-MIT-blue) ![Badge](https://img.shields.io/badge/Type-Open_Source-orange) ![Badge](https://img.shields.io/badge/For-Nonprofits_&_Small_Business-red)
+![Badge](https://img.shields.io/badge/Tech_Stack-Next.js_+_TypeScript-yellow) ![Badge](https://img.shields.io/badge/Version-0.1.0-green) ![Badge](https://img.shields.io/badge/License-MIT-blue) ![Badge](https://img.shields.io/badge/Type-Open_Source-orange) ![Badge](https://img.shields.io/badge/For-Nonprofits_%26_Small_Business-red) ![Badge](https://img.shields.io/badge/MLH-Fellowship-ff69b4)
 
 </div>
 
 <p align="center">
-  <em>Add your screenshot here: Create a <code>docs/nexar-screenshot.png</code> or use a raw GitHub URL</em>
+  <em>Add your screenshot here: place a <code>docs/nexar-screenshot.png</code> in the repo and update this src, or use a raw GitHub URL.</em>
 </p>
 
 <p align="center">
+  <a href="#-mlh-fellowship">MLH Fellowship</a> •
   <a href="#-about-nexar-ai">About</a> •
   <a href="#-key-features">Features</a> •
   <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
+  <a href="#-architecture">Architecture</a> •
   <a href="#-getting-started">Getting Started</a> •
   <a href="#-usage">Usage</a> •
   <a href="#-contributing">Contributing</a> •
@@ -23,17 +25,49 @@
   <a href="#-acknowledgements">Acknowledgements</a>
 </p>
 
+---
+
+## 🎓 MLH Fellowship
+
+> **This project is built as part of the [MLH Fellowship](https://fellowship.mlh.io/) — a 12-week, fully remote internship alternative where participants contribute to real open-source projects alongside engineers from top companies.**
+
+The MLH Fellowship Open Source Track is designed for aspiring software engineers who want real-world experience. Fellows work in small pods of ~10 people, collaborate via GitHub Issues and Pull Requests, go through code reviews with professional mentors, and contribute to projects that people actually depend on — not just side projects.
+
+Nexar-AI is one such project: an open-source, AI-powered federal grant discovery platform for nonprofits and small businesses. It uses modern web technologies (Next.js 15, OpenAI, Anthropic) and gives MLH Fellows hands-on experience with:
+
+- **Full-stack development** with Next.js App Router and serverless API routes
+- **AI/LLM integration** with OpenAI and Anthropic APIs including native web search
+- **Authentication & persistent storage** with NextAuth.js v5 and Upstash Redis
+- **Production deployment** on Vercel with cron jobs and transactional email
+- **Open-source collaboration** via Issues, feature branches, and Pull Requests
+
+**Apply to the MLH Fellowship:** [fellowship.mlh.io](https://fellowship.mlh.io/)
+
+---
+
 ## 🚀 About Nexar-AI
 
-Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-English summaries, and intelligent matching—all in seconds. 🚀
+Find federal grants in 5 minutes, not 5 hours. 🚀
+
+Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonprofits and small businesses. Instead of spending hours manually searching government portals, users describe their organization and goals — and the AI finds real, currently-open federal grant opportunities in seconds, with plain-English summaries and personalized eligibility scoring.
 
 ## 🌟 Key Features
 
-- **AI Grant Discovery**: Real-time federal grant search using OpenAI and Anthropic LLMs with built-in web search—no third-party search providers needed.
-- **Personalized Recommendations**: Get grant suggestions tailored to your organization's profile, focus areas, and keywords.
-- **Plain-English Summaries**: AI-generated summaries that translate complex grant requirements into clear, actionable language.
-- **Smart Search**: Natural language search with category and amount filters across federal grant opportunities.
-- **Save & Track Grants**: Bookmark grants, mark favorites, and manage your list—stored locally for instant access.
+- **AI Grant Discovery**: Real-time federal grant search using OpenAI (`gpt-4o-search-preview`) and Anthropic (`claude-3-5-haiku`) LLMs with built-in web search — no third-party search providers needed.
+- **Personalized Recommendations**: Get grant suggestions tailored to your organization's profile, focus areas, and keywords via your dashboard.
+- **Plain-English Summaries**: Two-stage AI analysis translates complex grant requirements into clear, actionable language with confidence scoring.
+- **Smart Search**: Natural language search with category and dollar-amount filters across federal grant opportunities.
+- **Save & Track Grants**: Bookmark grants and manage your list — stored in Upstash Redis per user account.
+- **Deadline Email Alerts**: Daily cron job sends Resend email notifications when saved grants are due in 7 days or 1 day.
+
+## 🎯 Live Demo
+
+| Credential | Value |
+|---|---|
+| Email | `admin@mlh.com` |
+| Password | `mlh` |
+
+> **Note:** The demo account uses hardcoded fallback credentials. If Upstash Redis is not configured, this account still works for testing LLM search and grant analysis.
 
 ## 🛠️ Tech Stack
 
@@ -42,13 +76,17 @@ Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-Engli
   <img src="https://img.shields.io/badge/React-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" alt="React">
   <img src="https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS">
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI">
   <img src="https://img.shields.io/badge/Anthropic-191919?style=for-the-badge&logo=anthropic&logoColor=white" alt="Anthropic">
+  <img src="https://img.shields.io/badge/Upstash-00E9A3?style=for-the-badge&logo=upstash&logoColor=black" alt="Upstash">
+  <img src="https://img.shields.io/badge/NextAuth.js-black?style=for-the-badge&logo=next.js&logoColor=white" alt="NextAuth">
   <img src="https://img.shields.io/badge/Zustand-764ABC?style=for-the-badge&logo=zustand&logoColor=white" alt="Zustand">
-  <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=tanstackquery&logoColor=white" alt="TanStack Query">
+  <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white" alt="TanStack Query">
+  <img src="https://img.shields.io/badge/Resend-000000?style=for-the-badge&logo=resend&logoColor=white" alt="Resend">
+  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest">
   <img src="https://img.shields.io/badge/Vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
+  <img src="https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white" alt="Git">
+  <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
 </p>
 
 ### Detailed Breakdown:
@@ -56,48 +94,139 @@ Find federal grants in 5 minutes, not 5 hours. AI-powered discovery, plain-Engli
 <details>
 <summary><b>Frontend</b></summary>
 
-- **Next.js 15**: App Router, server-side rendering, and API routes
+- **Next.js 15** (Turbopack): App Router, server-side rendering, and serverless API routes
 - **React 19**: Dynamic and responsive user interface
-- **TypeScript**: Type-safe development
-- **Tailwind CSS v4**: Rapid and customizable styling
-- **Radix UI** (Slot): Accessible component primitives
-- **Zustand**: State management for auth and profile
-- **TanStack React Query**: Server state and data fetching
-- **next-themes**: Light/dark theme support
-- **lucide-react**: Icons
+- **TypeScript**: Type-safe development across the entire codebase
+- **Tailwind CSS v4**: Rapid and customizable styling with dark mode support
+- **shadcn/ui** (Radix UI Slot + CVA): Accessible, composable UI component primitives
+- **next-themes**: Light/dark theme switching with system preference detection
+- **lucide-react**: Consistent icon set
 - **class-variance-authority**, **clsx**, **tailwind-merge**: Styling utilities
 </details>
 
 <details>
-<summary><b>Backend</b></summary>
+<summary><b>State Management & Data Fetching</b></summary>
 
-- **FastAPI**: High-performance Python API framework
-- **Python 3.11+**: Server-side logic and LLM integration
-- **Uvicorn**: ASGI server
-- **Pydantic**: Data validation and settings
+- **Zustand v5**: Client-side state for auth store and profile cache
+- **TanStack React Query v5**: Server state, data fetching, background refetching (60s stale time)
+- **SessionSync component**: Bridges NextAuth.js sessions into Zustand store automatically
+</details>
+
+<details>
+<summary><b>Authentication & Storage</b></summary>
+
+- **NextAuth.js v5** (beta): JWT session strategy with credentials provider
+- **Upstash Redis**: Serverless Redis for all persistent data
+  - `user:{email}` — hashed credentials
+  - `profile:{email}` — organization profile
+  - `saved:{email}` — saved grant IDs (set)
+  - `grant:{id}` — cached grant data (24-hour TTL)
+  - `all-users` — set of all registered emails (for cron)
+- **bcryptjs**: Password hashing for registration
 </details>
 
 <details>
 <summary><b>AI / LLM</b></summary>
 
-- **OpenAI**: gpt-4o-search-preview with native web search
-- **Anthropic**: Claude 3.5 Haiku with web_search_20250305 tool
-- **Dual provider support**: Automatic fallback if one provider fails
+- **OpenAI**: `gpt-4o-search-preview` with native web search for real-time grant discovery
+- **OpenAI**: `gpt-4o-mini` for fast plain-English grant summaries
+- **Anthropic**: `claude-3-5-haiku-latest` with `web_search_20250305` tool as fallback provider
+- **Dual-provider support**: Set `LLM_PROVIDER=openai` or `LLM_PROVIDER=anthropic`; automatic fallback if one provider fails
+- **Two-stage grant analysis**: (1) Plain-English summary → (2) Eligibility scoring with confidence percentage, reasons, and missing information
 </details>
 
 <details>
-<summary><b>State & Data</b></summary>
+<summary><b>Email & Cron</b></summary>
 
-- **In-memory grant cache**: Server-side cache for discovered grants (Next.js)
-- **Session storage**: Python backend session-based storage
-- **localStorage**: Client-side saved grants, auth, and profile persistence
+- **Resend**: Transactional email for grant deadline alert notifications (free tier: 100 emails/day)
+- **Vercel Cron**: Daily job at `0 9 * * *` (9 AM UTC) — scans all users' saved grants, sends alerts for grants due in 7 days or 1 day
 </details>
 
 <details>
-<summary><b>Hosting</b></summary>
+<summary><b>Testing</b></summary>
 
-- **Vercel**: Frontend deployment; optional separate Vercel project for Python API
+- **Vitest**: Fast unit and integration test runner
+- **@testing-library/react**: Component testing utilities
+- **jsdom**: DOM simulation for tests
 </details>
+
+<details>
+<summary><b>Hosting & DevOps</b></summary>
+
+- **Vercel**: Serverless deployment; AI routes have `maxDuration: 60` for LLM latency
+- **Git**: Source code management with feature branch workflow
+- **GitHub**: Collaborative development, Issues, and Pull Requests (MLH Fellowship workflow)
+</details>
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TD
+    Browser["Browser (React 19 + Next.js App Router)"]
+    NextAPI["Next.js API Routes (Serverless)"]
+    Auth["NextAuth.js v5 (JWT)"]
+    Redis["Upstash Redis (KV Store)"]
+    OpenAI["OpenAI gpt-4o-search-preview"]
+    Anthropic["Anthropic Claude 3.5 Haiku"]
+    Resend["Resend (Email)"]
+    Cron["Vercel Cron (Daily 9 AM UTC)"]
+
+    Browser -->|"API calls via TanStack Query"| NextAPI
+    NextAPI --> Auth
+    NextAPI -->|"user/profile/saved/grants"| Redis
+    NextAPI -->|"LLM_PROVIDER=openai"| OpenAI
+    NextAPI -->|"LLM_PROVIDER=anthropic (fallback)"| Anthropic
+    Cron -->|"deadline-check"| NextAPI
+    NextAPI -->|"deadline alerts"| Resend
+    Auth -->|"session JWT"| Browser
+```
+
+---
+
+## 📁 Project Structure
+
+```
+Nexar-AI/
+├── frontend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── auth/           # NextAuth handler + register + account delete
+│   │   │   ├── cron/           # deadline-check (daily email alerts)
+│   │   │   └── v1/
+│   │   │       ├── grants/     # search, recommended, [id], [id]/analyze
+│   │   │       ├── profile/    # GET + PUT organization profile
+│   │   │       └── saved/      # GET + POST + DELETE saved grants
+│   │   ├── dashboard/          # Authenticated home with recommendations
+│   │   ├── grants/[id]/        # Grant detail with AI summary + eligibility
+│   │   ├── login/              # NextAuth sign-in
+│   │   ├── onboarding/         # Post-registration onboarding flow
+│   │   ├── profile/            # Organization profile editor
+│   │   ├── register/           # New user registration
+│   │   ├── saved/              # Bookmarked grants
+│   │   ├── search/             # Natural language grant search
+│   │   └── providers.tsx       # SessionProvider + QueryClient + ThemeProvider
+│   ├── components/
+│   │   ├── ui/                 # shadcn/ui primitives (Button, Card, Badge, Input)
+│   │   ├── Navbar.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   ├── OnboardingTour.tsx
+│   │   └── landing/
+│   │       └── GrantVisualization.tsx
+│   ├── lib/                    # Shared utilities (auth, kv, grant-cache, stores)
+│   ├── scripts/
+│   │   └── seed-demo-user.ts   # Seeds demo account into Redis
+│   ├── types/                  # TypeScript augmentations
+│   ├── .env.example            # Environment variable template
+│   └── package.json
+├── tests/                      # Vitest test files
+├── vercel.json                 # Vercel config (maxDuration, cron schedule)
+├── CONTRIBUTING.md
+└── README.md
+```
+
+---
 
 ## 🚀 Getting Started
 
@@ -105,107 +234,144 @@ These instructions will help you set up Nexar-AI on your local machine for devel
 
 ### Prerequisites
 
-- **Node.js** (v18+) and npm
-- **OpenAI API key** or **Anthropic API key** (at least one required)
+- **Node.js** v18 or later
+- **npm** (comes with Node.js)
+- **OpenAI API key** or **Anthropic API key** (at least one required for grant discovery)
+- **Upstash Redis** database — free tier works (create at [upstash.com](https://upstash.com) or via [Vercel Integrations → Upstash](https://vercel.com/integrations/upstash))
 
-### Installation (Frontend-only — recommended)
+### Installation
 
-The app runs on Next.js with built-in API routes. No Python backend is required.
-
-1. **Clone the repository:**
+1. **Fork and clone the repository:**
    ```bash
    git clone https://github.com/yourusername/Nexar-AI.git
-   cd Nexar-AI
+   cd Nexar-AI/frontend
    ```
 
-2. **Set up and run the frontend:**
+2. **Install dependencies:**
    ```bash
-   cd frontend
    npm install
+   ```
+
+3. **Copy the environment variable template:**
+   ```bash
    cp .env.example .env.local
    ```
 
-3. **Add your LLM API keys** to `frontend/.env.local`:
-   ```
-   OPENAI_API_KEY=your_openai_api_key
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   LLM_PROVIDER=openai
-   ```
-   At least one of `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is required.
+4. **Fill in your API keys** in `frontend/.env.local` — at minimum:
+   ```env
+   # Required — generate with: openssl rand -base64 32
+   NEXTAUTH_SECRET=your-secret-here
+   NEXTAUTH_URL=http://localhost:3000
 
-4. **Start the dev server:**
+   # At least one LLM provider is required
+   OPENAI_API_KEY=your-openai-key
+   # ANTHROPIC_API_KEY=your-anthropic-key
+   LLM_PROVIDER=openai
+
+   # Required for persistent storage (free tier at upstash.com)
+   UPSTASH_REDIS_REST_URL=your-upstash-url
+   UPSTASH_REDIS_REST_TOKEN=your-upstash-token
+   ```
+
+5. **(Optional) Seed the demo user into Redis:**
+   ```bash
+   npx tsx scripts/seed-demo-user.ts
+   ```
+   > Skip this step if you don't have Redis configured — the app falls back to hardcoded demo credentials.
+
+6. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser** and go to `http://localhost:3000`.
+7. **Open your browser** and go to `http://localhost:3000`.
 
-### Installation (With Python backend — optional)
+### Running Without Redis
 
-Requires **Python 3.11+**. To run the FastAPI backend instead of Next.js API routes:
+If you don't have Upstash Redis configured, the app still runs. It falls back to hardcoded demo credentials for login (`admin@mlh.com` / `mlh`). Grant search and AI analysis will work as long as you have at least one LLM API key. Grant caching, saved grants, and profiles won't persist across sessions.
 
-1. Follow steps 1–2 above, then create a `.env` file in the **project root**:
-   ```
-   APP_URL=http://localhost:8000
-   ENVIRONMENT=development
-   DEBUG=True
-   LLM_PROVIDER=openai
-   OPENAI_API_KEY=your_openai_api_key
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   ```
+---
 
-2. **Create a virtual environment and install Python dependencies:**
-   ```bash
-   python -m venv venv
-   # On Windows: venv\Scripts\activate
-   # On macOS/Linux: source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+## 🔐 Environment Variables
 
-3. **Run the backend** (terminal 1):
-   ```bash
-   python -m backend.main
-   ```
-   Backend runs at `http://localhost:8000`.
+| Variable | Required | Description |
+|---|---|---|
+| `NEXTAUTH_SECRET` | Yes | JWT signing secret — generate with `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | Yes | App URL (`http://localhost:3000` locally) |
+| `OPENAI_API_KEY` | One of these | OpenAI API key for `gpt-4o-search-preview` and `gpt-4o-mini` |
+| `ANTHROPIC_API_KEY` | One of these | Anthropic API key for `claude-3-5-haiku-latest` |
+| `LLM_PROVIDER` | Yes | `openai` (default) or `anthropic` |
+| `UPSTASH_REDIS_REST_URL` | Recommended | Upstash Redis REST URL |
+| `UPSTASH_REDIS_REST_TOKEN` | Recommended | Upstash Redis REST token |
+| `RESEND_API_KEY` | Optional | Resend API key for deadline alert emails |
+| `CRON_SECRET` | Optional | Bearer token for Vercel cron job security |
 
-4. **Point the frontend to the backend** — In `frontend/.env.local`, set:
-   ```
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-   ```
+See [`frontend/.env.example`](frontend/.env.example) for the full reference with comments.
 
-5. **Run the frontend** (terminal 2):
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+---
 
-## Usage
+## 📖 Usage
 
 Once the project is running:
 
-1. **Sign in** — The app auto-logs in with a demo user for quick testing.
-2. **Set your profile** — Add your organization name, type, focus areas, and grant preferences.
-3. **Discover grants** — Use the dashboard for personalized recommendations or the search page for keyword search.
-4. **View details** — Click any grant for descriptions, eligibility, and AI-generated summaries.
-5. **Save grants** — Bookmark and favorite grants for later; they're stored in your browser.
+1. **Sign in** — Use the demo account (`admin@mlh.com` / `mlh`) or register a new account.
+2. **Set your profile** — Go to Profile and add your organization name, type, focus areas (e.g. education, healthcare), and grant preferences to unlock personalized recommendations.
+3. **Discover grants** — Use the Dashboard for AI-powered personalized recommendations, or the Search page for keyword and category-filtered grant search.
+4. **View grant details** — Click any grant to see the full description, eligibility requirements, deadline, and AI-generated plain-English summary with eligibility confidence score.
+5. **Save & track** — Bookmark grants you're interested in. With Resend configured, you'll receive email alerts when saved grants are due in 7 days or 1 day.
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Feel free to open an issue or submit a pull request.
+We welcome contributions from the community and MLH Fellows! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+
+### Quick Contribution Workflow
+
+1. **Fork** the repository and create a feature branch:
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+2. **Make your changes** — ensure `npm run build` passes with zero errors.
+3. **Run tests:**
+   ```bash
+   npm test
+   ```
+4. **Open a Pull Request** against `main` with a clear description of what you changed and why.
+
+**Branch naming conventions:**
+- `feat/` — new features
+- `fix/` — bug fixes
+- `docs/` — documentation updates
+- `refactor/` — code refactoring
+
+Please keep PRs focused — one feature or bug fix per PR. For major changes, open an Issue first to discuss the approach.
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## 🙏 Acknowledgements
 
-- **OpenAI** and **Anthropic** for LLM APIs with native web search capabilities
-- **Next.js** and **Vercel** for the modern frontend and deployment experience
-- **Grants.gov** and federal agencies for making grant information publicly accessible
+- **[MLH Fellowship](https://fellowship.mlh.io/)** — for creating a program that gives developers real-world, open-source experience
+- **[OpenAI](https://openai.com)** — for `gpt-4o-search-preview` and `gpt-4o-mini` with native web search capabilities
+- **[Anthropic](https://anthropic.com)** — for Claude 3.5 Haiku with the `web_search_20250305` tool
+- **[Vercel](https://vercel.com)** — for the modern Next.js deployment and hosting experience
+- **[Upstash](https://upstash.com)** — for serverless Redis with a generous free tier
+- **[Resend](https://resend.com)** — for transactional email with a developer-friendly API
+- **[Grants.gov](https://www.grants.gov)** and federal agencies — for making grant information publicly accessible
 - All open-source libraries and tools that made this project possible
+
+---
 
 <div align="center">
 
-[![Built with love](https://forthebadge.com/images/badges/built-by-developers.svg)](https://github.com)
+[![Built with love](https://forthebadge.com/images/badges/built-by-developers.svg)](https://github.com/sakshit2004)
+
+**[⭐ Star this repo](https://github.com/yourusername/Nexar-AI) · [🐛 Report a Bug](https://github.com/yourusername/Nexar-AI/issues) · [💡 Request a Feature](https://github.com/yourusername/Nexar-AI/issues) · [🎓 MLH Fellowship](https://fellowship.mlh.io/)**
 
 </div>
