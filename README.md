@@ -349,7 +349,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - **[Vercel](https://vercel.com)** — for the modern Next.js deployment and hosting experience
 - **[Upstash](https://upstash.com)** — for serverless Redis with a generous free tier
 - **[Resend](https://resend.com)** — for transactional email with a developer-friendly API
-- **[Grants.gov](https://www.grants.gov)** and federal agencies — for making grant information publicly accessible
 - All open-source libraries and tools that made this project possible
 - **[MLH Fellowship](https://fellowship.mlh.io/)** — for creating a program that gives developers real-world, open-source experience
 
