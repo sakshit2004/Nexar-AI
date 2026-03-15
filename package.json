@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm run build",
-    "dev": "cd frontend && npm run dev",
-    "start": "cd frontend && npm start",
-    "install:frontend": "cd frontend && npm install",
-    "test": "cd frontend && npm run test",
-    "test:frontend": "cd frontend && npm run test"
+    "build": "cd app && npm run build",
+    "dev": "cd app && npm run dev",
+    "start": "cd app && npm start",
+    "install:app": "cd app && npm install",
+    "test": "cd app && npm run test",
+    "test:app": "cd app && npm run test"
   },
   "workspaces": [
-    "frontend"
+    "app"
   ]
 }
