@@ -370,7 +370,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 <details>
 <summary><strong>📌 Note on AI-Assisted Development & MLH Fellowship</strong></summary>
 
-This project was developed with careful use of AI tools (e.g., GitHub Copilot, Cursor) as part of the learning experience. In line with MLH Fellowship values of transparency and hands-on learning:
+This project was developed with careful use of AI tools (e.g., GitHub Copilot for small features) as part of the learning experience. In line with MLH Fellowship values of transparency and hands-on learning:
 
 - **All code has been reviewed, tested, and validated** by the maintainer. AI suggestions were treated as starting points, not final implementations.
 - **Tests, builds, and manual QA** were run to ensure correctness before merging.
