@@ -9,8 +9,32 @@
 </div>
 
 <p align="center">
-  <em>Add your screenshot here: place a <code>docs/nexar-screenshot.png</code> in the repo and update this src, or use a raw GitHub URL.</em>
+  <a href="https://youtu.be/Fb2fXNaFupE" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.youtube.com/vi/Fb2fXNaFupE/hqdefault.jpg" alt="Watch Nexar-AI Demo" width="560" height="315" style="border-radius: 8px;" />
+  </a>
 </p>
+<p align="center">
+  <strong>▶ Watch the demo video</strong>
+</p>
+
+<table>
+<tr>
+<td width="50%"><img src="docs/dashboard.png" alt="Dashboard - Overview and recommendations" /></td>
+<td width="50%"><img src="docs/grant-detail.png" alt="Grant detail with AI summary and match score" /></td>
+</tr>
+<tr>
+<td width="50%"><em>Dashboard — personalized recommendations and saved grants</em></td>
+<td width="50%"><em>Grant detail — AI summary, eligibility, and save</em></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/saved-grants.png" alt="Saved grants with favorites" /></td>
+<td width="50%"><img src="docs/saved-grants-favorites.png" alt="Saved grants filtered by favorites" /></td>
+</tr>
+<tr>
+<td width="50%"><em>Saved grants — bookmark and favorite</em></td>
+<td width="50%"><em>Favorites filter — your top picks</em></td>
+</tr>
+</table>
 
 <p align="center">
   <a href="#-about-nexar-ai">About</a> •
