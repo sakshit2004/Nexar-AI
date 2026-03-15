@@ -4,7 +4,7 @@
 
 <div align="center">
 
-![Badge](https://img.shields.io/badge/Tech_Stack-Next.js_+_TypeScript-yellow) ![Badge](https://img.shields.io/badge/Version-0.1.0-green) ![Badge](https://img.shields.io/badge/License-MIT-blue) ![Badge](https://img.shields.io/badge/Type-Open_Source-orange) ![Badge](https://img.shields.io/badge/For-Nonprofits_%26_Small_Business-red) ![Badge](https://img.shields.io/badge/MLH-Fellowship-ff69b4)
+![Badge](https://img.shields.io/badge/Tech_Stack-Next.js_+_TypeScript-yellow) ![Badge](https://img.shields.io/badge/Version-0.1.0-green) ![Badge](https://img.shields.io/badge/License-MIT-blue) ![Badge](https://img.shields.io/badge/Type-Open_Source-orange) ![Badge](https://img.shields.io/badge/For-Nonprofits_%26_Small_Business-red) ![Badge](https://img.shields.io/badge/MLH-Fellowship-ff69b4) [![CI](https://github.com/sakshit2004/Nexar-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/sakshit2004/Nexar-AI/actions/workflows/ci.yml)
 
 </div>
 
@@ -151,6 +151,7 @@ Nexar-AI is an open-source, AI-powered grant discovery platform for nonprofits a
 
 - **Vercel**: Serverless deployment; AI routes have `maxDuration: 60` for LLM latency
 - **`vercel.json`**: Located at the **repo root** (not inside `app/`) — configures function timeouts and the daily cron job
+- **GitHub Actions** (`.github/workflows/ci.yml`): CI pipeline runs `tsc --noEmit` + `next build` on every push and PR to `main`
 - **Git**: Source code management with feature branch workflow
 - **GitHub**: Collaborative development, Issues, and Pull Requests (MLH Fellowship workflow)
 </details>
@@ -217,7 +218,8 @@ Nexar-AI/
 │   │   │   └── v1/
 │   │   │       ├── grants/     # search, recommended, [id], [id]/analyze
 │   │   │       ├── profile/    # GET + PUT organization profile
-│   │   │       └── saved/      # GET + POST + DELETE saved grants
+│   │   │       ├── saved/      # GET + POST + DELETE saved grants; favorite toggle
+│   │   │       └── [[...path]] # 404 catch-all for unknown v1 routes
 │   │   ├── dashboard/          # Authenticated home with recommendations
 │   │   ├── grants/[id]/        # Grant detail with AI summary + eligibility
 │   │   ├── login/              # NextAuth sign-in
@@ -232,6 +234,8 @@ Nexar-AI/
 │   │   ├── Navbar.tsx
 │   │   ├── ThemeToggle.tsx
 │   │   ├── OnboardingTour.tsx
+│   │   ├── OnboardingAssistant.tsx
+│   │   ├── LandingFooter.tsx
 │   │   └── landing/
 │   │       └── GrantVisualization.tsx
 │   ├── lib/                    # Shared utilities (auth, kv, grant-cache, stores)
@@ -242,6 +246,12 @@ Nexar-AI/
 │   ├── tests/                  # Vitest test files
 │   └── package.json
 ├── vercel.json                 # Vercel config (maxDuration, cron schedule)
+├── Makefile                    # Convenience commands (install, dev, build, test, lint)
+├── docker-compose.dev.yml      # Optional local Redis for advanced dev setups
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions CI (type-check + build)
+├── docs/                       # Screenshots used in this README
 ├── CONTRIBUTING.md
 └── README.md
 ```
