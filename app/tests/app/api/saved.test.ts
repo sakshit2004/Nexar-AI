@@ -57,9 +57,13 @@ describe('GET /api/v1/saved', () => {
     expect(body.total).toBe(0)
   })
 
-  it('returns populated list with grant data', async () => {
+  it('returns populated list with grant data and is_favorite', async () => {
     mockAuth.mockResolvedValue({ user: { email: 'test@example.com' } })
-    kvMock.smembers.mockResolvedValue(['g1', 'g2'])
+    kvMock.smembers.mockImplementation(async (key: string) => {
+      if (key === 'saved:test@example.com') return ['g1', 'g2']
+      if (key === 'favorites:test@example.com') return ['g1']
+      return []
+    })
     const grant1 = { id: 'g1', title: 'Grant 1', agency: 'DOE', deadline: '2025-07-01', category: 'Education' }
     const grant2 = { id: 'g2', title: 'Grant 2', agency: 'HHS', deadline: '2025-08-01', category: 'Health' }
     mockGetGrant.mockImplementation(async (id: string) => (id === 'g1' ? grant1 : grant2))
@@ -68,11 +72,17 @@ describe('GET /api/v1/saved', () => {
     const body = await res.json()
     expect(body.saved_grants).toHaveLength(2)
     expect(body.total_saved).toBe(2)
+    expect(body.favorites).toBe(1)
+    expect(body.saved_grants.find((g: { id: string }) => g.id === 'g1').is_favorite).toBe(true)
+    expect(body.saved_grants.find((g: { id: string }) => g.id === 'g2').is_favorite).toBe(false)
   })
 
   it('filters out null grants (not yet cached)', async () => {
     mockAuth.mockResolvedValue({ user: { email: 'test@example.com' } })
-    kvMock.smembers.mockResolvedValue(['g1', 'g-missing'])
+    kvMock.smembers.mockImplementation(async (key: string) => {
+      if (key === 'saved:test@example.com') return ['g1', 'g-missing']
+      return []
+    })
     mockGetGrant.mockImplementation(async (id: string) => (id === 'g1' ? { id: 'g1', title: 'G1' } : null))
     const res = await GET()
     const body = await res.json()
@@ -150,7 +160,7 @@ describe('DELETE /api/v1/saved', () => {
     expect(res.status).toBe(400)
   })
 
-  it('removes grant from saved set', async () => {
+  it('removes grant from saved and favorites sets', async () => {
     mockAuth.mockResolvedValue({ user: { email: 'test@example.com' } })
     kvMock.srem.mockResolvedValue(1)
     const res = await DELETE(makeRequest('DELETE', { grantId: 'g1' }))
@@ -158,6 +168,7 @@ describe('DELETE /api/v1/saved', () => {
     const body = await res.json()
     expect(body.ok).toBe(true)
     expect(kvMock.srem).toHaveBeenCalledWith('saved:test@example.com', 'g1')
+    expect(kvMock.srem).toHaveBeenCalledWith('favorites:test@example.com', 'g1')
   })
 
   it('returns 500 when KV throws during remove', async () => {

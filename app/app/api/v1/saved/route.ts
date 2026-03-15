@@ -1,14 +1,15 @@
 /**
  * /api/v1/saved — KV-backed saved grants for the authenticated user.
  *
- * GET    → list saved grants
+ * GET    → list saved grants (includes is_favorite per grant)
  * POST   → save a grant  { grantId: string }
  * DELETE → unsave a grant { grantId: string }
  *
  * KV keys:
- *   saved:{email}   → Redis set of grant IDs
- *   grant:{id}      → grant JSON (stored by search/recommended routes)
- *   all-users       → Redis set of all user emails (for cron)
+ *   saved:{email}     → Redis set of grant IDs
+ *   favorites:{email} → Redis set of favorited grant IDs
+ *   grant:{id}        → grant JSON (stored by search/recommended routes)
+ *   all-users        → Redis set of all user emails (for cron)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -29,24 +30,28 @@ export async function GET() {
   const email = session.user.email;
 
   try {
-    const grantIds = await kv.smembers(`saved:${email}`) as string[];
+    const grantIds = (await kv.smembers(`saved:${email}`)) as string[];
     if (!grantIds.length) {
       return NextResponse.json({ saved_grants: [], total: 0, favorites: 0, by_category: {}, by_status: {} });
     }
 
+    const favoriteIds = new Set((await kv.smembers(`favorites:${email}`)) as string[]);
+
     const grants = await Promise.all(
       grantIds.map(async (id: string) => {
         const g = await getGrant(id);
-        return g ?? null;
+        if (!g) return null;
+        return { ...g, is_favorite: favoriteIds.has(id) };
       }),
     );
 
     const validGrants = grants.filter(Boolean);
+    const favoritesCount = validGrants.filter((g: { is_favorite?: boolean }) => g.is_favorite).length;
     return NextResponse.json({
       saved_grants: validGrants,
       total: validGrants.length,
       total_saved: validGrants.length,
-      favorites: 0,
+      favorites: favoritesCount,
       by_category: {},
       by_status: {},
     });
@@ -97,6 +102,7 @@ export async function DELETE(request: NextRequest) {
 
   try {
     await kv.srem(`saved:${email}`, grantId);
+    await kv.srem(`favorites:${email}`, grantId);
     return NextResponse.json({ ok: true, grantId });
   } catch {
     return NextResponse.json({ detail: 'Failed to unsave grant' }, { status: 500 });

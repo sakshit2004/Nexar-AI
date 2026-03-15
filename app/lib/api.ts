@@ -172,8 +172,12 @@ export const savedGrantsApi = {
     return { saved_grants: results, total: results.length };
   },
 
-  toggleFavorite: async (_savedGrantId: string | number, _token?: string) => {
-    // Favorites are not yet stored in KV — return a no-op response
-    return { ok: true };
+  toggleFavorite: async (grantId: string | number, _token?: string) => {
+    const id = String(grantId);
+    if (!id) throw new Error('grantId is required');
+    return fetchWithError('/api/v1/saved/favorite', {
+      method: 'POST',
+      body: JSON.stringify({ grantId: id }),
+    });
   },
 };

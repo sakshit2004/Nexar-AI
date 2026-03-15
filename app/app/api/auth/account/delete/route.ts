@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
     await kv.del(`user:${sessionEmail}`);
     await kv.del(`profile:${sessionEmail}`);
     await kv.del(`saved:${sessionEmail}`);
+    await kv.del(`favorites:${sessionEmail}`);
     await kv.srem('all-users', sessionEmail);
   } catch (err) {
     console.error('Account deletion error:', err);
