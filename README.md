@@ -136,34 +136,47 @@ Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonp
 ## 🏗️ Architecture
 
 ```mermaid
-flowchart TD
-    Browser["Browser (React 19 + Next.js App Router)"]
-    SessionStorage["sessionStorage (grant cache)"]
-    NextAPI["Next.js API Routes (Serverless)"]
-    Auth["NextAuth.js v5\nCredentials-only, JWT cookies"]
-    Redis["Upstash Redis (KV Store)\nuser / profile / saved / grant cache"]
-    OpenAI["OpenAI\ngpt-4o-search-preview + gpt-4o-mini"]
-    Anthropic["Anthropic\nclaude-3-5-haiku + web_search tool"]
-    Resend["Resend (Email)"]
-    Cron["Vercel Cron (Daily 9 AM UTC)"]
+flowchart TB
+    subgraph CLIENT["🖥️ Client Layer"]
+        Browser["Browser\nReact 19 · Next.js App Router"]
+        SessionStorage["sessionStorage\nLocal grant cache"]
+    end
 
-    Browser -->|"API calls via TanStack Query"| NextAPI
-    Browser -->|"save grant on card click"| SessionStorage
-    SessionStorage -->|"grant detail page reads first"| Browser
+    subgraph SERVER["⚙️ Server Layer (Vercel Serverless)"]
+        NextAPI["Next.js API Routes"]
+        Auth["NextAuth.js v5\nCredentials · JWT cookies"]
+    end
 
-    NextAPI -->|"login: bcrypt check user:{email}"| Redis
-    NextAPI -->|"profile / saved / grant cache"| Redis
-    Auth -->|"JWT session cookie"| Browser
+    subgraph STORAGE["💾 Storage"]
+        Redis["Upstash Redis\nuser · profile · saved · grant cache"]
+    end
+
+    subgraph AI["🤖 AI / LLM"]
+        OpenAI["OpenAI\ngpt-4o-search · gpt-4o-mini"]
+        Anthropic["Anthropic\nclaude-3-5-haiku · web_search"]
+    end
+
+    subgraph EXTERNAL["📧 External Services"]
+        Resend["Resend\nTransactional email"]
+        Cron["Vercel Cron\nDaily 9 AM UTC"]
+    end
+
+    Browser -->|"TanStack Query"| NextAPI
+    Browser -->|"Save grant"| SessionStorage
+    SessionStorage -->|"Read grant detail"| Browser
+
     NextAPI --> Auth
+    Auth -->|"JWT cookie"| Browser
 
-    NextAPI -->|"LLM_PROVIDER=openai (default)"| OpenAI
-    NextAPI -->|"LLM_PROVIDER=anthropic (fallback)"| Anthropic
+    NextAPI -->|"Login · Profile · Saved · Cache"| Redis
+    NextAPI -->|"Analyze (body + Redis fallback)"| Redis
 
-    NextAPI -->|"analyze: grant from request body\nRedis as fallback"| Redis
+    NextAPI -->|"Default"| OpenAI
+    NextAPI -->|"Fallback"| Anthropic
 
-    Cron -->|"deadline-check route"| NextAPI
-    NextAPI -->|"read all-users + saved:{email}"| Redis
-    NextAPI -->|"deadline alert emails"| Resend
+    Cron -->|"deadline-check"| NextAPI
+    NextAPI -->|"all-users · saved:{email}"| Redis
+    NextAPI -->|"Deadline alerts"| Resend
 ```
 
 ---
