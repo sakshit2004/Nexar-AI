@@ -19,7 +19,7 @@ beforeEach(() => {
 describe('hasFutureDeadline', () => {
   it('returns true when deadline is empty', () => {
     expect(hasFutureDeadline({ deadline: '' })).toBe(true)
-    expect(hasFutureDeadline({ deadline: undefined } as { deadline: string })).toBe(true)
+    expect(hasFutureDeadline({ deadline: undefined } as unknown as { deadline: string })).toBe(true)
   })
 
   it('returns true when deadline is in the future', () => {

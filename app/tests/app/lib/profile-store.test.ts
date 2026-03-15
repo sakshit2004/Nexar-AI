@@ -34,6 +34,8 @@ describe('useProfileStore', () => {
       location_county: '',
       grant_amount_min: null,
       grant_amount_max: null,
+      onboarding_completed: false,
+      onboarding_step: 0,
     }
     mockFetch.mockReturnValue(mockOkJson({ profile }))
     const { useProfileStore } = await import('@/lib/profile-store')
@@ -69,6 +71,8 @@ describe('useProfileStore', () => {
       location_county: '',
       grant_amount_min: null,
       grant_amount_max: null,
+      onboarding_completed: false,
+      onboarding_step: 0,
     }
     mockFetch.mockReturnValue(mockOkJson({ profile: updatedProfile }))
     const { useProfileStore } = await import('@/lib/profile-store')
@@ -90,6 +94,8 @@ describe('useProfileStore', () => {
         location_county: '',
         grant_amount_min: null,
         grant_amount_max: null,
+        onboarding_completed: false,
+        onboarding_step: 0,
       },
     })
     mockFetch.mockReturnValue(mockOkJson({ profile: null }))
@@ -113,6 +119,8 @@ describe('useProfileStore', () => {
         location_county: '',
         grant_amount_min: null,
         grant_amount_max: null,
+        onboarding_completed: false,
+        onboarding_step: 0,
       },
     })
     useProfileStore.getState().clearProfile()
@@ -137,6 +145,8 @@ describe('useProfileStore', () => {
         location_county: '',
         grant_amount_min: null,
         grant_amount_max: null,
+        onboarding_completed: false,
+        onboarding_step: 0,
       },
     })
     expect(useProfileStore.getState().hasProfile()).toBe(true)
@@ -155,6 +165,8 @@ describe('useProfileStore', () => {
         location_county: '',
         grant_amount_min: null,
         grant_amount_max: null,
+        onboarding_completed: false,
+        onboarding_step: 0,
       },
     })
     expect(useProfileStore.getState().hasProfile()).toBe(true)
@@ -173,6 +185,8 @@ describe('useProfileStore', () => {
         location_county: '',
         grant_amount_min: null,
         grant_amount_max: null,
+        onboarding_completed: false,
+        onboarding_step: 0,
       },
     })
     expect(useProfileStore.getState().hasProfile()).toBe(false)
