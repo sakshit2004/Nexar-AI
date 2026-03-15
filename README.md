@@ -126,7 +126,7 @@ Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonp
 <summary><b>Hosting & DevOps</b></summary>
 
 - **Vercel**: Serverless deployment; AI routes have `maxDuration: 60` for LLM latency
-- **`vercel.json`**: Located at the **repo root** (not inside `frontend/`) — configures function timeouts and the daily cron job
+- **`vercel.json`**: Located at the **repo root** (not inside `app/`) — configures function timeouts and the daily cron job
 - **Git**: Source code management with feature branch workflow
 - **GitHub**: Collaborative development, Issues, and Pull Requests (MLH Fellowship workflow)
 </details>
@@ -172,7 +172,7 @@ flowchart TD
 
 ```
 Nexar-AI/
-├── frontend/
+├── app/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── auth/           # NextAuth handler + register + account delete
@@ -227,7 +227,7 @@ These instructions will help you set up Nexar-AI on your local machine for devel
 1. **Fork and clone the repository:**
    ```bash
    git clone https://github.com/sakshit2004/Nexar-AI.git
-   cd Nexar-AI/frontend
+   cd Nexar-AI/app
    ```
 
 2. **Install dependencies:**
@@ -240,7 +240,7 @@ These instructions will help you set up Nexar-AI on your local machine for devel
    cp .env.example .env.local
    ```
 
-4. **Fill in your API keys** in `frontend/.env.local` — at minimum:
+4. **Fill in your API keys** in `app/.env.local` — at minimum:
    ```env
    # Required — generate with: openssl rand -base64 32
    NEXTAUTH_SECRET=your-secret-here
@@ -293,7 +293,7 @@ The public landing page (`/`) and the unauthenticated grant search API (`GET /ap
 | `RESEND_API_KEY` | Optional | Resend API key for deadline alert emails |
 | `CRON_SECRET` | Optional | Bearer token for Vercel cron job security |
 
-See [`frontend/.env.example`](frontend/.env.example) for the full reference with comments.
+See [`app/.env.example`](app/.env.example) for the full reference with comments.
 
 ---
 

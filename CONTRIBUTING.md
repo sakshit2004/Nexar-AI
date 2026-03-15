@@ -114,7 +114,7 @@ All code contributions go through pull requests. Here is the full process:
 3. **Make your changes** — keep each PR focused on a single concern. Do not mix refactoring with feature work.
 4. **Ensure `npm run build` passes with zero TypeScript and ESLint errors** before pushing:
    ```bash
-   cd frontend
+   cd app
    npm run type-check
    npm run lint
    npm run build
@@ -152,7 +152,7 @@ A maintainer will review within a few days. Please respond to review comments wi
 ```bash
 # 1. Fork the repo on GitHub, then clone your fork
 git clone https://github.com/YOUR_USERNAME/Nexar-AI.git
-cd Nexar-AI/frontend
+cd Nexar-AI/app
 
 # 2. Install dependencies
 npm install
@@ -187,7 +187,7 @@ Without Redis, only the public landing page (`/`) and the unauthenticated grant 
 ### Running With Redis (Full Stack)
 
 1. Create a free Redis database at [upstash.com](https://upstash.com) (or connect via [Vercel Integrations → Upstash](https://vercel.com/integrations/upstash)).
-2. Copy `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the Upstash console into `frontend/.env.local`.
+2. Copy `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the Upstash console into `app/.env.local`.
 3. Run the seed script to create the demo account:
    ```bash
    npx tsx scripts/seed-demo-user.ts
@@ -200,7 +200,7 @@ Without Redis, only the public landing page (`/`) and the unauthenticated grant 
 
 ```
 Nexar-AI/
-├── frontend/
+├── app/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── auth/              # NextAuth handler, register, account delete
@@ -382,7 +382,7 @@ npm run test:watch
 | `RESEND_API_KEY` | Optional | Enables deadline alert emails. Free tier: 100 emails/day |
 | `CRON_SECRET` | Optional | Bearer token Vercel sends with cron job requests |
 
-See [`frontend/.env.example`](frontend/.env.example) for the full annotated reference.
+See [`app/.env.example`](app/.env.example) for the full annotated reference.
 
 ---
 
