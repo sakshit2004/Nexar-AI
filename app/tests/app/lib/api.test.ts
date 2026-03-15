@@ -197,4 +197,21 @@ describe('savedGrantsApi', () => {
     expect(result.saved_grants).toHaveLength(1)
     expect((result.saved_grants[0] as { title?: string }).title).toBe('Education Grant')
   })
+
+  it('toggleFavorite calls POST /api/v1/saved/favorite with grantId', async () => {
+    mockFetch.mockReturnValue(mockOkJson({ ok: true, grantId: 'g1', is_favorite: true }))
+    const { savedGrantsApi } = await import('@/lib/api')
+    const result = await savedGrantsApi.toggleFavorite('g1')
+    const [url, opts] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/v1/saved/favorite')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body as string)).toEqual({ grantId: 'g1' })
+    expect(result.ok).toBe(true)
+    expect(result.is_favorite).toBe(true)
+  })
+
+  it('toggleFavorite throws when grantId is empty', async () => {
+    const { savedGrantsApi } = await import('@/lib/api')
+    await expect(savedGrantsApi.toggleFavorite('')).rejects.toThrow('grantId is required')
+  })
 })

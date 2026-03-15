@@ -84,6 +84,7 @@ describe('POST /api/auth/account/delete', () => {
     expect(kvMock.del).toHaveBeenCalledWith('user:user@example.com')
     expect(kvMock.del).toHaveBeenCalledWith('profile:user@example.com')
     expect(kvMock.del).toHaveBeenCalledWith('saved:user@example.com')
+    expect(kvMock.del).toHaveBeenCalledWith('favorites:user@example.com')
     expect(kvMock.srem).toHaveBeenCalledWith('all-users', 'user@example.com')
   })
 
