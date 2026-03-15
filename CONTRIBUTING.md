@@ -208,7 +208,8 @@ Nexar-AI/
 │   │   │   └── v1/
 │   │   │       ├── grants/        # search, recommended, [id], [id]/analyze
 │   │   │       ├── profile/       # GET + PUT organization profile
-│   │   │       └── saved/         # GET + POST + DELETE saved grants
+│   │   │       ├── saved/         # GET + POST + DELETE saved grants; favorite toggle
+│   │   │       └── [[...path]]    # 404 catch-all for unknown v1 routes
 │   │   ├── dashboard/             # Auth-gated home; personalized grant recommendations
 │   │   ├── grants/[id]/           # Grant detail; AI summary + eligibility scoring
 │   │   ├── login/                 # NextAuth credentials sign-in
@@ -223,6 +224,8 @@ Nexar-AI/
 │   │   ├── Navbar.tsx             # Scroll-aware nav; shows auth links when signed in
 │   │   ├── ThemeToggle.tsx
 │   │   ├── OnboardingTour.tsx     # Interactive step-by-step feature tour
+│   │   ├── OnboardingAssistant.tsx # AI-powered onboarding chat assistant
+│   │   ├── LandingFooter.tsx      # Footer shown on the public landing page
 │   │   └── landing/
 │   │       └── GrantVisualization.tsx
 │   ├── lib/
@@ -243,6 +246,12 @@ Nexar-AI/
 │   ├── tests/                      # Vitest test files
 │   └── .env.example
 ├── vercel.json                    # Repo root — function timeouts + cron schedule
+├── Makefile                       # Convenience commands (install, dev, build, test, lint)
+├── docker-compose.dev.yml         # Optional local Redis for advanced dev setups
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # GitHub Actions CI (type-check + build on push/PR)
+├── docs/                          # Screenshots used in README
 └── CONTRIBUTING.md
 ```
 
@@ -256,6 +265,7 @@ Nexar-AI/
 | `app/api/v1/grants/search/route.ts` | The main grant search endpoint; calls `searchWithOpenAI` or `searchWithAnthropic` |
 | `app/api/v1/grants/[id]/analyze/route.ts` | Two-stage LLM analysis (summary + eligibility scoring) |
 | `app/api/cron/deadline-check/route.ts` | Daily email alerts — requires `CRON_SECRET` bearer token |
+| \.github/workflows/ci.yml\ | CI pipeline — runs type-check and build on every push/PR to \main\ |
 
 ---
 

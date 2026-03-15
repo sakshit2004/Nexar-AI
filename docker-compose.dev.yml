@@ -1,32 +1,20 @@
 # LOCAL DEV ONLY — not used in production.
-# Production runs entirely on Vercel (Next.js serverless + Vercel KV).
-# This file is kept only for developers who want to run a local Postgres + Redis
-# environment for experimentation. The Next.js app does NOT depend on these services.
+# Production runs entirely on Vercel (Next.js serverless + Upstash Redis).
+#
+# This file provides a local Redis instance for developers who prefer not to
+# create an Upstash account just for local development. The Next.js app
+# connects to it via UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN.
+#
+# NOTE: Upstash's local emulator or a plain Redis instance both work.
+# For the app to connect, you still need a REST-compatible adapter.
+# The easiest local option is to use Upstash's free cloud tier directly.
+# This compose file is kept for reference / advanced local setups only.
 version: '3.8'
 
 services:
-  # PostgreSQL database
-  db:
-    image: postgres:15-alpine
-    container_name: grantmatch-db
-    environment:
-      POSTGRES_DB: grantmatch
-      POSTGRES_USER: grantmatch
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U grantmatch"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis for caching
   redis:
     image: redis:7-alpine
-    container_name: grantmatch-redis
+    container_name: nexar-ai-redis
     ports:
       - "6379:6379"
     volumes:
@@ -38,5 +26,4 @@ services:
       retries: 3
 
 volumes:
-  postgres_data:
   redis_data:
