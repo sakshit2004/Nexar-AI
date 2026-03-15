@@ -215,8 +215,8 @@ Nexar-AI/
 │   │   └── seed-demo-user.ts   # Seeds demo account into Redis
 │   ├── types/                  # TypeScript augmentations
 │   ├── .env.example            # Environment variable template
+│   ├── tests/                  # Vitest test files
 │   └── package.json
-├── tests/                      # Vitest test files
 ├── vercel.json                 # Vercel config (maxDuration, cron schedule)
 ├── CONTRIBUTING.md
 └── README.md

@@ -240,8 +240,8 @@ Nexar-AI/
 │   │   └── seed-demo-user.ts      # Seeds admin@mlh.com into Redis
 │   ├── types/
 │   │   └── next-auth.d.ts         # Extends Session type with id field
+│   ├── tests/                      # Vitest test files
 │   └── .env.example
-├── tests/                         # Vitest test files
 ├── vercel.json                    # Repo root — function timeouts + cron schedule
 └── CONTRIBUTING.md
 ```
