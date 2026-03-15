@@ -1,7 +1,7 @@
 /**
  * GET /api/v1/grants/recommended
  * Implements grant discovery directly in Next.js using OpenAI or Anthropic web search.
- * Runs on Vercel as a Node.js serverless function — no Python backend needed.
+ * Runs on Vercel as a Node.js serverless function.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { storeGrants, hasFutureDeadline, type Grant } from '@/lib/grant-cache';
@@ -19,9 +19,39 @@ const VARIETY_PHRASES = [
   'student programs workforce',
 ];
 
+function buildRecommendedQuery(
+  q: string,
+  grantType: string | null,
+  seed: number,
+): string {
+  const typeMod =
+    grantType === 'federal'
+      ? 'federal '
+      : grantType === 'state'
+        ? 'state '
+        : grantType === 'foundation'
+          ? 'foundation '
+          : grantType === 'corporate'
+            ? 'corporate '
+            : '';
+  let searchQuery: string;
+  const words = q.trim().split(/\s+/);
+  const defaultQ = 'grants USA';
+  if (words.length <= 2 && q.toLowerCase() !== defaultQ.toLowerCase()) {
+    searchQuery = `open ${typeMod}grants for ${q} USA`;
+  } else {
+    searchQuery = `${q} ${typeMod}grant`.trim();
+  }
+  if (seed > 0) {
+    searchQuery += ` ${VARIETY_PHRASES[seed % VARIETY_PHRASES.length]}`;
+  }
+  return searchQuery;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const q = searchParams.get('q') || 'federal grants USA';
+  const q = searchParams.get('q') || 'grants USA';
+  const grantType = searchParams.get('grant_type');
   const limit = Math.min(parseInt(searchParams.get('limit') || '10', 10), 50);
   const seed = parseInt(searchParams.get('seed') || '0', 10);
 
@@ -36,16 +66,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  let searchQuery = q;
-  const words = q.trim().split(/\s+/);
-  if (words.length <= 2 && q.toLowerCase() !== 'federal grants usa') {
-    searchQuery = `open federal grants for ${q} USA`;
-  } else {
-    searchQuery = `${q} federal grant`;
-  }
-  if (seed > 0) {
-    searchQuery += ` ${VARIETY_PHRASES[seed % VARIETY_PHRASES.length]}`;
-  }
+  const searchQuery = buildRecommendedQuery(q, grantType, seed);
 
   const start = Date.now();
   let grants: Grant[] = [];
@@ -81,7 +102,7 @@ export async function GET(request: NextRequest) {
 
   const normalized = grants.filter(hasFutureDeadline).slice(0, limit);
   await storeGrants(normalized);
-  const isPersonalized = q !== 'federal grants USA' && q !== 'federal grants usa';
+  const isPersonalized = q.toLowerCase() !== 'grants usa';
 
   return NextResponse.json({
     grants: normalized,

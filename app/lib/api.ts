@@ -35,6 +35,7 @@ export const grantsApi = {
   search: async (params: {
     q?: string;
     category?: string;
+    grant_type?: 'federal' | 'state' | 'foundation' | 'corporate' | 'all';
     min_amount?: number;
     max_amount?: number;
   }) => {
@@ -51,10 +52,11 @@ export const grantsApi = {
 
   getRecommendations: async (
     _token: string,
-    params?: { q?: string; min_amount?: number; max_amount?: number; seed?: number },
+    params?: { q?: string; grant_type?: 'federal' | 'state' | 'foundation' | 'corporate' | 'all'; min_amount?: number; max_amount?: number; seed?: number },
   ) => {
     const searchParams = new URLSearchParams();
     if (params?.q) searchParams.append('q', params.q);
+    if (params?.grant_type) searchParams.append('grant_type', params.grant_type);
     if (params?.min_amount != null) searchParams.append('min_amount', String(params.min_amount));
     if (params?.max_amount != null) searchParams.append('max_amount', String(params.max_amount));
     if (params?.seed != null) searchParams.append('seed', String(params.seed));

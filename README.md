@@ -28,16 +28,16 @@
 
 ## 🚀 About Nexar-AI
 
-Find federal grants in 5 minutes, not 5 hours. 🚀
+Find grants in 5 minutes, not 5 hours. 🚀
 
-Nexar-AI is an open-source, AI-powered federal grant discovery platform for nonprofits and small businesses. Instead of spending hours manually searching government portals, users describe their organization and goals — and the AI finds real, currently-open federal grant opportunities in seconds, with plain-English summaries and personalized eligibility scoring.
+Nexar-AI is an open-source, AI-powered grant discovery platform for nonprofits and small businesses. Discover federal, state, foundation, and corporate grants — users describe their organization and goals, and the AI finds real, currently-open grant opportunities in seconds, with plain-English summaries and personalized eligibility scoring.
 
 ## 🌟 Key Features
 
-- **AI Grant Discovery**: Real-time federal grant search using OpenAI (`gpt-4o-search-preview`) and Anthropic (`claude-3-5-haiku`) LLMs with built-in web search — no third-party search providers needed.
+- **AI Grant Discovery**: Real-time grant search across federal, state, foundation, and corporate sources using OpenAI (`gpt-4o-search-preview`) and Anthropic (`claude-3-5-haiku`) LLMs with built-in web search — no third-party search providers needed.
 - **Personalized Recommendations**: Get grant suggestions tailored to your organization's profile, focus areas, and keywords via your dashboard.
 - **Plain-English Summaries**: Two-stage AI analysis translates complex grant requirements into clear, actionable language with confidence scoring.
-- **Smart Search**: Natural language search with category filters across federal grant opportunities.
+- **Smart Search**: Natural language search with category and grant-source filters (federal, state, foundation, corporate) across grant opportunities.
 - **Save & Track Grants**: Bookmark grants and manage your list — stored in Upstash Redis per user account.
 - **Deadline Email Alerts**: Daily cron job sends Resend email notifications when saved grants are due in 7 days or 1 day.
 
@@ -215,8 +215,8 @@ Nexar-AI/
 │   │   └── seed-demo-user.ts   # Seeds demo account into Redis
 │   ├── types/                  # TypeScript augmentations
 │   ├── .env.example            # Environment variable template
+│   ├── tests/                  # Vitest test files
 │   └── package.json
-├── tests/                      # Vitest test files
 ├── vercel.json                 # Vercel config (maxDuration, cron schedule)
 ├── CONTRIBUTING.md
 └── README.md
@@ -364,6 +364,21 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - **[Resend](https://resend.com)** — for transactional email with a developer-friendly API
 - All open-source libraries and tools that made this project possible
 - **[MLH Fellowship](https://fellowship.mlh.io/)** — for creating a program that gives developers real-world, open-source experience
+
+---
+
+<details>
+<summary><strong>📌 Note on AI-Assisted Development & MLH Fellowship</strong></summary>
+
+This project was developed with careful use of AI tools (e.g., GitHub Copilot, Cursor) as part of the learning experience. In line with MLH Fellowship values of transparency and hands-on learning:
+
+- **All code has been reviewed, tested, and validated** by the maintainer. AI suggestions were treated as starting points, not final implementations.
+- **Tests, builds, and manual QA** were run to ensure correctness before merging.
+- **AI was used responsibly** — for boilerplate, documentation, and iterative refinement, while core logic and architecture decisions remained human-driven.
+
+The MLH Fellowship emphasizes learning by doing and understanding the code you ship. This note reflects that commitment: tools assist, but the developer owns the outcome.
+
+</details>
 
 ---
 

@@ -1,11 +1,5 @@
 # Vercel ignore patterns
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv
-
 # Database files (use PostgreSQL on Vercel)
 *.db
 *.sqlite
@@ -17,8 +11,6 @@ logs/
 
 # Testing
 tests/
-.pytest_cache/
-.coverage
 
 # Documentation
 docs/
@@ -35,11 +27,6 @@ config/
 # IDE
 .vscode/
 .idea/
-
-# Python cache
-__pycache__/
-*.py[cod]
-*$py.class
 
 # OS files
 .DS_Store

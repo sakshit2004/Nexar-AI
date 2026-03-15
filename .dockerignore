@@ -7,17 +7,6 @@
 .env.*
 env.example
 
-# Python
-__pycache__
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-ENV/
-env/
-.venv
-
 # IDEs
 .vscode/
 .idea/
@@ -32,11 +21,6 @@ env/
 # Logs
 logs/
 *.log
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
 
 # Documentation
 *.md

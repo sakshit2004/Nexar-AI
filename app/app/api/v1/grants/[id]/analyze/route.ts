@@ -99,7 +99,7 @@ export async function POST(
   }
 
   // --- Call 1: Plain-English summary ---
-  const summaryPrompt = `Analyze this federal grant and provide a plain-English summary:
+  const summaryPrompt = `Analyze this grant and provide a plain-English summary:
 
 Grant: ${grant.title ?? 'Unknown'}
 Agency: ${grant.agency ?? 'Unknown'}
@@ -146,7 +146,7 @@ Provide:
         grant_amount_max: profileRaw.grant_amount_max ?? '',
       };
 
-      const eligibilityPrompt = `You are a federal grant eligibility expert. Given the grant eligibility requirements and the applicant's profile, determine eligibility.
+      const eligibilityPrompt = `You are a grant eligibility expert. Given the grant eligibility requirements and the applicant's profile, determine eligibility.
 
 GRANT ELIGIBILITY:
 ${grant.eligibility ?? 'Not specified'}

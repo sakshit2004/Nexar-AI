@@ -30,6 +30,7 @@ function SearchPageInner() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     category: '',
+    grant_type: '' as '' | 'federal' | 'state' | 'foundation' | 'corporate' | 'all',
     min_amount: '',
     max_amount: '',
   });
@@ -39,6 +40,7 @@ function SearchPageInner() {
   const [activeSearchParams, setActiveSearchParams] = useState({
     query: '',
     category: '',
+    grant_type: '' as '' | 'federal' | 'state' | 'foundation' | 'corporate' | 'all',
     min_amount: '',
     max_amount: '',
   });
@@ -55,7 +57,7 @@ function SearchPageInner() {
     const q = searchParams.get('q');
     if (q && isAuthenticated) {
       setSearchQuery(q);
-      setActiveSearchParams({ query: q, category: '', min_amount: '', max_amount: '' });
+      setActiveSearchParams({ query: q, category: '', grant_type: '', min_amount: '', max_amount: '' });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isAuthenticated]);
@@ -69,6 +71,9 @@ function SearchPageInner() {
       }
       if (activeSearchParams.category) {
         searchParams.category = activeSearchParams.category;
+      }
+      if (activeSearchParams.grant_type) {
+        searchParams.grant_type = activeSearchParams.grant_type;
       }
       if (activeSearchParams.min_amount) {
         searchParams.min_amount = parseInt(activeSearchParams.min_amount);
@@ -97,7 +102,7 @@ function SearchPageInner() {
 
   const handleQuickSearch = (query: string) => {
     setSearchQuery(query);
-    setActiveSearchParams({ query, category: '', min_amount: '', max_amount: '' });
+    setActiveSearchParams({ query, category: '', grant_type: '', min_amount: '', max_amount: '' });
   };
 
 
@@ -185,7 +190,7 @@ function SearchPageInner() {
                 {(filters.category || filters.min_amount || filters.max_amount) && (
                   <button
                     type="button"
-                    onClick={() => setFilters({ category: '', min_amount: '', max_amount: '' })}
+                    onClick={() => setFilters({ category: '', grant_type: '', min_amount: '', max_amount: '' })}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Clear filters
@@ -195,7 +200,21 @@ function SearchPageInner() {
 
               {/* Filters */}
               {showFilters && (
-                <div className="grid gap-4 md:grid-cols-3 animate-fade-in">
+                <div className="grid gap-4 md:grid-cols-4 animate-fade-in">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Grant Source</label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>option]:bg-background [&>option]:text-foreground"
+                      value={filters.grant_type}
+                      onChange={(e) => setFilters({ ...filters, grant_type: e.target.value as typeof filters.grant_type })}
+                    >
+                      <option value="">All Sources</option>
+                      <option value="federal">Federal</option>
+                      <option value="state">State</option>
+                      <option value="foundation">Foundation</option>
+                      <option value="corporate">Corporate</option>
+                    </select>
+                  </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Category</label>
                     <select
@@ -273,7 +292,7 @@ function SearchPageInner() {
                 <p className="text-sm text-muted-foreground text-center max-w-md">
                   {searchQuery.trim()
                     ? 'Click Search or press Enter to find grants matching your query.'
-                    : 'Enter keywords, select filters, and click Search to discover federal grant opportunities.'}
+                    : 'Enter keywords, select filters, and click Search to discover grant opportunities.'}
                 </p>
               </CardContent>
             </Card>
@@ -347,9 +366,9 @@ function SearchPageInner() {
               </div>
               <h4 className="font-semibold mb-2">No grants found</h4>
               <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                The search completed but no federal grants matched &quot;{activeSearchParams.query}&quot;.{' '}
+                The search completed but no grants matched &quot;{activeSearchParams.query}&quot;.{' '}
                 {(() => {
-                  const suggestions = ['Education', 'Health', 'Technology', 'Environment', 'federal grants'];
+                  const suggestions = ['Education', 'Health', 'Technology', 'Environment', 'grants'];
                   const current = activeSearchParams.query?.trim().toLowerCase();
                   const others = suggestions.filter(s => s.toLowerCase() !== current);
                   if (others.length === 0) {

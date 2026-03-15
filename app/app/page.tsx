@@ -81,7 +81,7 @@ export default function Home() {
             {/* Animated source types */}
             <p className="text-lg sm:text-xl text-muted-foreground mb-2 leading-relaxed">
               <TypewriterCycle
-                words={['Federal grants.', 'State grants.', 'Foundation grants.', 'Corporate grants.']}
+                words={['State grants.', 'Foundation grants.', 'Corporate grants.', 'Federal grants.', 'Any grant.']}
                 className="font-semibold text-foreground"
               />
               {' '}All in one place.
@@ -93,7 +93,7 @@ export default function Home() {
             {/* Checklist */}
             <ul className="space-y-3 mb-8">
               {[
-                'Search federal, state, foundation & corporate sources at once',
+                'Discover grants from any source — federal, state, foundation, or corporate',
                 'Get plain-English summaries of complex requirements',
                 'Know your eligibility before you apply',
               ].map((item) => (
@@ -154,7 +154,7 @@ export default function Home() {
               },
               {
                 title: 'Smart Search',
-                description: 'Natural language search across federal grants with AI-powered discovery'
+                description: 'Natural language search across grants from any source with AI-powered discovery'
               },
               {
                 title: 'Plain English',
