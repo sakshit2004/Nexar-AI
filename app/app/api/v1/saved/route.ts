@@ -46,7 +46,7 @@ export async function GET() {
     );
 
     const validGrants = grants.filter(Boolean);
-    const favoritesCount = validGrants.filter((g: { is_favorite?: boolean }) => g.is_favorite).length;
+    const favoritesCount = validGrants.filter((g) => g != null && g.is_favorite).length;
     return NextResponse.json({
       saved_grants: validGrants,
       total: validGrants.length,
