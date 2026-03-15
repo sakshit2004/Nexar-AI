@@ -236,7 +236,7 @@ export default function SavedGrantsPage() {
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
                           <span className="flex items-center gap-1.5">
                             <Building className="h-4 w-4" />
-                            {grant.agency || 'Federal Agency'}
+                            {grant.agency || 'Granting Organization'}
                           </span>
                           <span className="flex items-center gap-1.5">
                             <DollarSign className="h-4 w-4" />

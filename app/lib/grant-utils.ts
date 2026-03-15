@@ -4,24 +4,24 @@
  */
 import type { Grant } from '@/lib/grant-cache';
 
-export const EXTRACTION_PROMPT = `You are a federal grant discovery assistant. Use your web search capability to find REAL, currently open federal grant opportunities matching the query.
+export const EXTRACTION_PROMPT = `You are a grant discovery assistant. Use your web search capability to find REAL, currently open grant opportunities matching the query. Grants may come from federal, state, foundation, or corporate sources — find whatever the query specifies.
 
 For each grant found, extract a JSON object with EXACTLY these fields (all strings):
 - id: stable identifier derived from opportunity_number or a slug from title+agency
 - title: official grant title
-- agency: full federal agency name (e.g. "National Science Foundation", "U.S. Department of Education")
+- agency: full agency or organization name (e.g. "National Science Foundation", "California State Grants", "Ford Foundation", "Google.org")
 - description: 2-3 sentence description of the grant purpose
 - eligibility: who can apply (e.g. "Nonprofit organizations, universities, state/local governments")
 - award_amount: funding range (e.g. "$50,000 - $500,000") or "Varies" if unknown
 - deadline: application deadline in YYYY-MM-DD format, or empty string if unknown
 - category: one of [Education, Health, Environment, Science, Arts, Community Development, Agriculture, Technology]
-- url: real URL from search results pointing to the grant (grants.gov or agency site); never make up URLs
+- url: real URL from search results pointing to the grant; never make up URLs
 - opportunity_number: official opportunity/CFDA number if found, otherwise empty string
 
 Return ONLY a valid JSON array of such objects — no markdown, no explanation, no wrapper object.
-If fewer than {limit} real federal grants can be found, return what you found (never invent grants).
+If fewer than {limit} real grants can be found, return what you found (never invent grants).
 Search query: {query}
-Find up to {limit} real, currently open federal grant opportunities.`;
+Find up to {limit} real, currently open grant opportunities.`;
 
 export function parseGrantsJson(content: string): Record<string, unknown>[] {
   if (!content) return [];
@@ -58,7 +58,7 @@ export function normalizeGrant(g: Record<string, unknown>): Grant {
   return {
     id: str(g.id) || str(g.opportunity_number) || slug(`${str(g.title)}-${str(g.agency)}`),
     title: str(g.title) || 'Untitled Grant',
-    agency: str(g.agency) || 'Federal Agency',
+    agency: str(g.agency) || 'Granting Organization',
     description: str(g.description),
     eligibility: str(g.eligibility),
     award_amount: str(g.award_amount) || 'Varies',

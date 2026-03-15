@@ -13,36 +13,15 @@
 # Vercel (ignore local .vercel folder only; vercel.json is committed for rewrites/serverless)
 .vercel
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-!app/lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual environments
+# Python / virtual environments (ignore if present)
 venv/
+.venv/
 ENV/
 env/
-.venv
+__pycache__/
+*.py[cod]
+*.pyc
+.Python
 
 # IDEs
 .vscode/
@@ -62,13 +41,6 @@ grantmatch.db
 *.log
 logs/
 *.log.*
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -99,8 +71,3 @@ yarn-error.log*
 .pnpm-debug.log*
 /package-lock.json
 
-# Debug scripts (auto-generated)
-debug_test.py
-run_tests_debug.py
-test_config.py
-tests/test_simple.py

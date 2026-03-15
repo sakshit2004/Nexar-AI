@@ -174,7 +174,7 @@ export default function GrantDetailsPage() {
             <div className="flex-1">
               <Badge variant="secondary" className="mb-3">{grant.category || 'General'}</Badge>
               <h1 className="text-3xl font-bold mb-3">{grant.title}</h1>
-              <p className="text-muted-foreground text-lg">{grant.agency || 'Federal Agency'}</p>
+              <p className="text-muted-foreground text-lg">{grant.agency || 'Granting Organization'}</p>
             </div>
           </div>
 

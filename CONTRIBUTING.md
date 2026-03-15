@@ -85,7 +85,7 @@ Feature requests are welcome, especially if they directly improve the grant disc
 3. **Alternatives you considered** — why your approach is the best fit for this stack.
 4. **Impact on existing features** — does it touch the LLM prompt, Redis schema, NextAuth config, or cron job?
 
-Please do not open a feature request for the Python/FastAPI backend — that path is not actively developed. All features should work within the Next.js API route architecture.
+All features should work within the Next.js API route architecture.
 
 ---
 

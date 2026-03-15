@@ -9,10 +9,27 @@ import { searchWithOpenAI, searchWithAnthropic } from '@/lib/grant-utils';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
+function buildSearchQuery(q: string, category?: string | null, grantType?: string | null): string {
+  const type = grantType?.toLowerCase();
+  const typeSuffix =
+    type === 'federal'
+      ? ' federal grant'
+      : type === 'state'
+        ? ' state grant'
+        : type === 'foundation'
+          ? ' foundation grant'
+          : type === 'corporate'
+            ? ' corporate grant'
+            : ' grant';
+  const base = category ? `${q} ${category}${typeSuffix}` : `${q}${typeSuffix}`;
+  return base;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const q = searchParams.get('q') || 'federal grants USA';
+  const q = searchParams.get('q') || 'grants USA';
   const category = searchParams.get('category');
+  const grantType = searchParams.get('grant_type');
   const limit = Math.min(parseInt(searchParams.get('limit') || '10', 10), 50);
 
   const openaiKey = process.env.OPENAI_API_KEY;
@@ -26,7 +43,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const searchQuery = category ? `${q} ${category} federal grant` : `${q} federal grant`;
+  const searchQuery = buildSearchQuery(q, category, grantType);
   const start = Date.now();
   let grants: Grant[] = [];
   let usedProvider = provider;
