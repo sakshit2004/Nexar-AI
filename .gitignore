@@ -26,7 +26,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-!frontend/lib/
+!app/lib/
 lib64/
 parts/
 sdist/
