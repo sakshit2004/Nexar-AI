@@ -47,10 +47,10 @@ describe('GET /api/v1/profile', () => {
   it('returns parsed profile with deserialized arrays', async () => {
     mockAuth.mockResolvedValue({ user: { email: 'test@example.com' } })
     kvMock.hgetall.mockResolvedValue({
-      organization_name: 'MLH',
+      organization_name: 'Example Organization',
       organization_type: 'Education',
       focus_areas: '["Education","Tech"]',
-      keywords: '["fellowship","open source"]',
+      keywords: '["education","community"]',
       full_name: 'John',
       location_state: 'CA',
       location_county: '',
@@ -59,7 +59,7 @@ describe('GET /api/v1/profile', () => {
     })
     const res = await GET()
     const body = await res.json()
-    expect(body.profile.organization_name).toBe('MLH')
+    expect(body.profile.organization_name).toBe('Example Organization')
     expect(body.profile.focus_areas).toEqual(['Education', 'Tech'])
     expect(body.profile.keywords).toEqual(['fellowship', 'open source'])
     expect(body.profile.grant_amount_min).toBe(5000)

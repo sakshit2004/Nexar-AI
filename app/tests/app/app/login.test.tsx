@@ -58,8 +58,8 @@ describe('Login Page', () => {
 
   it('does not show hardcoded demo credential hints', () => {
     render(<LoginPage />)
-    expect(screen.queryByText('admin@mlh.com')).not.toBeInTheDocument()
-    expect(screen.queryByText(/Major League Hacking/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('admin@example.com')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Example Organization/i)).not.toBeInTheDocument()
   })
 
   it('reveals password field after clicking Continue with an email', async () => {

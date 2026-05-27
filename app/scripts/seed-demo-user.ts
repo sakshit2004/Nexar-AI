@@ -1,5 +1,5 @@
 /**
- * Seed the demo MLH user + profile into Upstash Redis.
+ * Seed the demo user + profile into Upstash Redis.
  *
  * Run once after provisioning the Redis integration:
  *   npx tsx scripts/seed-demo-user.ts
@@ -40,24 +40,24 @@ async function main() {
 
   const kv = new Redis({ url, token });
 
-  const email = 'admin@mlh.com';
-  const hashedPassword = await bcrypt.hash('mlh', 12);
+  const email = 'admin@example.com';
+  const hashedPassword = await bcrypt.hash('demo', 12);
 
   // Store user record
   await kv.hset(`user:${email}`, {
-    id: 'user-mlh',
+    id: 'user-demo',
     email,
-    name: 'MLH Fellow',
+    name: 'Demo User',
     password: hashedPassword,
   });
 
   // Store organization profile
   await kv.hset(`profile:${email}`, {
     full_name: '',
-    organization_name: 'Major League Hacking',
+    organization_name: 'Example Organization',
     organization_type: 'Education',
-    focus_areas: JSON.stringify(['Education', 'Open Source', 'Student hackathons', 'Technology']),
-    keywords: JSON.stringify(['fellowship', 'hackathon', 'students', 'software engineering', 'open source']),
+    focus_areas: JSON.stringify(['Education', 'Community Development', 'Technology']),
+    keywords: JSON.stringify(['grants', 'education', 'community', 'technology']),
     location_state: 'United States',
     location_county: '',
     grant_amount_min: '',
@@ -68,7 +68,7 @@ async function main() {
   await kv.sadd('all-users', email);
 
   console.log(`✓ Seeded user: ${email}`);
-  console.log('✓ Seeded profile: Major League Hacking');
+  console.log('✓ Seeded profile: Example Organization');
   console.log('✓ Added to all-users set');
 }
 

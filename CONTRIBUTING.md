@@ -1,6 +1,6 @@
 # Contributing to Nexar-AI
 
-First off, thank you for taking the time to contribute to Nexar-AI! This project is part of the [MLH Fellowship](https://fellowship.mlh.io/) Open Source track, and contributions from the community are what make it genuinely useful for nonprofits and small businesses trying to find federal funding.
+First off, thank you for taking the time to contribute to Nexar-AI! This project is an open-source effort, and contributions from the community are what make it genuinely useful for nonprofits and small businesses trying to find federal funding.
 
 This document covers everything you need to know: how to report bugs, propose features, set up your local environment, write code that passes review, and get your pull request merged.
 
@@ -76,7 +76,7 @@ Good bug reports include the exact LLM response or Redis key that caused the iss
 
 ### Suggesting Features
 
-Feature requests are welcome, especially if they directly improve the grant discovery experience for nonprofits or align with the MLH Fellowship learning objectives.
+Feature requests are welcome, especially if they directly improve the grant discovery experience for nonprofits or align with the project's goals.
 
 **To suggest a feature**, open a [new issue](https://github.com/sakshit2004/Nexar-AI/issues/new?template=feature_request.md) and include:
 
@@ -240,7 +240,7 @@ Nexar-AI/
 │   │   ├── saved-grants-store.ts  # Zustand saved grants store with optimistic UI
 │   │   └── validation.ts          # Email + password strength validation
 │   ├── scripts/
-│   │   └── seed-demo-user.ts      # Seeds admin@mlh.com into Redis
+│   │   └── seed-demo-user.ts      # Seeds admin@example.com into Redis
 │   ├── types/
 │   │   └── next-auth.d.ts         # Extends Session type with id field
 │   ├── tests/                      # Vitest test files
@@ -419,6 +419,5 @@ See [`app/.env.example`](app/.env.example) for the full annotated reference.
 
 - **General questions about the codebase** — open a [GitHub Discussion](https://github.com/sakshit2004/Nexar-AI/discussions) or comment on a relevant issue.
 - **Something broken locally** — check the [README's Getting Started section](README.md#-getting-started) first, especially the Redis requirement.
-- **MLH Fellowship questions** — visit [fellowship.mlh.io](https://fellowship.mlh.io/).
 
 Thank you for contributing to Nexar-AI. Every contribution — bug report, test, documentation fix, or feature — makes the tool more useful for the nonprofits and small businesses that depend on it.

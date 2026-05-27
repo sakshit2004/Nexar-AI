@@ -67,20 +67,7 @@ console.log('\n=== check-unused.ts ===\n');
   );
 }
 
-// ─── 2. mlh-defaults is not imported anywhere ─────────────────────────────
-{
-  const importers = filesExcluding('mlh-defaults').filter((f) => {
-    const content = readFile(f);
-    return content.includes('mlh-defaults') || content.includes('MLH_DEFAULT_PROFILE') || content.includes('MLH_FELLOWSHIP_URL') || content.includes('MLH_IO_URL');
-  });
-  check(
-    'lib/mlh-defaults.ts — not imported in any source file',
-    importers.length === 0,
-    importers.length > 0 ? `Found in: ${importers.map((f) => path.relative(ROOT, f)).join(', ')}` : undefined,
-  );
-}
-
-// ─── 3. /api/v1/saved-grants/stats is never called ───────────────────────
+// ─── 2. /api/v1/saved-grants/stats is never called ───────────────────────
 {
   // Exclude the route file itself (it contains the path in a comment)
   const callers = filesExcluding(path.join('saved-grants', 'stats')).filter((f) => {
@@ -94,7 +81,7 @@ console.log('\n=== check-unused.ts ===\n');
   );
 }
 
-// ─── 4. axios is not imported anywhere ────────────────────────────────────
+// ─── 3. axios is not imported anywhere ────────────────────────────────────
 {
   const axiosUsers = sourceFiles.filter((f) => {
     const content = readFile(f);
@@ -107,19 +94,13 @@ console.log('\n=== check-unused.ts ===\n');
   );
 }
 
-// ─── 5. OnboardingTour file exists (we haven't deleted it yet) ────────────
+// ─── 4. OnboardingTour file exists (we haven't deleted it yet) ────────────
 {
   const tourFile = path.join(COMPONENTS_DIR, 'OnboardingTour.tsx');
   check('components/OnboardingTour.tsx exists on disk (pre-deletion)', fs.existsSync(tourFile));
 }
 
-// ─── 6. mlh-defaults.ts file exists (we haven't deleted it yet) ───────────
-{
-  const mlhFile = path.join(LIB_DIR, 'mlh-defaults.ts');
-  check('lib/mlh-defaults.ts exists on disk (pre-deletion)', fs.existsSync(mlhFile));
-}
-
-// ─── 7. saved-grants/stats route exists (pre-deletion) ───────────────────
+// ─── 5. saved-grants/stats route exists (pre-deletion) ───────────────────
 {
   const statsRoute = path.join(APP_DIR, 'api', 'v1', 'saved-grants', 'stats', 'route.ts');
   check('app/api/v1/saved-grants/stats/route.ts exists on disk (pre-deletion)', fs.existsSync(statsRoute));

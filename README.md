@@ -4,7 +4,7 @@
 
 <div align="center">
 
-![Badge](https://img.shields.io/badge/Tech_Stack-Next.js_+_TypeScript-yellow) ![Badge](https://img.shields.io/badge/Version-0.1.0-green) ![Badge](https://img.shields.io/badge/License-MIT-blue) ![Badge](https://img.shields.io/badge/Type-Open_Source-orange) ![Badge](https://img.shields.io/badge/For-Nonprofits_%26_Small_Business-red) ![Badge](https://img.shields.io/badge/MLH-Fellowship-ff69b4) [![CI](https://github.com/sakshit2004/Nexar-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/sakshit2004/Nexar-AI/actions/workflows/ci.yml)
+![Badge](https://img.shields.io/badge/Tech_Stack-Next.js_+_TypeScript-yellow) ![Badge](https://img.shields.io/badge/Version-0.1.0-green) ![Badge](https://img.shields.io/badge/License-MIT-blue) ![Badge](https://img.shields.io/badge/Type-Open_Source-orange) ![Badge](https://img.shields.io/badge/For-Nonprofits_%26_Small_Business-red) [![CI](https://github.com/sakshit2004/Nexar-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/sakshit2004/Nexar-AI/actions/workflows/ci.yml)
 
 </div>
 
@@ -153,7 +153,7 @@ Nexar-AI is an open-source, AI-powered grant discovery platform for nonprofits a
 - **`vercel.json`**: Located at the **repo root** (not inside `app/`) — configures function timeouts and the daily cron job
 - **GitHub Actions** (`.github/workflows/ci.yml`): CI pipeline runs `tsc --noEmit` + `next build` on every push and PR to `main`
 - **Git**: Source code management with feature branch workflow
-- **GitHub**: Collaborative development, Issues, and Pull Requests (MLH Fellowship workflow)
+- **GitHub**: Collaborative development, Issues, and Pull Requests
 </details>
 
 ---
@@ -307,7 +307,7 @@ These instructions will help you set up Nexar-AI on your local machine for devel
    ```bash
    npx tsx scripts/seed-demo-user.ts
    ```
-   > This creates a demo account (`admin@mlh.com`) in Redis for quick testing. Requires Redis env vars to be set. Skip if you plan to register your own account.
+   > This creates a demo account (`admin@example.com`) in Redis for quick testing. Requires Redis env vars to be set. Skip if you plan to register your own account.
 
 6. **Start the development server:**
    ```bash
@@ -358,7 +358,7 @@ Once the project is running:
 
 ## 🤝 Contributing
 
-We welcome contributions from the community and MLH Fellows! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+We welcome contributions from the community! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ### Quick Contribution Workflow
 
@@ -397,20 +397,19 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - **[Upstash](https://upstash.com)** — for serverless Redis with a generous free tier
 - **[Resend](https://resend.com)** — for transactional email with a developer-friendly API
 - All open-source libraries and tools that made this project possible
-- **[MLH Fellowship](https://fellowship.mlh.io/)** — for creating a program that gives developers real-world, open-source experience
 
 ---
 
 <details>
-<summary><strong>📌 Note on AI-Assisted Development & MLH Fellowship</strong></summary>
+<summary><strong>📌 Note on AI-Assisted Development</strong></summary>
 
-This project was developed with careful use of AI tools (e.g., GitHub Copilot for small features) as part of the learning experience. In line with MLH Fellowship values of transparency and hands-on learning:
+This project was developed with careful use of AI tools (e.g., GitHub Copilot for small features) as part of the learning experience. In line with values of transparency and hands-on learning:
 
 - **All code has been reviewed, tested, and validated** by the maintainer. AI suggestions were treated as starting points, not final implementations.
 - **Tests, builds, and manual QA** were run to ensure correctness before merging.
 - **AI was used responsibly** — for boilerplate, documentation, and iterative refinement, while core logic and architecture decisions remained human-driven.
 
-The MLH Fellowship emphasizes learning by doing and understanding the code you ship. This note reflects that commitment: tools assist, but the developer owns the outcome.
+This note reflects that commitment: tools assist, but the developer owns the outcome.
 
 </details>
 
@@ -420,6 +419,6 @@ The MLH Fellowship emphasizes learning by doing and understanding the code you s
 
 [![Built with love](https://forthebadge.com/images/badges/built-by-developers.svg)](https://github.com/sakshit2004)
 
-**[⭐ Star this repo](https://github.com/sakshit2004/Nexar-AI) · [🐛 Report a Bug](https://github.com/sakshit2004/Nexar-AI/issues/new?template=bug_report.md) · [💡 Request a Feature](https://github.com/sakshit2004/Nexar-AI/issues/new?template=feature_request.md) · [🎓 MLH Fellowship](https://fellowship.mlh.io/)**
+**[⭐ Star this repo](https://github.com/sakshit2004/Nexar-AI) · [🐛 Report a Bug](https://github.com/sakshit2004/Nexar-AI/issues/new?template=bug_report.md) · [💡 Request a Feature](https://github.com/sakshit2004/Nexar-AI/issues/new?template=feature_request.md)**
 
 </div>

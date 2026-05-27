@@ -25,7 +25,7 @@ describe('useProfileStore', () => {
 
   it('fetchProfile hydrates store from API', async () => {
     const profile = {
-      organization_name: 'MLH',
+      organization_name: 'Example Organization',
       organization_type: 'Education',
       focus_areas: ['Education', 'Tech'],
       keywords: [],
@@ -40,7 +40,7 @@ describe('useProfileStore', () => {
     mockFetch.mockReturnValue(mockOkJson({ profile }))
     const { useProfileStore } = await import('@/lib/profile-store')
     await useProfileStore.getState().fetchProfile()
-    expect(useProfileStore.getState().profile?.organization_name).toBe('MLH')
+    expect(useProfileStore.getState().profile?.organization_name).toBe('Example Organization')
     expect(useProfileStore.getState().hydrated).toBe(true)
   })
 
