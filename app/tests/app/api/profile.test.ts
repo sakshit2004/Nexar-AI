@@ -61,7 +61,7 @@ describe('GET /api/v1/profile', () => {
     const body = await res.json()
     expect(body.profile.organization_name).toBe('Example Organization')
     expect(body.profile.focus_areas).toEqual(['Education', 'Tech'])
-    expect(body.profile.keywords).toEqual(['fellowship', 'open source'])
+    expect(body.profile.keywords).toEqual(['education', 'community'])
     expect(body.profile.grant_amount_min).toBe(5000)
     expect(body.profile.grant_amount_max).toBe(50000)
   })
